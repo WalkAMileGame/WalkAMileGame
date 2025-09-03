@@ -1,0 +1,22 @@
+[project]
+name = "the-wheel"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "iroguin",email = "143116756+Iroguin@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask (>=3.1.2,<4.0.0)",
+    "pylint (>=3.3.8,<4.0.0)",
+    "robot (>=20071211,<20071212)",
+    "invoke (>=2.2.0,<3.0.0)",
+    "coverage (>=7.10.6,<8.0.0)",
+    "autopep8 (>=2.3.2,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
