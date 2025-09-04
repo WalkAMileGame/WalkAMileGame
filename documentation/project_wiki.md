@@ -1,3 +1,10 @@
+# Walk A Mile Wiki
+
+## Dailies and Meetings
+
+- Remote dailies on mondays and tuesday at 10:00
+- Group meetings on thurdays at 12:00
+
 ## Definition of Done
 
 ### User story is done when
