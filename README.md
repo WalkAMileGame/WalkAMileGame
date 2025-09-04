@@ -3,4 +3,5 @@ This is the repository of the Walk a Mile Game for the software development proj
 
 ## Documentation
 
+[Instructions](./documentation/instructions.md)
 [Taskboard](https://docs.google.com/spreadsheets/d/1A6qgzNF7eFwW12SikSRkp7DugFDTFNgHiJknRVjrA_E/edit?usp=sharing)

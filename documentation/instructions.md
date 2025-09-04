@@ -4,7 +4,7 @@
 Clone the Repository
 In the root of the project run:
 ```
-Poetry install
+Poetry install --no-root
 ```
 then:
 ```
