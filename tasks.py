@@ -7,3 +7,20 @@ def server(c):
     with c.cd('frontend'):
         c.run(f'npm install')
         c.run('npm run dev -- --open')
+
+@task
+def test(c):
+    c.run("pytest", pty=False)
+
+@task
+def coverage(c):
+    c.run("coverage run --branch -m pytest; coverage html", pty=True)
+
+@task
+def lint(c):
+    c.run("pylint frontend/src/ backend/ ", pty=False)
+
+@task
+def autopep(c):
+    c.run("autopep8 --in-place --aggressive --recursive .", pty=True)
+
