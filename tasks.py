@@ -14,6 +14,7 @@ def test(c):
 
 @task
 def coverage(c):
+    """tracks pytest tests"""
     c.run("coverage run --branch -m pytest; coverage html", pty=True)
 
 @task
@@ -22,5 +23,5 @@ def lint(c):
 
 @task
 def autopep(c):
-    c.run("autopep8 --in-place --aggressive --recursive .", pty=True)
+    c.run("autopep8 --in-place --aggressive --recursive frontend/src/ backend/", pty=True)
 
