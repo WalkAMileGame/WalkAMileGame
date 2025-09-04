@@ -2,7 +2,7 @@
 
 ## Dailies and Meetings
 
-- Remote dailies on mondays and tuesday at 10:00
+- Remote dailies on mondays and tuesdays at 10:00
 - Group meetings on thurdays at 12:00
 
 ## Definition of Done
