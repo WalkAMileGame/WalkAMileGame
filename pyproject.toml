@@ -16,7 +16,8 @@ dependencies = [
     "autopep8 (>=2.3.2,<3.0.0)",
     "fastapi (>=0.116.1,<0.117.0)",
     "uvicorn (>=0.35.0,<0.36.0)",
-    "pymongo[srv] (==3.12.3)"
+    "pymongo[srv] (==3.12.3)",
+    "dotenv (>=0.9.9,<0.10.0)"
 ]
 
 
