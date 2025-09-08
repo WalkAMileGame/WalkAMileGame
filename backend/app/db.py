@@ -16,7 +16,8 @@ except Exception as e:
     print(e)
     
 
-db.points.insert_one({"id": "0", "values": 32})
+db.points.update_one({"id":"0"}, {"$set": {"values": 32}}, upsert=True)
 collections = db.list_collection_names()
 print("Collections in DB:", collections)
+
 #output: Collections in DB: ['users', 'movies', 'embedded_movies', 'points', 'comments', 'theaters', 'sessions'] <-- nää postetaan jossainvaiheessa.
