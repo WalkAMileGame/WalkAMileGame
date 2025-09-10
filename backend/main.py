@@ -1,11 +1,16 @@
 """run uvicorn app"""
+import os
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api import router
+from backend.app.db import initialize_database
 
 
 app = FastAPI()
+
+if os.getenv('TESTING') != 'true':
+    initialize_database()
 
 app.include_router(router)
 
