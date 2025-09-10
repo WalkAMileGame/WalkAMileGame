@@ -1,5 +1,6 @@
 import {useEffect, useState } from 'react'
 import myLogo from './assets/GB.png'
+// import GameBoard from "./GameBoard";
 import './App.css'
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
       </div>
       <div>
         <img src={myLogo} className="logo" alt="My Logo" />
+        {/* < GameBoard /> */}
       </div>
     </>
   )
