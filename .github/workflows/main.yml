@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: test_enviroment
 
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
