@@ -19,3 +19,10 @@ spec:
           command:
             - sleep
             - "3800"
+          volumeMounts:
+            - mountPath: /tmp
+              name: walkamile-volume
+      volumes:
+        - name: walkamile-volume
+          persistentVolumeClaim:
+            claimName: walkamile-claim
