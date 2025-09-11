@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: walkamile-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: walkamile
+  template:
+    metadata:
+      labels:
+        app: walkamile
+    spec:
+      containers:
+        - name: walkamile
+          image: WalkAMileGame/walkamile:1
+          ports:
+            - containerPort: 3000
+          env:
+           - name: DB_URL
+            #to be set:
+             value: postgresql://ohtuprojektitesti:passwordhere@hostnamehere:5432/ohtuprojekti?targetServerType=primary&ssl=true
