@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: test_enviroment
 
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -36,7 +37,11 @@ jobs:
         run: poetry run coverage xml
       
       - name: Pylint
-        run: poetry run invoke lint
+        run: poetry run invoke lint --backend
 
       - name: Coverage report to Codecov
         uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: true

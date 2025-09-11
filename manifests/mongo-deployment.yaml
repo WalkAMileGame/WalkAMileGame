@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: walkamile-mongo-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: walkamile-mongo
+  template:
+    metadata:
+      labels:
+        app: walkamile-ubuntu
+    spec:
+      containers:
+        - name: my-mongo
+          image: mongo
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: demo_user
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: demo_password
+          volumeMounts:
+            - mountPath: /data/db
+              name: walkamile-volume
+      volumes:
+        - name: walkamile-volume
+          persistentVolumeClaim:
+            claimName: walkamile-claim
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: walkamile-mongo-svc
+spec:
+  selector:
+    app: walkamile-mongo
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  type: ClusterIP
