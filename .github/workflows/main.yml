@@ -36,7 +36,7 @@ jobs:
         run: poetry run coverage xml
       
       - name: Pylint
-        run: poetry run invoke lint
+        run: poetry run invoke lint --backend
 
       - name: Coverage report to Codecov
         uses: codecov/codecov-action@v5
