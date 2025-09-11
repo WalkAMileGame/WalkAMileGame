@@ -1,9 +1,12 @@
+"""tests for backend fastapi code"""
 import os
-os.environ['TESTING'] = 'true'
+from unittest.mock import patch, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
-from unittest.mock import patch, MagicMock
+
+
+os.environ['TESTING'] = 'true'
 
 # Create a test app
 app = FastAPI()
@@ -31,11 +34,11 @@ def test_get_items(mock_db):
     mock_db.points.find.return_value = [
         {"id": "0", "values": 100}
     ]
-    
+
     response = client.get("/items")
     assert response.status_code == 200
     assert response.json() == {"id": "0", "values": 100}
-    
+
     # Verify database methods were called
     mock_db.points.find.assert_called_once_with({}, {"_id": 0})
 
@@ -46,15 +49,15 @@ def test_update_points_increase(mock_db):
     # Mock database response
     mock_db.points.update_one.return_value = MagicMock(modified_count=1)
     mock_db.points.find_one.return_value = {"id": "0", "values": 150}
-    
+
     response = client.put("/items", json={"change": 50})
     assert response.status_code == 200
     assert response.json() == {"id": "0", "values": 150}
-    
+
     # Verify database methods were called correctly
     mock_db.points.update_one.assert_called_once_with(
-        {"id": "0"}, 
-        {"$inc": {"values": 50}}, 
+        {"id": "0"},
+        {"$inc": {"values": 50}},
         upsert=True
     )
     mock_db.points.find_one.assert_called_once_with({"id": "0"}, {"_id": 0})
@@ -66,15 +69,15 @@ def test_update_points_decrease(mock_db):
     # Mock database response
     mock_db.points.update_one.return_value = MagicMock(modified_count=1)
     mock_db.points.find_one.return_value = {"id": "0", "values": 50}
-    
+
     response = client.put("/items", json={"change": -50})
     assert response.status_code == 200
     assert response.json() == {"id": "0", "values": 50}
-    
+
     # Verify the decrease was applied
     mock_db.points.update_one.assert_called_once_with(
-        {"id": "0"}, 
-        {"$inc": {"values": -50}}, 
+        {"id": "0"},
+        {"$inc": {"values": -50}},
         upsert=True
     )
 

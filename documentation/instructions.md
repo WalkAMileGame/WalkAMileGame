@@ -26,8 +26,12 @@ invoke test
 ```
 
 ## Lint
-Linting can be dune using command:
+Linting for can be dune using command:
 ```
-invoke test
+invoke lint
 ```
-This affects frontend/src/ and backend/ folders.
+This affects backend/ and frontend/ folders.
+To lint one or the other, decorators --backend and --frontend can be used.
+```
+invoke lint --frontend
+```

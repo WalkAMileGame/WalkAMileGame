@@ -1,9 +1,11 @@
 """Tests for main.py"""
 import os
-os.environ['TESTING'] = 'true'
+from unittest.mock import patch, MagicMock
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+
+
+os.environ['TESTING'] = 'true'
 
 # Mock the router before importing main
 with patch('backend.app.api.router') as mock_router:
@@ -34,4 +36,4 @@ def test_allowed_origins():
         }
     )
     # The response should include CORS headers for allowed origins
-    assert response.status_code == 200 or response.status_code == 405
+    assert response.status_code in (200, 405)
