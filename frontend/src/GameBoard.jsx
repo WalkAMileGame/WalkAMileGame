@@ -33,6 +33,21 @@ function GameBoard({ onSliceClick }) {
       "#e17f4d"
   ];
 
+    const labels2 = [
+    "Accept study place",
+    "Kela fee",
+    "Student union fee",
+    "Tuition fee",
+    "Register Attendance on OILI",
+    "Pay activate user / student account",
+    "Submit EHIC / GHIC to KELA",
+    "Attend pre-arrival sessions",
+    "Apply for housing",
+    "Apply for daycare",
+    "Join student communication platform",
+    "Make a Frank account"
+  ];
+
   const labels3 = [
     "Get familiar w/ area",
     "Get insured",
@@ -61,13 +76,13 @@ function GameBoard({ onSliceClick }) {
   const numSlices1 = labels1.length;
   const numSlices2 = labels2.length;
   const numSlices3 = labels3.length;
-  const size = 300;
+  const size1 = 300;
   const size2 = 550;
   const size3 = 800;
-  const radius = 150;
+  const radius1 = 150;
   const radius2 = 275;
   const radius3 = 400;
-  const center = 150;
+  const center1 = 150;
   const center2 = 275;
   const center3 = 400;
 
@@ -178,20 +193,20 @@ function GameBoard({ onSliceClick }) {
           </svg>
         </div>
         <div className="circle-ring inner">
-          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          <svg width={size1} height={size1} viewBox={`0 0 ${size1} ${size1}`}>
             {/* Slice shapes */}
             {labels1.map((label, i) => {
               const startAngle = (i * 360 / numSlices1) * Math.PI / 180;
               const endAngle = ((i + 1) * 360 / numSlices1) * Math.PI / 180;
-              const x1 = center + radius * Math.cos(startAngle);
-              const y1 = center + radius * Math.sin(startAngle);
-              const x2 = center + radius * Math.cos(endAngle);
-              const y2 = center + radius * Math.sin(endAngle);
+              const x1 = center1 + radius1 * Math.cos(startAngle);
+              const y1 = center1 + radius1 * Math.sin(startAngle);
+              const x2 = center1 + radius1 * Math.cos(endAngle);
+              const y2 = center1 + radius1 * Math.sin(endAngle);
               const fill = firstlayercolors[i % firstlayercolors.length];
               return (
                 <path
                   key={i}
-                  d={`M${center},${center} L${x1},${y1} A${radius},${radius} 0 0,1 ${x2},${y2} Z`}
+                  d={`M${center1},${center1} L${x1},${y1} A${radius1},${radius1} 0 0,1 ${x2},${y2} Z`}
                   fill={fill}
                   stroke="#f5f2d0"
                   strokeWidth="6"
@@ -204,9 +219,9 @@ function GameBoard({ onSliceClick }) {
             {/* Slice text */}
             {labels1.map((label, i) => {
                 const midAngle = ((i + 0.5) * 360 / numSlices1) * Math.PI / 180; // middle of slice
-                const textRadius = radius * 0.6; // distance from center (inside slice)
-                const x = center + textRadius * Math.cos(midAngle);
-                const y = center + textRadius * Math.sin(midAngle);
+                const textRadius = radius1 * 0.6; // distance from center (inside slice)
+                const x = center1 + textRadius * Math.cos(midAngle);
+                const y = center1 + textRadius * Math.sin(midAngle);
                 const rotation = (midAngle * 180 / Math.PI); // rotate text to slice angle
 
               return (
