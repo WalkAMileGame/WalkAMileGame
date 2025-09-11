@@ -2,7 +2,14 @@ import React from "react";
 import "./App.css";
 
 function GameBoard({ onSliceClick }) {
-  const labels = [
+    // numbers of buttons
+    const FirstLayer = 10
+    const SecondLayer = 12
+    const ThirdLayer = 23
+    const FourthLayer = 19
+
+    //first layer
+    const labels = [
     "Documents",
     "Health Insurance",
     "Pay Fees",
@@ -13,6 +20,18 @@ function GameBoard({ onSliceClick }) {
     "Visit service point",
     "Book an appointment /w service point",
     "Get a D-visa"
+  ];
+    const firstlayercolors = [
+      "#ffc072",
+      "#ffb088",
+      "#ffc072",
+      "#ffb088",
+      "#d79543",
+      "#d79543",
+      "#d79543",
+      "#e17f4d",
+      "#e17f4d",
+      "#e17f4d"
   ];
   const numSlices = labels.length;
   const size = 300;
@@ -35,14 +54,14 @@ function GameBoard({ onSliceClick }) {
               const y1 = center + radius * Math.sin(startAngle);
               const x2 = center + radius * Math.cos(endAngle);
               const y2 = center + radius * Math.sin(endAngle);
-              const fill = i % 2 === 0 ? "#ffcc66" : "#66ccff";
+              const fill = firstlayercolors[i % firstlayercolors.length];
               return (
                 <path
                   key={i}
                   d={`M${center},${center} L${x1},${y1} A${radius},${radius} 0 0,1 ${x2},${y2} Z`}
                   fill={fill}
                   stroke="#f5f2d0"
-                  strokeWidth="2"
+                  strokeWidth="6"
                   style={{ cursor: "pointer" }}
                   onClick={() => onSliceClick && onSliceClick(label)}
                 />
@@ -51,28 +70,27 @@ function GameBoard({ onSliceClick }) {
 
             {/* Slice text */}
             {labels.map((label, i) => {
-                const midAngle = ((i + 0.5) * 360 / numSlices) * Math.PI / 180; // middle of slice
-                const textRadius = radius * 0.6; // distance from center (inside slice)
-                const x = center + textRadius * Math.cos(midAngle);
-                const y = center + textRadius * Math.sin(midAngle);
-                const rotation = (midAngle * 180 / Math.PI); // rotate text to slice angle
+              const midAngle = ((i + 0.5) * 360 / numSlices) * Math.PI / 180; // middle of slice
+              const textRadius = radius * 0.85; // closer to outer edge (pizzacrust)
+              const x = center + textRadius * Math.cos(midAngle);
+              const y = center + textRadius * Math.sin(midAngle);
 
-                return (
-                    <text
+              return (
+                  <text
                     key={`text-${i}`}
                     x={x}
                     y={y}
                     fill="#000"
                     fontSize="12"
                     fontWeight="bold"
-                    textAnchor="middle"
+                    textAnchor={midAngle > Math.PI / 2 && midAngle < 3 * Math.PI / 2 ? "end" : "start"} 
                     alignmentBaseline="middle"
-                    transform={`rotate(${rotation}, ${x}, ${y})`}
-                    style={{ pointerEvents: "none" }} // so clicks go to slice
-                    >
+                    style={{ pointerEvents: "none" }}
+                  >
                     {label}
-                    </text>
-                );
+                  </text>
+              );
+
                 })}
           </svg>
 
@@ -84,3 +102,5 @@ function GameBoard({ onSliceClick }) {
 }
 
 export default GameBoard;
+
+  
