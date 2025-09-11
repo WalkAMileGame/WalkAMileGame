@@ -1,4 +1,7 @@
 # WalkAMileGame
+[![GHA workflow Badge](https://github.com/WalkAMileGame/WalkAMileGame/workflows/CI/badge.svg)](https://github.com/WalkAMileGame/WalkAMileGame/actions)
+[![codecov](https://codecov.io/gh/WalkAMileGame/WalkAMileGame/graph/badge.svg?token=J0JPV9UMQ6)](https://codecov.io/gh/WalkAMileGame/WalkAMileGame)
+
 This is the repository of the Walk a Mile Game for the software development project course of the University of Helsinki.
 
 ## Documentation
