@@ -18,7 +18,7 @@ spec:
           imagePullPolicy: Always
           command:
             - sleep
-            - "3800"
+            - "3600"
           volumeMounts:
             - mountPath: /tmp
               name: walkamile-volume
