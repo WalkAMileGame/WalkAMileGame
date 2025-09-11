@@ -18,4 +18,4 @@ spec:
           imagePullPolicy: Always
           command:
             - sleep
-            - "3600"
+            - "3800"
