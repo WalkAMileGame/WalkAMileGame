@@ -67,6 +67,7 @@
   top: 50%;
   border-radius: 50%;
   border: 5px solid #333;
+  box-shadow: 0 0 0 5px #f5f2d0;
   transform: translate(-50%, -50%);
 }
 
