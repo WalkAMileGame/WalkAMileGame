@@ -59,12 +59,16 @@ function GameBoard({ onSliceClick }) {
     "Register address",
   ];
   const numSlices1 = labels1.length;
+  const numSlices2 = labels2.length;
   const numSlices3 = labels3.length;
   const size = 300;
+  const size2 = 550;
   const size3 = 800;
   const radius = 150;
+  const radius2 = 275;
   const radius3 = 400;
   const center = 150;
+  const center2 = 275;
   const center3 = 400;
 
   return (
@@ -122,7 +126,57 @@ function GameBoard({ onSliceClick }) {
                 })}
           </svg>
         </div>
-        <div className="circle-ring inner-middle"></div>
+        <div className="circle-ring inner-middle">
+          <svg width={size2} height={size2} viewBox={`0 0 ${size2} ${size2}`}>
+            {/* Slice shapes */}
+            {labels2.map((label, i) => {
+              const startAngle = (i * 360 / numSlices2) * Math.PI / 180;
+              const endAngle = ((i + 1) * 360 / numSlices2) * Math.PI / 180;
+              const x1 = center2 + radius2 * Math.cos(startAngle);
+              const y1 = center2 + radius2 * Math.sin(startAngle);
+              const x2 = center2 + radius2 * Math.cos(endAngle);
+              const y2 = center2 + radius2 * Math.sin(endAngle);
+              const fill = i % 2 === 0 ? "#ffcc66" : "#66ccff";
+              return (
+                <path
+                  key={i}
+                  d={`M${center2},${center2} L${x1},${y1} A${radius2},${radius2} 0 0,1 ${x2},${y2} Z`}
+                  fill={fill}
+                  stroke="#f5f2d0"
+                  strokeWidth="2"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => onSliceClick && onSliceClick(label)}
+                />
+              );
+            })}
+
+            {/* Slice text */}
+            {labels2.map((label, i) => {
+                const midAngle = ((i + 0.5) * 360 / numSlices2) * Math.PI / 180; // middle of slice
+                const textRadius = radius2 * 0.6; // distance from center (inside slice)
+                const x = center2 + textRadius * Math.cos(midAngle);
+                const y = center2 + textRadius * Math.sin(midAngle);
+                const rotation = (midAngle * 180 / Math.PI); // rotate text to slice angle
+
+                return (
+                    <text
+                    key={`text-${i}`}
+                    x={x}
+                    y={y}
+                    fill="#000"
+                    fontSize="12"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    alignmentBaseline="middle"
+                    transform={`rotate(${rotation}, ${x}, ${y})`}
+                    style={{ pointerEvents: "none" }} // so clicks go to slice
+                    >
+                    {label}
+                    </text>
+                );
+                })}
+          </svg>
+        </div>
         <div className="circle-ring inner">
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
             {/* Slice shapes */}
