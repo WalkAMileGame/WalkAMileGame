@@ -1,396 +1,193 @@
 import React from "react";
 import "./App.css";
 
+// ====================================================================================
+// 1. Reusable Pie Chart Component
+// This component draws one circle and receives all its data via props.
+// ====================================================================================
+const Circle = ({
+  radius,
+  labels,
+  colors,
+  onSliceClick,
+  textStyle,
+  charLimit,
+  className = ""
+}) => {
+  const size = radius * 2;
+  const center = radius;
+  const numSlices = labels.length;
+
+  return (
+    <div className={`circle-ring ${className}`}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {/* === Slice Shapes === */}
+        {labels.map((label, i) => {
+          const startAngle = (i * 360 / numSlices) * Math.PI / 180;
+          const endAngle = ((i + 1) * 360 / numSlices) * Math.PI / 180;
+          const x1 = center + radius * Math.cos(startAngle);
+          const y1 = center + radius * Math.sin(startAngle);
+          const x2 = center + radius * Math.cos(endAngle);
+          const y2 = center + radius * Math.sin(endAngle);
+          const fill = colors[i % colors.length];
+
+          return (
+            <path
+              key={`slice-${label}-${i}`}
+              d={`M${center},${center} L${x1},${y1} A${radius},${radius} 0 0,1 ${x2},${y2} Z`}
+              fill={fill}
+              stroke="#f5f2d0"
+              strokeWidth="6"
+              style={{ cursor: "pointer" }}
+              onClick={() => onSliceClick && onSliceClick(label)}
+            />
+          );
+        })}
+
+        {/* === Slice Text (conditionally rendered based on style) === */}
+        {textStyle === 'curved' && labels.map((label, i) => {
+          if (radius <= 50) return null; // Don't render text if too small
+
+          // Splits long labels into multiple lines for curved paths
+          const regex = new RegExp(`.{1,${charLimit}}`, 'g');
+          const lines = label.length > charLimit ? label.match(regex) : [label];
+
+          return lines.map((line, lineIndex) => {
+            const startAngle = (i * 360 / numSlices);
+            const endAngle = ((i + 1) * 360 / numSlices);
+            const midAngle = startAngle + (endAngle - startAngle) / 2;
+
+            // Each line needs its own radius, stacked inside the other
+            const textPathRadius = radius - 15 - (lineIndex * 15);
+            if (textPathRadius <= 0) return null; // Avoid invalid radius
+
+            const x1 = center + textPathRadius * Math.cos(startAngle * Math.PI / 180);
+            const y1 = center + textPathRadius * Math.sin(startAngle * Math.PI / 180);
+            const x2 = center + textPathRadius * Math.cos(endAngle * Math.PI / 180);
+            const y2 = center + textPathRadius * Math.sin(endAngle * Math.PI / 180);
+            const pathId = `path-${label}-${i}-${lineIndex}`;
+            const largeArcFlag = (endAngle - startAngle) <= 180 ? "0" : "1";
+            
+            const pathData = `M${x1},${y1} A${textPathRadius},${textPathRadius} 0 ${largeArcFlag} 1 ${x2},${y2}`;
+            
+            const dy = 6;
+
+            return (
+              <g key={`text-${label}-${i}-line-${lineIndex}`}>
+                <defs>
+                  <path id={pathId} d={pathData} />
+                </defs>
+                <text dy={dy} style={{ pointerEvents: "none" }}>
+                  <textPath
+                    xlinkHref={`#${pathId}`}
+                    style={{ textAnchor: "middle" }}
+                    startOffset="50%"
+                    fill="#000"
+                    fontSize="12"
+                    fontWeight="bold"
+                  >
+                    {line}
+                  </textPath>
+                </text>
+              </g>
+            );
+          });
+        })}
+
+        {textStyle === 'straight' && labels.map((label, i) => {
+          const midAngle = ((i + 0.5) * 360 / numSlices) * Math.PI / 180;
+          const textRadius = radius * 0.75; // Adjust position from center
+          const x = center + textRadius * Math.cos(midAngle);
+          const y = center + textRadius * Math.sin(midAngle);
+          const rotation = (midAngle * 180 / Math.PI);
+
+          return (
+            <text
+              key={`text-${label}-${i}`}
+              x={x}
+              y={y}
+              fill="#000"
+              fontSize="12"
+              fontWeight="bold"
+              textAnchor="middle"
+              alignmentBaseline="middle"
+              transform={`rotate(${rotation}, ${x}, ${y})`}
+              style={{ pointerEvents: "none" }}
+            >
+              {label}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
+
+// ====================================================================================
+// 2. Main GameBoard Component
+// This component defines the data and maps over it to render the circles.
+// ====================================================================================
 function GameBoard({ onSliceClick }) {
-    // numbers of buttons
-    const FirstLayer = 10
-    const SecondLayer = 12
-    const ThirdLayer = 23
-    const FourthLayer = 19
-
-    const labels1 = [
-    "Documents",
-    "Health Insurance",
-    "Pay Fees",
-    "Documents for family",
-    "Health Insurance for Family",
-    "Pay family fees",
-    "Aquire funds and visa to visit service point",
-    "Visit service point",
-    "Book an appointment /w service point",
-    "Get a D-visa"
+  // Data for all circles
+  const chartData = [
+    {
+      id: 'circle-4',
+      radius: 500,
+      labels: ["Exchange programme", "Vacation", "Learn Finnish / Swedish", "Hobby: Hike", "Hobby: Read", "Hobby: Game", "Hobby: Watch movies", "Hobby: Crafts", "Find a job", "Make a tax card", "Work", "Join a student org.", "Attend (finnish) events", "Attend (intl) events", "Book doctors appointment", "Go to doctors appointment", "Get meds", "Career fairs", "Networking events"],
+      colors: ["#da6363", "#da6363", "#ff8989", "#da8a8a", "#da8a8a", "#da8a8a", "#da8a8a", "#da8a8a", "#da6363", "#da6363", "#da6363", "#da8a8a", "#da8a8a", "#da8a8a", "#da6363", "#da6363", "#da6363", "#da8a8a", "#da8a8a"],
+      textStyle: 'curved',
+      className: 'outer',
+      charLimit: 20
+    },
+    {
+      id: 'circle-3',
+      radius: 400,
+      labels: ["Get familiar w/ area", "Get insured", "Furnish home", "Get a transport card", "Get a SIM card", "Attend lectures", "Work on assignemtns", "Get a library card", "Update to student register", "Attend orientation", "Get familiar with campus", "Make a study plan", "Register for courses", "Inform MIGRI of your move", "Book police appointment", "Attend Police appointment", "pick up ID", "Book bank appointment", "Attend bank appointment", "Unlock strong ID", "Book DVV appointment", "Attend DVV appointment", "Register address"],
+      colors: ["#bb98d5", "#bb98d5", "#bb98d5", "#a872d1", "#e4c1ff", "#5375d0", "#5375d0", "#9fb9ff", "#7e9ef3", "#9fb9ff", "#7e9ef3", "#7892d8", "#7892d8", "#89bd8d", "#89b38d", "#89b38d", "#89b38d", "#659d69", "#659d69", "#659d69", "#89b38d", "#89b38d", "#89b38d"],
+      textStyle: 'curved',
+      className: 'outer-middle',
+      charLimit: 13
+    },
+    {
+      id: 'circle-2',
+      radius: 275,
+      labels: ["Accept study place", "Kela fee", "Student union fee", "Tuition fee", "Register Attendance on OILI", "Pay activate user / student account", "Submit EHIC / GHIC to KELA", "Attend pre-arrival sessions", "Apply for housing", "Apply for daycare", "Join student communication platform", "Make a Frank account"],
+      colors: ["#a3d7ff", "#a0b8ca", "#a0b8ca", "#a0b8ca", "#a3d7ff", "#d3eafc", "#a3d7ff", "#d3eafc", "#a3d7ff", "#d3eafc", "#a0b8ca", "#a0b8ca"],
+      textStyle: 'curved',
+      className: 'inner-middle',
+      charLimit: 19
+    },
+    {
+      id: 'circle-1',
+      radius: 150,
+      labels: ["Documents", "Health Insurance", "Pay Fees", "Documents for family", "Health Insurance for Family", "Pay family fees", "Aquire funds and visa to visit service point", "Visit service point", "Book an appointment /w service point", "Get a D-visa"],
+      colors: ["#ffc072", "#ffb088", "#ffc072", "#ffb088", "#d79543", "#d79543", "#d79543", "#e17f4d", "#e17f4d", "#e17f4d"],
+      textStyle: 'curved',
+      className: 'inner',
+      charLimit: 9
+    }
   ];
-    const firstlayercolors = [
-      "#ffc072",
-      "#ffb088",
-      "#ffc072",
-      "#ffb088",
-      "#d79543",
-      "#d79543",
-      "#d79543",
-      "#e17f4d",
-      "#e17f4d",
-      "#e17f4d"
-  ];
-
-    const labels2 = [
-    "Accept study place",
-    "Kela fee",
-    "Student union fee",
-    "Tuition fee",
-    "Register Attendance on OILI",
-    "Pay activate user / student account",
-    "Submit EHIC / GHIC to KELA",
-    "Attend pre-arrival sessions",
-    "Apply for housing",
-    "Apply for daycare",
-    "Join student communication platform",
-    "Make a Frank account"
-  ];
-
-  const secondlayercolors = [
-    "#a3d7ff",
-    "#a0b8ca",
-    "#a0b8ca",
-    "#a0b8ca",
-    "#a3d7ff",
-    "#d3eafc",
-    "#a3d7ff",
-    "#d3eafc",
-    "#a3d7ff",
-    "#d3eafc",
-    "#a0b8ca",
-    "#a0b8ca"
-  ];
-
-
-  const labels3 = [
-    "Get familiar w/ area",
-    "Get insured",
-    "Furnish home",
-    "Get a transport card",
-    "Get a SIM card",
-    "Attend lectures",
-    "Work on assignemtns",
-    "Get a library card",
-    "Update to student register",
-    "Attend orientation",
-    "Get familiar with campus",
-    "Make a study plan",
-    "Register for courses",
-    "Inform MIGRI of your move",
-    "Book police appointment",
-    "Attend Police appointment",
-    "pick up ID",
-    "Book bank appointment",
-    "Attend bank appointment",
-    "Unlock strong ID",
-    "Book DVV appointment",
-    "Attend DVV appointment",
-    "Register address",
-  ];
-
-  const thirdlayercolors = [
-    "#bb98d5",
-    "#bb98d5",
-    "#bb98d5",
-    "#a872d1",
-    "#e4c1ff",
-    "#5375d0",
-    "#5375d0",
-    "#9fb9ff",
-    "#7e9ef3",
-    "#9fb9ff",
-    "#7e9ef3",
-    "#7892d8",
-    "#7892d8",
-    "#89bd8d",
-    "#89b38d",
-    "#89b38d",
-    "#89b38d",
-    "#659d69",
-    "#659d69",
-    "#659d69",
-    "#89b38d",
-    "#89b38d",
-    "#89b38d"
-  ];
-
-  const labels4 = [
-    "Exchange programme",
-    "Vacation",
-    "Learn Finnish / Swedish",
-    "Hobby: Hike",
-    "Hobby: Read",
-    "Hobby: Game",
-    "Hobby: Watch movies",
-    "Hobby: Crafts",
-    "Find a job",
-    "Make a tax card",
-    "Work",
-    "Join a student org.",
-    "Attend (finnish) events",
-    "Attend (intl) events",
-    "Book doctors appointment",
-    "Go to doctors appointment",
-    "Get meds",
-    "Career fairs",
-    "Networking events",
-  ];
-
-  const fourthlayercolors = [
-    "#da6363",
-    "#da6363",
-    "#ff8989",
-    "#da8a8a",
-    "#da8a8a",
-    "#da8a8a",
-    "#da8a8a",
-    "#da8a8a",
-    "#da6363",
-    "#da6363",
-    "#da6363",
-    "#da8a8a",
-    "#da8a8a",
-    "#da8a8a",
-    "#da6363",
-    "#da6363",
-    "#da6363",
-    "#da8a8a",
-    "#da8a8a",
-  ];
-
-  const numSlices1 = labels1.length;
-  const numSlices2 = labels2.length;
-  const numSlices3 = labels3.length;
-  const numSlices4 = labels4.length;
-  const size1 = 300;
-  const size2 = 550;
-  const size3 = 800;
-  const size4 = 1000;
-  const radius1 = 150;
-  const radius2 = 275;
-  const radius3 = 400;
-  const radius4 = 500;
-  const center1 = 150;
-  const center2 = 275;
-  const center3 = 400;
-  const center4 = 500;
 
   return (
     <div className="container">
       <div className="wheel">
-        <div className="circle-ring outer">
-          <svg width={size4} height={size4} viewBox={`0 0 ${size4} ${size4}`}>
-              {/* Slice shapes */}
-              {labels4.map((label, i) => {
-                const startAngle = (i * 360 / numSlices4) * Math.PI / 180;
-                const endAngle = ((i + 1) * 360 / numSlices4) * Math.PI / 180;
-                const x1 = center4 + radius4 * Math.cos(startAngle);
-                const y1 = center4 + radius4 * Math.sin(startAngle);
-                const x2 = center4 + radius4 * Math.cos(endAngle);
-                const y2 = center4 + radius4 * Math.sin(endAngle);
-                const fill = fourthlayercolors[i % fourthlayercolors.length];
-                return (
-                  <path
-                    key={i}
-                    d={`M${center4},${center4} L${x1},${y1} A${radius4},${radius4} 0 0,1 ${x2},${y2} Z`}
-                    fill={fill}
-                    stroke="#f5f2d0"
-                    strokeWidth="6"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => onSliceClick && onSliceClick(label)}
-                />
-              );
-            })}
-
-            {/* Slice text */}
-            {labels4.map((label, i) => {
-                const midAngle = ((i + 0.5) * 360 / numSlices4) * Math.PI / 180; // middle of slice
-                const textRadius = radius4; // distance from center (inside slice)
-                const x = center4 + textRadius * Math.cos(midAngle);
-                const y = center4 + textRadius * Math.sin(midAngle);
-                const rotation = (midAngle * 180 / Math.PI); // rotate text to slice angle
-
-                return (
-                    <text
-                    key={`text-${i}`}
-                    x={x}
-                    y={y}
-                    fill="#000"
-                    fontSize="12"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    transform={`rotate(${rotation}, ${x}, ${y})`}
-                    style={{ pointerEvents: "none" }} // so clicks go to slice
-                    >
-                    {label}
-                    </text>
-                );
-                })}
-          </svg>
-        </div>
-        <div className="circle-ring outer-middle">
-          <svg width={size3} height={size3} viewBox={`0 0 ${size3} ${size3}`}>
-              {/* Slice shapes */}
-              {labels3.map((label, i) => {
-                const startAngle = (i * 360 / numSlices3) * Math.PI / 180;
-                const endAngle = ((i + 1) * 360 / numSlices3) * Math.PI / 180;
-                const x1 = center3 + radius3 * Math.cos(startAngle);
-                const y1 = center3 + radius3 * Math.sin(startAngle);
-                const x2 = center3 + radius3 * Math.cos(endAngle);
-                const y2 = center3 + radius3 * Math.sin(endAngle);
-                const fill = thirdlayercolors[i % thirdlayercolors.length];
-                return (
-                  <path
-                    key={i}
-                    d={`M${center3},${center3} L${x1},${y1} A${radius3},${radius3} 0 0,1 ${x2},${y2} Z`}
-                    fill={fill}
-                    stroke="#f5f2d0"
-                    strokeWidth="6"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => onSliceClick && onSliceClick(label)}
-                />
-              );
-            })}
-
-            {/* Slice text */}
-            {labels3.map((label, i) => {
-                const midAngle = ((i + 0.5) * 360 / numSlices3) * Math.PI / 180; // middle of slice
-                const textRadius = radius3; // distance from center (inside slice)
-                const x = center3 + textRadius * Math.cos(midAngle);
-                const y = center3 + textRadius * Math.sin(midAngle);
-                const rotation = (midAngle * 180 / Math.PI); // rotate text to slice angle
-
-                return (
-                    <text
-                    key={`text-${i}`}
-                    x={x}
-                    y={y}
-                    fill="#000"
-                    fontSize="12"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    transform={`rotate(${rotation}, ${x}, ${y})`}
-                    style={{ pointerEvents: "none" }} // so clicks go to slice
-                    >
-                    {label}
-                    </text>
-                );
-                })}
-          </svg>
-        </div>
-        <div className="circle-ring inner-middle">
-          <svg width={size2} height={size2} viewBox={`0 0 ${size2} ${size2}`}>
-            {/* Slice shapes */}
-            {labels2.map((label, i) => {
-              const startAngle = (i * 360 / numSlices2) * Math.PI / 180;
-              const endAngle = ((i + 1) * 360 / numSlices2) * Math.PI / 180;
-              const x1 = center2 + radius2 * Math.cos(startAngle);
-              const y1 = center2 + radius2 * Math.sin(startAngle);
-              const x2 = center2 + radius2 * Math.cos(endAngle);
-              const y2 = center2 + radius2 * Math.sin(endAngle);
-              const fill = secondlayercolors[i % secondlayercolors.length];
-              return (
-                <path
-                  key={i}
-                  d={`M${center2},${center2} L${x1},${y1} A${radius2},${radius2} 0 0,1 ${x2},${y2} Z`}
-                  fill={fill}
-                  stroke="#f5f2d0"
-                  strokeWidth="6"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => onSliceClick && onSliceClick(label)}
-                />
-              );
-            })}
-
-            {/* Slice text */}
-            {labels2.map((label, i) => {
-                const midAngle = ((i + 0.5) * 360 / numSlices2) * Math.PI / 180; // middle of slice
-                const textRadius = radius2 * 0.6; // distance from center (inside slice)
-                const x = center2 + textRadius * Math.cos(midAngle);
-                const y = center2 + textRadius * Math.sin(midAngle);
-                const rotation = (midAngle * 180 / Math.PI); // rotate text to slice angle
-
-                return (
-                    <text
-                    key={`text-${i}`}
-                    x={x}
-                    y={y}
-                    fill="#000"
-                    fontSize="12"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    transform={`rotate(${rotation}, ${x}, ${y})`}
-                    style={{ pointerEvents: "none" }} // so clicks go to slice
-                    >
-                    {label}
-                    </text>
-                );
-                })}
-          </svg>
-        </div>
-        <div className="circle-ring inner">
-          <svg width={size1} height={size1} viewBox={`0 0 ${size1} ${size1}`}>
-            {/* Slice shapes */}
-            {labels1.map((label, i) => {
-              const startAngle = (i * 360 / numSlices1) * Math.PI / 180;
-              const endAngle = ((i + 1) * 360 / numSlices1) * Math.PI / 180;
-              const x1 = center1 + radius1 * Math.cos(startAngle);
-              const y1 = center1 + radius1 * Math.sin(startAngle);
-              const x2 = center1 + radius1 * Math.cos(endAngle);
-              const y2 = center1 + radius1 * Math.sin(endAngle);
-              const fill = firstlayercolors[i % firstlayercolors.length];
-              return (
-                <path
-                  key={i}
-                  d={`M${center1},${center1} L${x1},${y1} A${radius1},${radius1} 0 0,1 ${x2},${y2} Z`}
-                  fill={fill}
-                  stroke="#f5f2d0"
-                  strokeWidth="6"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => onSliceClick && onSliceClick(label)}
-                />
-              );
-            })}
-
-            {/* Slice text */}
-            {labels1.map((label, i) => {
-                const midAngle = ((i + 0.5) * 360 / numSlices1) * Math.PI / 180; // middle of slice
-                const textRadius = radius1 * 0.6; // distance from center (inside slice)
-                const x = center1 + textRadius * Math.cos(midAngle);
-                const y = center1 + textRadius * Math.sin(midAngle);
-                const rotation = (midAngle * 180 / Math.PI); // rotate text to slice angle
-
-              return (
-                  <text
-                    key={`text-${i}`}
-                    x={x}
-                    y={y}
-                    fill="#000"
-                    fontSize="12"
-                    fontWeight="bold"
-                    textAnchor={midAngle > Math.PI / 2 && midAngle < 3 * Math.PI / 2 ? "end" : "start"} 
-                    alignmentBaseline="middle"
-                    style={{ pointerEvents: "none" }}
-                  >
-                    {label}
-                  </text>
-              );
-
-                })}
-          </svg>
-
-          <div className="start-circle">Start!</div>
-        </div>
+        {chartData.map(chart => (
+          <Circle
+            key={chart.id}
+            radius={chart.radius}
+            labels={chart.labels}
+            colors={chart.colors}
+            onSliceClick={onSliceClick}
+            textStyle={chart.textStyle}
+            className={chart.className}
+            charLimit={chart.charLimit}
+          />
+        ))}
+        <div className="start-circle">Start!</div>
       </div>
     </div>
   );
 }
 
 export default GameBoard;
-
-  
