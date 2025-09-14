@@ -48,6 +48,22 @@ function GameBoard({ onSliceClick }) {
     "Make a Frank account"
   ];
 
+  const secondlayercolors = [
+    "#a3d7ff",
+    "#a0b8ca",
+    "#a0b8ca",
+    "#a0b8ca",
+    "#a3d7ff",
+    "#d3eafc",
+    "#a3d7ff",
+    "#d3eafc",
+    "#a3d7ff",
+    "#d3eafc",
+    "#a0b8ca",
+    "#a0b8ca"
+  ];
+
+
   const labels3 = [
     "Get familiar w/ area",
     "Get insured",
@@ -74,6 +90,32 @@ function GameBoard({ onSliceClick }) {
     "Register address",
   ];
 
+  const thirdlayercolors = [
+    "#bb98d5",
+    "#bb98d5",
+    "#bb98d5",
+    "#a872d1",
+    "#e4c1ff",
+    "#5375d0",
+    "#5375d0",
+    "#9fb9ff",
+    "#7e9ef3",
+    "#9fb9ff",
+    "#7e9ef3",
+    "#7892d8",
+    "#7892d8",
+    "#89bd8d",
+    "#89b38d",
+    "#89b38d",
+    "#89b38d",
+    "#659d69",
+    "#659d69",
+    "#659d69",
+    "#89b38d",
+    "#89b38d",
+    "#89b38d"
+  ];
+
   const labels4 = [
     "Exchange programme",
     "Vacation",
@@ -94,6 +136,28 @@ function GameBoard({ onSliceClick }) {
     "Get meds",
     "Career fairs",
     "Networking events",
+  ];
+
+  const fourthlayercolors = [
+    "#da6363",
+    "#da6363",
+    "#ff8989",
+    "#da8a8a",
+    "#da8a8a",
+    "#da8a8a",
+    "#da8a8a",
+    "#da8a8a",
+    "#da6363",
+    "#da6363",
+    "#da6363",
+    "#da8a8a",
+    "#da8a8a",
+    "#da8a8a",
+    "#da6363",
+    "#da6363",
+    "#da6363",
+    "#da8a8a",
+    "#da8a8a",
   ];
 
   const numSlices1 = labels1.length;
@@ -126,7 +190,7 @@ function GameBoard({ onSliceClick }) {
                 const y1 = center4 + radius4 * Math.sin(startAngle);
                 const x2 = center4 + radius4 * Math.cos(endAngle);
                 const y2 = center4 + radius4 * Math.sin(endAngle);
-                const fill = i % 2 === 0 ? "#ffcc66" : "#66ccff";
+                const fill = fourthlayercolors[i % fourthlayercolors.length];
                 return (
                   <path
                     key={i}
@@ -177,7 +241,7 @@ function GameBoard({ onSliceClick }) {
                 const y1 = center3 + radius3 * Math.sin(startAngle);
                 const x2 = center3 + radius3 * Math.cos(endAngle);
                 const y2 = center3 + radius3 * Math.sin(endAngle);
-                const fill = i % 2 === 0 ? "#ffcc66" : "#66ccff";
+                const fill = thirdlayercolors[i % thirdlayercolors.length];
                 return (
                   <path
                     key={i}
@@ -228,7 +292,7 @@ function GameBoard({ onSliceClick }) {
               const y1 = center2 + radius2 * Math.sin(startAngle);
               const x2 = center2 + radius2 * Math.cos(endAngle);
               const y2 = center2 + radius2 * Math.sin(endAngle);
-              const fill = i % 2 === 0 ? "#ffcc66" : "#66ccff";
+              const fill = secondlayercolors[i % secondlayercolors.length];
               return (
                 <path
                   key={i}
