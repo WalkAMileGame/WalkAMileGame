@@ -299,7 +299,7 @@ function GameBoard({ onSliceClick }) {
                   d={`M${center2},${center2} L${x1},${y1} A${radius2},${radius2} 0 0,1 ${x2},${y2} Z`}
                   fill={fill}
                   stroke="#f5f2d0"
-                  strokeWidth="2"
+                  strokeWidth="6"
                   style={{ cursor: "pointer" }}
                   onClick={() => onSliceClick && onSliceClick(label)}
                 />
