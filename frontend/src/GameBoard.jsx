@@ -1,4 +1,5 @@
 import React from "react";
+import { useState, useRef } from "react";
 import "./App.css";
 
 // ====================================================================================
@@ -129,6 +130,64 @@ const Circle = ({
 // This component defines the data and maps over it to render the circles.
 // ====================================================================================
 function GameBoard({ onSliceClick }) {
+// ====================================================================================
+  //  Rotation function for circle layers//
+  // ====================================================================================
+  const [rotations, setRotations] = useState({
+    "circle-1": 0,
+    "circle-2": 0,
+    "circle-3": 0,
+    "circle-4": 0,
+  });
+  const dragging = useRef({ active: false, circleId: null, startAngle: 0, startRotation: 0 });
+
+  const handleMouseDown = (e, circleId, radius) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const angle = getAngle(e.clientX, e.clientY, centerX, centerY);
+
+    dragging.current = {
+      active: true,
+      circleId,
+      startAngle: angle,
+      startRotation: rotations[circleId],
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragging.current.active) return;
+
+    const circleId = dragging.current.circleId;
+    const container = document.querySelector(`.circle-ring.${circleId}`);
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const angle = getAngle(e.clientX, e.clientY, centerX, centerY);
+    const delta = angle - dragging.current.startAngle;
+
+    setRotations((prev) => ({
+      ...prev,
+      [circleId]: dragging.current.startRotation + delta,
+    }));
+  };
+
+  const handleMouseUp = () => {
+    dragging.current.active = false;
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
+  };
+
+  const getAngle = (x, y, centerX, centerY) => {
+    return Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
+  };
+
+  // ====================================================================================
   // Data for all circles
   const chartData = [
     {
@@ -172,17 +231,25 @@ function GameBoard({ onSliceClick }) {
   return (
     <div className="container">
       <div className="wheel">
-        {chartData.map(chart => (
-          <Circle
+        {chartData.map((chart) => (
+          <div
             key={chart.id}
-            radius={chart.radius}
-            labels={chart.labels}
-            colors={chart.colors}
-            onSliceClick={onSliceClick}
-            textStyle={chart.textStyle}
-            className={chart.className}
-            charLimit={chart.charLimit}
-          />
+            className={`circle-wrapper ${chart.id}`}
+            style={{
+              transform: `rotate(${rotations[chart.id]}deg)`,
+            }}
+            onMouseDown={(e) => handleMouseDown(e, chart.id, chart.radius)}
+          >
+            <Circle
+              radius={chart.radius}
+              labels={chart.labels}
+              colors={chart.colors}
+              onSliceClick={onSliceClick}
+              textStyle={chart.textStyle}
+              className={chart.id}
+              charLimit={chart.charLimit}
+            />
+          </div>
         ))}
         <div className="start-circle">Start!</div>
       </div>

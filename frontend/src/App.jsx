@@ -24,14 +24,14 @@ function App() {
   return (
     <>
       <div className="card">
-        <button onClick={updatingPoints}>
           Remaining energypoints: {points}
-        </button>
-
       </div>
       <div>
         {/* <img src={myLogo} className="logo" alt="My Logo" /> */}
-        < GameBoard />
+        < GameBoard 
+        points={points}
+        onSliceClick={updatingPoints}
+        />
       </div>
     </>
   )
