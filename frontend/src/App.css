@@ -39,7 +39,7 @@
   margin-left: auto;
   position: absolute;
   top: 4rem;
-  right: 6rem;
+  left: 6rem;
   border: 4px solid #444;  
   border-radius: 8px;  
   color: #dfd4d4; 
@@ -59,7 +59,7 @@
   position: relative;
 }
 
-.wheel {
+.wheel-container {
   width: 1000px;
   height: 1000px;
   margin: 0 auto;
@@ -79,8 +79,8 @@
   left: 50%;
   top: 50%;
   border-radius: 50%;
-  border: 5px solid #333;
-  box-shadow: 0 0 0 5px #f5f2d0;
+  border: 10px solid #333;
+  box-shadow: 0 0 0 10px #f5f2d0;
   transform: translate(-50%, -50%);
 }
 
@@ -123,4 +123,29 @@
   transform: translate(-50%, -50%);
   font-weight: bold;
   font-size: 18px;
+  border: 100px, solid #f5f2d0;
+}
+
+.slice-path {
+    cursor: grab;
+    transition: opacity 0.2s;
+  }
+  
+.slice-path:hover {
+    opacity: 0.8;
+  }
+  
+.slice-path.dragging {
+    cursor: grabbing;
+  }
+
+.wheel-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+.settingsButton {
+  position: absolute;
+  top: 4rem;
+  right: 6rem;
 }
