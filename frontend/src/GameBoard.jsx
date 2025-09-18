@@ -1,7 +1,5 @@
 import React from "react";
 import { useState, useRef } from "react";
-// Make sure to have a corresponding CSS file for styles (e.g., App.css)
-// import "./App.css";
 
 // ====================================================================================
 // 1. Reusable Pie Chart Component
