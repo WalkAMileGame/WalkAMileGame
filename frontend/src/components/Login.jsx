@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './Login.css'; // Import the dedicated CSS file
+import '../Login.css'; // Import the dedicated CSS file
 
 export default function Login() {
   // State variables to hold the email and password
