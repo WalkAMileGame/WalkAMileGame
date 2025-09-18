@@ -34,7 +34,7 @@ function App() {
           Remaining energypoints: {points}
       </div>
       <Router>
-        <div>
+        <div className="links">
           <Link style={padding} to="/">Home</Link>
           <Link style={padding} to="/gameboard">Gameboard</Link>
           <Link style={padding} to="/login">Login</Link>
