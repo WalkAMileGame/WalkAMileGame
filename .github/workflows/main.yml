@@ -9,12 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: test_enviroment
-
-    env:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      MONGO_URI: ${{ secrets.MONGO_URI }}
-      TEST_ENV: "true"  # Set TEST_ENV to true for the test environment
 
     steps:
       - uses: actions/checkout@v5
