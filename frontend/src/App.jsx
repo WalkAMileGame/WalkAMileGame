@@ -4,6 +4,7 @@ import HomePage from './components/HomePage';
 import GameBoard from "./components/GameBoard";
 import Login from './components/Login';
 import './App.css'
+// import GameBoard from "./GameBoard.jsx"
 import {BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
 
 function App() {
