@@ -34,6 +34,13 @@
   }
 }
 
+.links {
+  position: absolute;
+  top: 3rem;
+  left: 4rem;
+  font-size: 20px;
+}
+
 .card {
   padding: 1em 1em;
   margin-left: auto;
