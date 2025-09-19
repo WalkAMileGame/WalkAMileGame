@@ -18,84 +18,87 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
   });
 
   // Data for all rings (from innermost to outermost)
-  const ringData = [
-    {
-      id: 'ring0',
-      innerRadius: 200,
-      outerRadius: 350,
-      labels: [
-        "Action 1",
-        "Action 2",
-        "Action 3",
-        "Action 4",
-        "Action 5",
-        "Action 6",
-        "Action 7",
-        "Action 8",
-        "Action 9",
-        "Action 10",],
+  const [gameConfig, setGameConfig] = useState({
+    name: 'Default Gameboard',
+    ringData: [
+      {
+        id: 'ring0',
+        innerRadius: 200,
+        outerRadius: 350,
+        labels: [
+          "Action 1",
+          "Action 2",
+          "Action 3",
+          "Action 4",
+          "Action 5",
+          "Action 6",
+          "Action 7",
+          "Action 8",
+          "Action 9",
+          "Action 10",],
 
-      colors: ["#ffc072", "#ffb088", "#ffc072", "#ffb088", "#d79543", "#d79543", "#d79543", "#e17f4d", "#e17f4d", "#e17f4d"],
-      charLimit: 9
-    },
-    {
-      id: 'ring1',
-      innerRadius: 350,
-      outerRadius: 500,
-            labels: [
-        "Action 11",
-        "Action 12",
-        "Action 13",
-        "Action 14",
-        "Action 15",
-        "Action 16",
-        "Action 17",
-        "Action 18",
-        "Action 19",
-        "Action 20"
-      ],
-      colors: ["#a3d7ff", "#a0b8ca", "#a0b8ca", "#a0b8ca", "#a3d7ff", "#d3eafc", "#a3d7ff", "#d3eafc", "#a3d7ff", "#d3eafc", "#a0b8ca", "#a0b8ca"],
-      charLimit: 19
-    },
-    {
-      id: 'ring2',
-      innerRadius: 500,
-      outerRadius: 650,
-      labels: [
-        "Action 21",
-        "Action 22",
-        "Action 23",
-        "Action 24",
-        "Action 25",
-        "Action 26",
-        "Action 27",
-        "Action 28",
-        "Action 29",
-        "Action 30"
-      ],
-      colors: ["#bb98d5", "#bb98d5", "#bb98d5", "#a872d1", "#e4c1ff", "#5375d0", "#5375d0", "#9fb9ff", "#7e9ef3", "#9fb9ff", "#7e9ef3", "#7892d8", "#7892d8", "#89bd8d", "#89b38d", "#89b38d", "#89b38d", "#659d69", "#659d69", "#659d69", "#89b38d", "#89b38d", "#89b38d"],
-      charLimit: 13
-    },
-    {
-      id: 'ring3',
-      innerRadius: 650,
-      outerRadius: 800,
-            labels: [
-        "Action 31",
-        "Action 32",
-        "Action 33",
-        "Action 34",
-        "Action 35",
-        "Action 36",
-        "Action 37",
-        "Action 38",
-        "Action 39",
-        "Action 40",
-      ],
-      colors: ["#da6363", "#da6363", "#ff8989", "#da8a8a", "#da8a8a", "#da8a8a", "#da8a8a", "#da8a8a", "#da6363", "#da6363", "#da6363", "#da8a8a", "#da8a8a", "#da8a8a", "#da6363", "#da6363", "#da6363", "#da8a8a", "#da8a8a"],
-      charLimit: 20
-    }
-  ];
+        colors: ["#ffc072", "#ffb088", "#ffc072", "#ffb088", "#d79543", "#d79543", "#d79543", "#e17f4d", "#e17f4d", "#e17f4d"],
+        charLimit: 9
+      },
+      {
+        id: 'ring1',
+        innerRadius: 350,
+        outerRadius: 500,
+              labels: [
+          "Action 11",
+          "Action 12",
+          "Action 13",
+          "Action 14",
+          "Action 15",
+          "Action 16",
+          "Action 17",
+          "Action 18",
+          "Action 19",
+          "Action 20"
+        ],
+        colors: ["#a3d7ff", "#a0b8ca", "#a0b8ca", "#a0b8ca", "#a3d7ff", "#d3eafc", "#a3d7ff", "#d3eafc", "#a3d7ff", "#d3eafc", "#a0b8ca", "#a0b8ca"],
+        charLimit: 19
+      },
+      {
+        id: 'ring2',
+        innerRadius: 500,
+        outerRadius: 650,
+        labels: [
+          "Action 21",
+          "Action 22",
+          "Action 23",
+          "Action 24",
+          "Action 25",
+          "Action 26",
+          "Action 27",
+          "Action 28",
+          "Action 29",
+          "Action 30"
+        ],
+        colors: ["#bb98d5", "#bb98d5", "#bb98d5", "#a872d1", "#e4c1ff", "#5375d0", "#5375d0", "#9fb9ff", "#7e9ef3", "#9fb9ff", "#7e9ef3", "#7892d8", "#7892d8", "#89bd8d", "#89b38d", "#89b38d", "#89b38d", "#659d69", "#659d69", "#659d69", "#89b38d", "#89b38d", "#89b38d"],
+        charLimit: 13
+      },
+      {
+        id: 'ring3',
+        innerRadius: 650,
+        outerRadius: 800,
+              labels: [
+          "Action 31",
+          "Action 32",
+          "Action 33",
+          "Action 34",
+          "Action 35",
+          "Action 36",
+          "Action 37",
+          "Action 38",
+          "Action 39",
+          "Action 40",
+        ],
+        colors: ["#da6363", "#da6363", "#ff8989", "#da8a8a", "#da8a8a", "#da8a8a", "#da8a8a", "#da8a8a", "#da6363", "#da6363", "#da6363", "#da8a8a", "#da8a8a", "#da8a8a", "#da6363", "#da6363", "#da6363", "#da8a8a", "#da8a8a"],
+        charLimit: 20
+      }
+    ]
+  });
 
   const CENTER_X = 800; // Exact center X
   const CENTER_Y = 800; // Exact center Y
@@ -205,7 +208,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
   // Render text on curved path
   const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId) => {
     const midRadius = (innerRadius + outerRadius) / 2;
-    const charLimit = ringData.find(r => r.id === ringId)?.charLimit || 15;
+    const charLimit = gameConfig.ringData.find(r => r.id === ringId)?.charLimit || 15;
     
     // Split long text into lines
     const regex = new RegExp(`.{1,${charLimit}}`, 'g');
@@ -280,7 +283,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
             </filter>
           </defs>            
             {/* Render rings from innermost to outermost */}
-            {ringData.map((ring) => {
+            {gameConfig.ringData.map((ring) => {
               const numSlices = ring.labels.length;
               const rotation = rotations[ring.id] || 0;
               const anglePerSlice = 360 / numSlices;
