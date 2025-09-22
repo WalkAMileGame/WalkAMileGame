@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import "../App.css";
+import GameBoardSettings from "./GameBoardSettings";
 
 const GameBoard = ({ onSliceClick = () => {} }) => {
   const [rotations, setRotations] = useState({
@@ -22,84 +23,80 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
     name: 'Default Gameboard',
     ringData: [
       {
-        id: 'ring0',
+        id: 1,
         innerRadius: 200,
         outerRadius: 350,
+        charLimit: 9,
         labels: [
-          "Action 1",
-          "Action 2",
-          "Action 3",
-          "Action 4",
-          "Action 5",
-          "Action 6",
-          "Action 7",
-          "Action 8",
-          "Action 9",
-          "Action 10",],
-
-        colors: ["#ffc072", "#ffb088", "#ffc072", "#ffb088", "#d79543", "#d79543", "#d79543", "#e17f4d", "#e17f4d", "#e17f4d"],
-        charLimit: 9
+          { id: 1, text: "Action 1", color: "#ffc072" },
+          { id: 2, text: "Action 2", color: "#ffb088" },
+          { id: 3, text: "Action 3", color: "#ffc072" },
+          { id: 4, text: "Action 4", color: "#ffb088" },
+          { id: 5, text: "Action 5", color: "#d79543" },
+          { id: 6, text: "Action 6", color: "#d79543" },
+          { id: 7, text: "Action 7", color: "#d79543" },
+          { id: 8, text: "Action 8", color: "#e17f4d" },
+          { id: 9, text: "Action 9", color: "#e17f4d" },
+          { id: 10, text: "Action 10", color: "#e17f4d" }
+        ]      
       },
       {
-        id: 'ring1',
+        id: 2,
         innerRadius: 350,
         outerRadius: 500,
+        charLimit: 19,
               labels: [
-          "Action 11",
-          "Action 12",
-          "Action 13",
-          "Action 14",
-          "Action 15",
-          "Action 16",
-          "Action 17",
-          "Action 18",
-          "Action 19",
-          "Action 20"
+          { id: 11, text: "Action 11", color: "#a3d7ff" },
+          { id: 12, text: "Action 12", color: "#a0b8ca" },
+          { id: 13, text: "Action 13", color: "#a0b8ca" },
+          { id: 14, text: "Action 14", color: "#a0b8ca" },
+          { id: 15, text: "Action 15", color: "#a3d7ff" },
+          { id: 16, text: "Action 16", color: "#d3eafc" },
+          { id: 17, text: "Action 17", color: "#a3d7ff" },
+          { id: 18, text: "Action 18", color: "#d3eafc" },
+          { id: 19, text: "Action 19", color: "#a3d7ff" },
+          { id: 20, text: "Action 20", color: "#d3eafc" }
         ],
-        colors: ["#a3d7ff", "#a0b8ca", "#a0b8ca", "#a0b8ca", "#a3d7ff", "#d3eafc", "#a3d7ff", "#d3eafc", "#a3d7ff", "#d3eafc", "#a0b8ca", "#a0b8ca"],
-        charLimit: 19
       },
       {
-        id: 'ring2',
+        id: 3,
         innerRadius: 500,
         outerRadius: 650,
+        charLimit: 13,
         labels: [
-          "Action 21",
-          "Action 22",
-          "Action 23",
-          "Action 24",
-          "Action 25",
-          "Action 26",
-          "Action 27",
-          "Action 28",
-          "Action 29",
-          "Action 30"
-        ],
-        colors: ["#bb98d5", "#bb98d5", "#bb98d5", "#a872d1", "#e4c1ff", "#5375d0", "#5375d0", "#9fb9ff", "#7e9ef3", "#9fb9ff", "#7e9ef3", "#7892d8", "#7892d8", "#89bd8d", "#89b38d", "#89b38d", "#89b38d", "#659d69", "#659d69", "#659d69", "#89b38d", "#89b38d", "#89b38d"],
-        charLimit: 13
+          { id: 21, text: "Action 21", color: "#bb98d5" },
+          { id: 22, text: "Action 22", color: "#bb98d5" },
+          { id: 23, text: "Action 23", color: "#bb98d5" },
+          { id: 24, text: "Action 24", color: "#a872d1" },
+          { id: 25, text: "Action 25", color: "#e4c1ff" },
+          { id: 26, text: "Action 26", color: "#5375d0" },
+          { id: 27, text: "Action 27", color: "#5375d0" },
+          { id: 28, text: "Action 28", color: "#9fb9ff" },
+          { id: 29, text: "Action 29", color: "#7e9ef3" },
+          { id: 30, text: "Action 30", color: "#9fb9ff" }
+        ],   
       },
       {
-        id: 'ring3',
+        id: 4,
         innerRadius: 650,
         outerRadius: 800,
+        charLimit: 20,
               labels: [
-          "Action 31",
-          "Action 32",
-          "Action 33",
-          "Action 34",
-          "Action 35",
-          "Action 36",
-          "Action 37",
-          "Action 38",
-          "Action 39",
-          "Action 40",
-        ],
-        colors: ["#da6363", "#da6363", "#ff8989", "#da8a8a", "#da8a8a", "#da8a8a", "#da8a8a", "#da8a8a", "#da6363", "#da6363", "#da6363", "#da8a8a", "#da8a8a", "#da8a8a", "#da6363", "#da6363", "#da6363", "#da8a8a", "#da8a8a"],
-        charLimit: 20
+          { id: 31, text: "Action 31", color: "#da6363" },
+          { id: 32, text: "Action 32", color: "#da6363" },
+          { id: 33, text: "Action 33", color: "#ff8989" },
+          { id: 34, text: "Action 34", color: "#da8a8a" },
+          { id: 35, text: "Action 35", color: "#da8a8a" },
+          { id: 36, text: "Action 36", color: "#da8a8a" },
+          { id: 37, text: "Action 37", color: "#da8a8a" },
+          { id: 38, text: "Action 38", color: "#da8a8a" },
+          { id: 39, text: "Action 39", color: "#da6363" },
+          { id: 40, text: "Action 40", color: "#da6363" }
+        ],   
       }
     ]
   });
-
+  
   const CENTER_X = 800; // Exact center X
   const CENTER_Y = 800; // Exact center Y
   const viewBoxSize = 1600;
@@ -167,7 +164,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
   const handleSliceClick = (e, label) => {
     e.stopPropagation();
     if (!dragState.current.isDragging) {
-      onSliceClick(label);
+      onSliceClick(label.text);
     }
   };
 
@@ -298,7 +295,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
                   {ring.labels.map((label, i) => {
                     const startAngle = i * anglePerSlice;
                     const endAngle = (i + 1) * anglePerSlice;
-                    const color = ring.colors[i % ring.colors.length];
+                    const color = label.color;
                     
                     return (
                       <g key={`${ring.id}-slice-${i}`}>
@@ -315,7 +312,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
                           filter="url(#whiteShadow)"
                         />
                         {/* Text */}
-                        {renderCurvedText(label, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
+                        {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
                       </g>
                     );
                   })}
@@ -324,6 +321,21 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
             })}
           </svg>
           <div className="start-circle">Start!</div>
+        </div>
+        {showSettings && (
+          <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setShowSettings(false)} />
+        )}
+        <div
+          className={`fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ${
+            showSettings ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <GameBoardSettings
+            gameConfig={gameConfig}
+            onConfigChange={setGameConfig}
+            onSave={(config) => console.log("save config", config)}
+            isVisible={showSettings}
+          />
         </div>
       </div>
     </>
