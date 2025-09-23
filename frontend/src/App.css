@@ -12,6 +12,7 @@
   transition: filter 300ms;
   border-radius: 70em;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
@@ -41,14 +42,14 @@
   font-size: 20px;
 }
 
-.card {
+.energypoints {
   padding: 1em 1em;
   margin-left: auto;
   position: absolute;
   top: 4rem;
   left: 6rem;
   border: 4px solid #444;  
-  border-radius: 8px;  
+  border-radius: 20px;  
   color: #dfd4d4; 
   font-weight: bold;
   font-size: 18px;
@@ -62,58 +63,45 @@
 .container {
   width: 1000px;
   height: 1000px;
-  margin: 2rem auto;
+  margin: 5rem auto;
   position: relative;
+  transition: all 0.3s ease;
 }
 
 .wheel-container {
-  width: 1000px;
+  /* width: 1000px;
   height: 1000px;
   margin: 0 auto;
   position: relative;
-  border-radius: 50%;
+  border-radius: 50%; 
   background-color: #f5f2d0;
   display: flex;
   align-items: center;
-  justify-content: center; 
+  justify-content: center;  */
   user-select: none;   /* no text selection */
   -webkit-user-select: none;
   -ms-user-select: none;  
 }
 
-.circle-ring {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  border-radius: 50%;
-  border: 10px solid #333;
-  box-shadow: 0 0 0 10px #f5f2d0;
-  transform: translate(-50%, -50%);
+.main-content {
+  display: flex;
+  height: 120vh;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-.circle-ring.outer {
-  width: 1000px;
-  height: 1000px;
+/* Gameboard Container */
+.gameboard-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  width: 100%;
 }
-
-.circle-ring.outer-middle {
-  width: 800px;
-  height: 800px;
-  border-color: black;
+.gameboard-container.shifted {
+  transform: translateX(-200px) scale(0.85);
 }
-
-.circle-ring.inner-middle {
-  width: 550px;
-  height: 550px;
-  border-color: black;
-}
-
-.circle-ring.inner {
-  width: 300px;
-  height:300px;
-  border-color: black;
-}
-
 
 .start-circle {
   position: absolute;
@@ -151,8 +139,119 @@
     height: 100%;
   }
 
+.settings-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 600px;
+  background: #fcfcf7;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.settings-panel.open {
+  transform: translateX(0);
+}
+
+.settings-content {
+  padding: 2rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
 .settingsButton {
-  position: absolute;
-  top: 4rem;
-  right: 6rem;
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 1001;
+}
+
+
+.settingsButton button {
+  padding: 0.5rem 1rem;
+  background: #130e0e;
+  border: 2px solid #ccc;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.settingsButton button:hover {
+  background: #e0e0e0;
+  border-color: #999;
+}
+
+/* Color picker styles */
+.color.picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  margin: 1rem;
+  margin-bottom: 2em;
+}
+
+@media (max-width: 1400px) {
+  .gameboard-container.shifted {
+    transform: translateX(-150px) scale(0.8);
+  }
+  
+  .settings-panel {
+    width: 350px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .gameboard-container.shifted {
+    transform: translateX(-100px) scale(0.75);
+  }
+}
+
+.settingstext {
+  color: black
+}
+
+.gbname-text {
+  color: black
+}
+
+.gbname-input {
+  background-color: white;
+  color: black;
+}
+
+.colorbuttons {
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  border: 1px solid grey; /* optional */
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.labelname-input {
+  background-color: white;
+  color: black;
+  width: 200px;
+  height: 10px;
+  font-size: 16px;
+  border: solid, 2px, black;
+  border-radius: 20px;
+  padding: 10px;
+}
+
+.deleteslice-button {
+  color: white;
+  padding: 10;
+  background-color: rgb(228, 52, 52);
+  margin-left: 20px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border: 1px, solid, white;
 }

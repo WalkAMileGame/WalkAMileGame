@@ -31,7 +31,7 @@ function App() {
   };
   return (
     <>
-      <div className="card">
+      <div className="energypoints">
           Remaining energypoints: {points}
       </div>
       <Router>

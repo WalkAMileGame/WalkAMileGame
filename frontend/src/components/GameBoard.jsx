@@ -227,7 +227,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
       const pathId = `textPath-${ringId}-${index}-${lineIndex}`;
       const largeArcFlag = endAngleDeg - startAngleDeg <= 180 ? "0" : "1";
       
-      return (
+    return (
         <g key={pathId}>
           <defs>
             <path
@@ -253,94 +253,103 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
   };
 
   return (
-    <>
-    <div className="settingsButton">
-      <button 
-      onClick={() => setShowSettings(!showSettings)}
-      variant="outline"
-      size="lg"
-      > Settings 
-      </button>
-    </div>
-      <div className="container">
-        <div className="wheel-container" ref={containerRef}>
-          <svg
-            className="wheel-svg"
-            viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
-            xmlns="http://www.w3.org/2000/svg"
-          >
-                      <defs>
-            <filter id="whiteShadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow 
-                dx="0" // horizontal offset
-                dy="0" // vertical offset
-                stdDeviation="10" // blur amount
-                floodColor="#180707ff" // shadow color (white)
-              />
-            </filter>
-          </defs>            
-            {/* Render rings from innermost to outermost */}
-            {gameConfig.ringData.map((ring) => {
-              const numSlices = ring.labels.length;
-              const rotation = rotations[ring.id] || 0;
-              const anglePerSlice = 360 / numSlices;
-              
-              return (
-                <g
-                  key={ring.id}
-                  transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
-                >
+    <div className="game-layout">
+      {/* Settings Button */}
+      <div className="settingsButton">
+        <button 
+          onClick={() => setShowSettings(!showSettings)}
+          variant="outline"
+          size="lg"
+        > 
+          Edit
+        </button>
+      </div>
+
+      {/* Main Content Area */}
+      <div className={`main-content ${showSettings ? 'settings-open' : ''}`}>
+        {/* Gameboard Container */}
+        <div className={`gameboard-container ${showSettings ? 'shifted' : ''}`}>
+          <div className="container">
+            <div className="wheel-container" ref={containerRef}>
+              <svg
+                className="wheel-svg"
+                viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <defs>
+                  <filter id="whiteShadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow 
+                      dx="0" // horizontal offset
+                      dy="0" // vertical offset
+                      stdDeviation="10" // blur amount
+                      floodColor="#180707ff" // shadow color (white)
+                    />
+                  </filter>
+                </defs>            
+                {/* Render rings from innermost to outermost */}
+                {gameConfig.ringData.map((ring) => {
+                  const numSlices = ring.labels.length;
+                  const rotation = rotations[ring.id] || 0;
+                  const anglePerSlice = 360 / numSlices;
                   
-                  {/* Render slices */}
-                  {ring.labels.map((label, i) => {
-                    const startAngle = i * anglePerSlice;
-                    const endAngle = (i + 1) * anglePerSlice;
-                    const color = label.color;
-                    
-                    return (
-                      <g key={`${ring.id}-slice-${i}`}>
-                        {/* Slice shape */}
-                        <path
-                          className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
-                          d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
-                          fill={color}
-                          stroke="#f5f2d0"
-                          strokeWidth="8"
-                          onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
-                          onClick={(e) => handleSliceClick(e, label)}
-                          style={{ cursor: "pointer" }}
-                          filter="url(#whiteShadow)"
-                        />
-                        {/* Text */}
-                        {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
-                      </g>
-                    );
-                  })}
-                </g>
-              );
-            })}
-          </svg>
-          <div className="start-circle">Start!</div>
+                  return (
+                    <g
+                      key={ring.id}
+                      transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
+                    >
+                      
+                      {/* Render slices */}
+                      {ring.labels.map((label, i) => {
+                        const startAngle = i * anglePerSlice;
+                        const endAngle = (i + 1) * anglePerSlice;
+                        const color = label.color;
+                        
+                        return (
+                          <g key={`${ring.id}-slice-${i}`}>
+                            {/* Slice shape */}
+                            <path
+                              className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
+                              d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
+                              fill={color}
+                              stroke="#f5f2d0"
+                              strokeWidth="8"
+                              onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
+                              onClick={(e) => handleSliceClick(e, label)}
+                              style={{ cursor: "pointer" }}
+                              filter="url(#whiteShadow)"
+                            />
+                            {/* Text */}
+                            {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
+                          </g>
+                        );
+                      })}
+                    </g>
+                  );
+                })}
+              </svg>
+              <div className="start-circle">Start!</div>
+            </div>
+          </div>
         </div>
-        {showSettings && (
-          <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setShowSettings(false)} />
-        )}
-        <div
-          className={`fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 transform transition-transform duration-300 ${
-            showSettings ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
+
+        {/* Settings Panel */}
+        <div className={`settings-panel ${showSettings ? 'open' : ''}`}>
           <GameBoardSettings
             gameConfig={gameConfig}
             onConfigChange={setGameConfig}
             onSave={(config) => console.log("save config", config)}
             isVisible={showSettings}
+            onClose={() => setShowSettings(false)}
           />
         </div>
       </div>
-    </>
+
+      {/* Settings Overlay */}
+      {showSettings && (
+        <div className="settings-overlay" onClick={() => setShowSettings(false)} />
+      )}
+    </div>
   );
 };
 
 export default GameBoard;
-

@@ -17,9 +17,7 @@ const ColorPicker = ({ value, onChange, colors = [] }) => {
         <button
           key={color}
           type="button"
-          className={`w-8 h-8 rounded-full border-2 transition-all ${
-            value === color ? 'border-gray-800 scale-110' : 'border-gray-300 hover:scale-105'
-          }`}
+          className="colorbuttons"
           style={{ backgroundColor: color }}
           onClick={() => onChange(color)}
         />
@@ -118,21 +116,20 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
   return (
     <div className="w-96 bg-white rounded-xl shadow-xl p-6 max-h-[80vh] overflow-y-auto">
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Settings</h2>
-          <p className="text-sm text-slate-600">Customize your gameboard</p>
+        <div className="settingstext">
+          <h2 className="text-2xl font-bold text-black mb-2">Edit gameboard</h2>
         </div>
 
         {/* Basic Info */}
         <div className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium">Gameboard Name *</label>
+            <label htmlFor="name" className="gbname-text">Gameboard Name*: </label>
             <input
               id="name"
               value={localConfig.name || ""}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Enter gameboard name"
-              className="w-full border rounded p-2"
+              className="gbname-input"
             />
           </div>
         </div>
@@ -175,12 +172,12 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
                     <input
                       value={label.text}
                       onChange={(e) => handleSliceTextChange(ringIndex, labelIndex, e.target.value)}
-                      className="flex-1 border rounded p-1"
+                      className="labelname-input"
                       placeholder="Slice text"
                     />
                     <button
                       onClick={() => removeSlice(ringIndex, labelIndex)}
-                      className="text-red-600 hover:text-red-700"
+                      className="deleteslice-button"
                     >
                       ✕
                     </button>
