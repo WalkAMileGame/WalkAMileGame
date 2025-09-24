@@ -33,6 +33,7 @@ class NewBoard(BaseModel):
     rings: list[dict]
 @router.put("/save")
 def save_board(data: NewBoard):
+    db.labels.delete_many({"board": data.name})
     for i, ring in enumerate(data.rings):
         for label in ring["labels"]:
-            db.labels.insert_one({'title': label["text"], 'color': label["color"], 'ring': i+1, "board": data.name})
+            db.labels.insert_one({"title": label["text"], "color": label["color"], "ring": i+1, "board": data.name})
