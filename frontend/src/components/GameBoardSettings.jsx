@@ -145,7 +145,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
         </div>
 
         {/* Templates */}
-        <h3 className="text-lg">Templates</h3>
+        <h3 className="loadgameboard-title">Load gameboards</h3>
         {isLoading ? (
           <p>Loading templates...</p>
         ) : (
@@ -160,11 +160,12 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
         )}
 
         {/* Layers */}
-        <h3 className="text-lg">Layer Configuration</h3>
+        <h3 className="layeredit-title">Edit layers and buttons</h3>
         {localConfig.ringData?.map((ring, ringIndex) => (
           <div key={ring.id} className="border rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-700">
+              <hr></hr>
+              <h4 className="layerinfo-title">
                 Layer {ring.id} ({ring.labels.length} slices)
               </h4>
               <button

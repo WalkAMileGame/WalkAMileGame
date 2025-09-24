@@ -255,3 +255,16 @@
   height: 40px;
   border: 1px, solid, white;
 }
+
+.loadgameboard-title {
+  color: black
+}
+
+.layeredit-title {
+  color: black;
+}
+
+.layerinfo-title {
+  color:black;
+  font-size: 18px;
+}
