@@ -223,6 +223,12 @@
 .gbname-input {
   background-color: white;
   color: black;
+  width: 200px;
+  height: 15px;
+  border: solid, 2px, black;
+  border-radius: 20px;
+  font-size: 16px;
+  padding: 10px
 }
 
 .colorbuttons {
@@ -264,7 +270,40 @@
   color: black;
 }
 
+.layerinfo-container {
+  display: flex;
+  align-items: center;
+  margin-left: 200px;
+}
+
 .layerinfo-title {
   color:black;
   font-size: 18px;
+  margin-right: 50px;
+}
+
+.addslice-button {
+  color:white;
+  background-color: green;
+  height: 40px;
+  border-radius: 50px;
+  font-size: 16px;
+  border: 2px, solid, white;
+  margin-left:70px;
+}
+
+.save-button {
+  color: white;
+  background-color: rgb(98, 137, 196);
+  height: 40px;
+  border: 2px, solid, white;
+  font-size: 18px;
+  border-radius: 50px;
+  margin-left: 40px;
+  margin-right: 40px;
+  margin-bottom: 20px;
+}
+
+.isloading {
+  color:black
 }
