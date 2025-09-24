@@ -96,6 +96,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
   };
 
   const handleSave = async () => {
+    saveGameboard()
     if (!localConfig.name?.trim()) {
         console.log("saving a new gameboard")
     }
@@ -110,6 +111,15 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
 
   if (!isVisible) return null;
 
+
+  // Tämä tuskin on paras paikka tälle, mutta app.jsx ei tuntunut myöskään oikealta
+  const saveGameboard = () => {
+    fetch("http://localhost:8000/save", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: localConfig.name, rings: localConfig.ringData })
+    })
+  }
 
 
 
