@@ -100,9 +100,12 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
     ]
   });
   
-  const CENTER_X = 800; // Exact center X
-  const CENTER_Y = 800; // Exact center Y
-  const viewBoxSize = 1600;
+  const whiteLineThickness = 14; // Stroke width for slice borders
+  const blackLineThickness = 8; // Stroke width for separator circles
+
+  const CENTER_X = 800 + whiteLineThickness; // Exact center X
+  const CENTER_Y = 800 + whiteLineThickness; // Exact center Y
+  const viewBoxSize = 1600 + whiteLineThickness * 2; // ViewBox size to fit all rings
 
   // Settings
 
@@ -272,6 +275,30 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
     });
   };
 
+  const getAnnularSectorPoints = (innerRadius, outerRadius, startAngleDeg, endAngleDeg) => {
+    const startAngle = (startAngleDeg - 90) * Math.PI / 180;
+    const endAngle = (endAngleDeg - 90) * Math.PI / 180;
+
+    return {
+        innerStart: {
+            x: CENTER_X + innerRadius * Math.cos(startAngle),
+            y: CENTER_Y + innerRadius * Math.sin(startAngle)
+        },
+        innerEnd: {
+            x: CENTER_X + innerRadius * Math.cos(endAngle),
+            y: CENTER_Y + innerRadius * Math.sin(endAngle)
+        },
+        outerStart: {
+            x: CENTER_X + outerRadius * Math.cos(startAngle),
+            y: CENTER_Y + outerRadius * Math.sin(startAngle)
+        },
+        outerEnd: {
+            x: CENTER_X + outerRadius * Math.cos(endAngle),
+            y: CENTER_Y + outerRadius * Math.sin(endAngle)
+        }
+    };
+  };
+
   return (
     <div className="game-layout">
       {/* Settings Button */}
@@ -332,7 +359,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
                               d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
                               fill={color}
                               stroke="#f5f2d0"
-                              strokeWidth="8"
+                              strokeWidth={whiteLineThickness}
                               onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
                               onClick={(e) => handleSliceClick(e, label)}
                               style={{ cursor: "pointer" }}
@@ -346,6 +373,33 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
                     </g>
                   );
                 })}
+
+                {/* Separator Circles */}
+                {gameConfig.ringData.map((ring) => (
+                  <circle
+                    key={`separator-inner-${ring.id}`}
+                    cx={CENTER_X}
+                    cy={CENTER_Y}
+                    r={ring.innerRadius}
+                    fill="none"
+                    stroke="black"
+                    strokeWidth={blackLineThickness}
+                    style={{ pointerEvents: 'none' }}
+                  />
+                ))}
+                {gameConfig.ringData.length > 0 && (
+                  <circle
+                    key="separator-outer"
+                    cx={CENTER_X}
+                    cy={CENTER_Y}
+                    r={gameConfig.ringData[gameConfig.ringData.length - 1].outerRadius}
+                    fill="none"
+                    stroke="black"
+                    strokeWidth={whiteLineThickness * 2.1}
+                    style={{ pointerEvents: 'none' }}
+                  />
+                )}
+                
                 {/* Simple Energy Markers - rendered on top */}
                 <EnergyMarkers
                   gameConfig={gameConfig}

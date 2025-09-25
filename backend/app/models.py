@@ -7,3 +7,4 @@ class Labels(BaseModel):
     title: str
     color: str
     ring: int
+    board: str

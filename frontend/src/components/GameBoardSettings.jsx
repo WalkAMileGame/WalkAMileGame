@@ -96,6 +96,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
   };
 
   const handleSave = async () => {
+    saveGameboard()
     if (!localConfig.name?.trim()) {
         console.log("saving a new gameboard")
     }
@@ -110,6 +111,15 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
 
   if (!isVisible) return null;
 
+
+  // Tämä tuskin on paras paikka tälle, mutta app.jsx ei tuntunut myöskään oikealta
+  const saveGameboard = () => {
+    fetch("http://localhost:8000/save", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: localConfig.name, rings: localConfig.ringData })
+    })
+  }
 
 
 
@@ -135,9 +145,9 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
         </div>
 
         {/* Templates */}
-        <h3 className="text-lg">Templates</h3>
+        <h3 className="loadgameboard-title">Load gameboards</h3>
         {isLoading ? (
-          <p>Loading templates...</p>
+          <p className="isloading">Loading templates...</p>
         ) : (
           <select onChange={(e) => console.log("loadTemplate", e.target.value)} className="w-full border rounded p-2">
             <option>Choose a template</option>
@@ -150,20 +160,21 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
         )}
 
         {/* Layers */}
-        <h3 className="text-lg">Layer Configuration</h3>
+        <h3 className="layeredit-title">Edit layers and buttons</h3>
         {localConfig.ringData?.map((ring, ringIndex) => (
           <div key={ring.id} className="border rounded-lg p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-slate-700">
-                Layer {ring.id} ({ring.labels.length} slices)
-              </h4>
-              <button
-                onClick={() => addSlice(ringIndex)}
-                className="px-2 py-1 bg-blue-500 text-white rounded"
-              >
-                + Add Slice
-              </button>
-            </div>
+              <hr></hr>
+              <div className="layerinfo-container">
+                <h4 className="layerinfo-title">
+                  Layer {ring.id} ({ring.labels.length} slices)
+                </h4>
+                <button
+                  onClick={() => addSlice(ringIndex)}
+                  className="addslice-button"
+                >
+                  + Add Slice
+                </button>
+              </div>
 
             <div className="space-y-3">
               {ring.labels.map((label, labelIndex) => (
@@ -197,7 +208,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
           <button
             onClick={handleSave}
             disabled={isSaving || !localConfig.name?.trim()}
-            className="w-full bg-green-500 text-white py-2 rounded"
+            className="save-button"
           >
             {isSaving ? "Saving..." : "Save Gameboard"}
           </button>
