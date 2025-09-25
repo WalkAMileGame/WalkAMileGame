@@ -17,16 +17,26 @@ Use command:
 ```
 invoke server
 ```
+this runs the backend and frontend servers simultaniously using threading.
+To run one or the other, decorators --backend and --frontend can be used.
+```
+invoke server --frontend
+```
 
 
 ## Tests
-To run all tests use command:
+To run unit tests use command:
 ```
 invoke test
 ```
+to run robot tests use command:
+```
+invoke robot
+```
+
 
 ## Lint
-Linting for can be dune using command:
+Linting for can be done using command:
 ```
 invoke lint
 ```

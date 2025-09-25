@@ -69,7 +69,7 @@
 }
 
 .wheel-container {
-  /* width: 1000px;
+  width: 1000px;
   height: 1000px;
   margin: 0 auto;
   position: relative;
@@ -77,7 +77,7 @@
   background-color: #f5f2d0;
   display: flex;
   align-items: center;
-  justify-content: center;  */
+  justify-content: center;
   user-select: none;   /* no text selection */
   -webkit-user-select: none;
   -ms-user-select: none;  
