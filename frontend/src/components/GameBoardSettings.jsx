@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Snackbar from "./ui/snackbar"
 
 
 
@@ -32,6 +33,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
   const [savedGameboards, setSavedGameboards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   useEffect(() => {
     setLocalConfig(gameConfig);
@@ -95,35 +98,64 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     console.log("load saved gameboard")
   };
 
-  const handleSave = async () => {
-    saveGameboard()
-    if (!localConfig.name?.trim()) {
-        console.log("saving a new gameboard")
-    }
-
-    setIsSaving(true);
-    try {
-      await onSave(localConfig);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  if (!isVisible) return null;
-
-
-  // Tämä tuskin on paras paikka tälle, mutta app.jsx ei tuntunut myöskään oikealta
-  const saveGameboard = () => {
-    fetch("http://localhost:8000/save", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: localConfig.name, rings: localConfig.ringData })
-    })
+const handleSave = async () => {
+  if (!localConfig.name?.trim()) {
+    setSnackbarMessage("Please enter a name before saving.");
+    setShowSnackbar(true);
+    return; 
   }
 
+  setIsSaving(true);
+  try {
+    const response = await saveGameboard();
+
+    if (!response.ok) {
+      let errorMsg = "Failed to save gameboard.";
+      try {
+        const data = await response.json();
+        if (data?.error) {
+          errorMsg = ` ${data.error}`;
+        }
+      } catch (e) {
+        // ignore JSON parse errors
+      }
+      setSnackbarMessage(errorMsg);
+      setShowSnackbar(true);
+      return;
+    }
+
+    setSnackbarMessage("Gameboard saved successfully!");
+    setShowSnackbar(true);
+
+  } catch (err) {
+    console.error("Save failed:", err);
+    setSnackbarMessage("Failed to save gameboard (network error).");
+    setShowSnackbar(true);
+  } finally {
+    setIsSaving(false);
+  }
+};
+
+// Make sure saveGameboard RETURNS the fetch result
+const saveGameboard = () => {
+  return fetch("http://localhost:8000/save", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      name: localConfig.name, 
+      rings: localConfig.ringData 
+    }),
+  });
+};
 
 
   return (
+    <>
+       <Snackbar
+        message={snackbarMessage}
+        show={showSnackbar}
+        onClose={() => setShowSnackbar(false)}
+    />
     <div className="w-96 bg-white rounded-xl shadow-xl p-6 max-h-[80vh] overflow-y-auto">
       <div className="space-y-6">
         <div className="settingstext">
@@ -207,7 +239,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
         <div className="pt-4 border-t">
           <button
             onClick={handleSave}
-            disabled={isSaving || !localConfig.name?.trim()}
+            disabled={isSaving}
+            // disabled={isSaving || !localConfig.name?.trim()}
             className="save-button"
           >
             {isSaving ? "Saving..." : "Save Gameboard"}
@@ -215,6 +248,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
         </div>
       </div>
     </div>
+    </>
   );
 };
 
