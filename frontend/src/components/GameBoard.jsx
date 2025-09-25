@@ -97,9 +97,12 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
     ]
   });
   
-  const CENTER_X = 820; // Exact center X
-  const CENTER_Y = 820; // Exact center Y
-  const viewBoxSize = 1640;
+  const whiteLineThickness = 14; // Stroke width for slice borders
+  const blackLineThickness = 8; // Stroke width for separator circles
+
+  const CENTER_X = 800 + whiteLineThickness; // Exact center X
+  const CENTER_Y = 800 + whiteLineThickness; // Exact center Y
+  const viewBoxSize = 1600 + whiteLineThickness * 2; // ViewBox size to fit all rings
 
   // Settings
 
@@ -336,7 +339,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
                               d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
                               fill={color}
                               stroke="#f5f2d0"
-                              strokeWidth="16"
+                              strokeWidth={whiteLineThickness}
                               onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
                               onClick={(e) => handleSliceClick(e, label)}
                               style={{ cursor: "pointer" }}
@@ -360,7 +363,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
                     r={ring.innerRadius}
                     fill="none"
                     stroke="black"
-                    strokeWidth="8"
+                    strokeWidth={blackLineThickness}
                     style={{ pointerEvents: 'none' }}
                   />
                 ))}
@@ -372,7 +375,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
                     r={gameConfig.ringData[gameConfig.ringData.length - 1].outerRadius}
                     fill="none"
                     stroke="black"
-                    strokeWidth="8"
+                    strokeWidth={whiteLineThickness * 2.1}
                     style={{ pointerEvents: 'none' }}
                   />
                 )}
