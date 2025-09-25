@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import "../App.css";
 import GameBoardSettings from "./GameBoardSettings";
+import EnergyMarkers from "./EnergyMarkers";
 
 const GameBoard = ({ onSliceClick = () => {} }) => {
   const [rotations, setRotations] = useState({
@@ -9,6 +10,8 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
     ring2: 0,
     ring3: 0,
   });
+
+  const [activeMarkers, setActiveMarkers] = useState(new Set());
   
   const containerRef = useRef(null);
   const dragState = useRef({
@@ -163,10 +166,27 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
   // Handle slice click
   const handleSliceClick = (e, label) => {
     e.stopPropagation();
-    if (!dragState.current.isDragging) {
-      onSliceClick(label.text);
+    
+    // Don't handle click if we're dragging
+    if (dragState.current.isDragging) return;
+    
+    const hasMarker = activeMarkers.has(label.id);
+    
+    if (hasMarker) {
+      // Remove marker (free action - no energy cost)
+      setActiveMarkers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(label.id);
+        return newSet;
+      });
+    } else if (points > 0) {
+      // Add marker only if we have energy points
+      setActiveMarkers(prev => new Set([...prev, label.id]));
+      onSliceClick(); // This calls the updatingPoints function from App.jsx
     }
+    // If points === 0 and no marker, do nothing (can't add new markers)
   };
+  
 
   // Global mouse move handler
   useEffect(() => {
@@ -326,6 +346,14 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
                     </g>
                   );
                 })}
+                {/* Simple Energy Markers - rendered on top */}
+                <EnergyMarkers
+                  gameConfig={gameConfig}
+                  rotations={rotations}
+                  activeMarkers={activeMarkers}
+                  centerX={CENTER_X}
+                  centerY={CENTER_Y}
+                />
               </svg>
               <div className="start-circle">Start!</div>
             </div>
