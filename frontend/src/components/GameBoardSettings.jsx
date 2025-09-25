@@ -49,6 +49,11 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
   const loadGameboards = async () => {
     setIsLoading(true);
     console.log("loading gamebords")
+    fetch("http://localhost:8000/load_all")
+        .then((res) => res.json())
+        .then((data) => setTemplates(data));
+    setIsLoading(false);
+    console.log("loading complete")
   };
 
   const handleNameChange = (value) => {
