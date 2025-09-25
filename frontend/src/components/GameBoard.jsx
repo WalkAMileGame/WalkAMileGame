@@ -29,7 +29,6 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
         id: 1,
         innerRadius: 200,
         outerRadius: 350,
-        charLimit: 9,
         labels: [
           { id: 1, text: "Action 1", color: "#ffc072" },
           { id: 2, text: "Action 2", color: "#ffb088" },
@@ -47,9 +46,8 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
         id: 2,
         innerRadius: 350,
         outerRadius: 500,
-        charLimit: 19,
               labels: [
-          { id: 11, text: "Action 11", color: "#a3d7ff" },
+          { id: 11, text: "Action ", color: "#a3d7ff" },
           { id: 12, text: "Action 12", color: "#a0b8ca" },
           { id: 13, text: "Action 13", color: "#a0b8ca" },
           { id: 14, text: "Action 14", color: "#a0b8ca" },
@@ -65,7 +63,6 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
         id: 3,
         innerRadius: 500,
         outerRadius: 650,
-        charLimit: 13,
         labels: [
           { id: 21, text: "Action 21", color: "#bb98d5" },
           { id: 22, text: "Action 22", color: "#bb98d5" },
@@ -83,7 +80,6 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
         id: 4,
         innerRadius: 650,
         outerRadius: 800,
-        charLimit: 20,
               labels: [
           { id: 31, text: "Action 31", color: "#da6363" },
           { id: 32, text: "Action 32", color: "#da6363" },
@@ -107,7 +103,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
   const CENTER_Y = 800 + whiteLineThickness; // Exact center Y
   const viewBoxSize = 1600 + whiteLineThickness * 2; // ViewBox size to fit all rings
 
-  // Settings
+// Settings
 
   const [showSettings, setShowSettings] = useState(false);
 
@@ -171,7 +167,9 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
     e.stopPropagation();
     
     // Don't handle click if we're dragging
-    if (dragState.current.isDragging) return;
+    if (!dragState.current.isDragging) {
+      onSliceClick(label); // This calls the updatingPoints function from App.jsx
+    }
     
     const hasMarker = activeMarkers.has(label.id);
     
@@ -185,7 +183,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
     } else if (points > 0) {
       // Add marker only if we have energy points
       setActiveMarkers(prev => new Set([...prev, label.id]));
-      onSliceClick(); // This calls the updatingPoints function from App.jsx
+      
     }
     // If points === 0 and no marker, do nothing (can't add new markers)
   };
@@ -228,29 +226,66 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
   // Render text on curved path
   const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId) => {
     const midRadius = (innerRadius + outerRadius) / 2;
-    const charLimit = gameConfig.ringData.find(r => r.id === ringId)?.charLimit || 15;
-    
-    // Split long text into lines
-    const regex = new RegExp(`.{1,${charLimit}}`, 'g');
-    const lines = text.length > charLimit ? text.match(regex) : [text];
-    
-    return lines.map((line, lineIndex) => {
-      const textRadius = midRadius - (lineIndex * 12);
-      if (textRadius < innerRadius + 10) return null;
+    const angleRad = (endAngleDeg - startAngleDeg) * (Math.PI / 180);
+
+    // Estimate character limit based on available arc length and a guess for average char width
+    const estimatedCharLimit = Math.floor((midRadius * angleRad) / 12);
+
+    // Function to split text into lines without breaking words
+    const splitTextIntoLines = (text, limit) => {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
       
-      // Adjust angles to start from top
+        if (text.length <= limit) {
+            return [text];
+        }
+
+        for (const word of words) {
+            if ((currentLine + word).length <= limit) {
+                currentLine += `${word} `;
+            } else {
+                if (lines.length >= 5) { // Limit to 6 lines max
+                    break;
+                }
+                lines.push(currentLine.trim());
+                currentLine = `${word} `;
+            }
+        }
+        lines.push(currentLine.trim());
+        return lines.filter(line => line.length > 0);
+    };
+
+    const lines = splitTextIntoLines(text, estimatedCharLimit);
+
+
+    return lines.map((line, lineIndex) => {
+      // Position lines from the middle, stacking outwards/inwards
+      const verticalOffset = (lineIndex - (lines.length - 1) / 2) * 20; // 20 is line height
+      const textRadius = midRadius - verticalOffset;
+
+      // Ensure text stays within the slice boundaries
+      if (textRadius > outerRadius - 15 || textRadius < innerRadius + 15) {
+        return null;
+      }
+
+      const arcLength = textRadius * angleRad;
+      // Use a percentage of the arc length to provide some padding
+      const textLength = arcLength * 0.9;
+
+      // Adjust angles to start from top for SVG path calculation
       const startAngle = (startAngleDeg - 90) * Math.PI / 180;
       const endAngle = (endAngleDeg - 90) * Math.PI / 180;
-      
+
       const x1 = CENTER_X + textRadius * Math.cos(startAngle);
       const y1 = CENTER_Y + textRadius * Math.sin(startAngle);
       const x2 = CENTER_X + textRadius * Math.cos(endAngle);
       const y2 = CENTER_Y + textRadius * Math.sin(endAngle);
-      
+
       const pathId = `textPath-${ringId}-${index}-${lineIndex}`;
       const largeArcFlag = endAngleDeg - startAngleDeg <= 180 ? "0" : "1";
-      
-    return (
+
+      return (
         <g key={pathId}>
           <defs>
             <path
@@ -258,7 +293,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
               d={`M ${x1} ${y1} A ${textRadius} ${textRadius} 0 ${largeArcFlag} 1 ${x2} ${y2}`}
             />
           </defs>
-          <text dy="-20" style={{ pointerEvents: "none", userSelect: "none" }}>
+          <text dy="8" style={{ pointerEvents: "none", userSelect: "none" }}>
             <textPath
               href={`#${pathId}`}
               startOffset="50%"
@@ -266,6 +301,9 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
               fill="#000"
               fontSize="20"
               fontWeight="600"
+              // These two attributes stretch the text to fill the calculated space
+              textLength={textLength}
+              lengthAdjust="spacingAndGlyphs"
             >
               {line}
             </textPath>
@@ -300,79 +338,78 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
   };
 
   return (
-    <div className="game-layout">
-      {/* Settings Button */}
-      <div className="settingsButton">
-        <button 
-          onClick={() => setShowSettings(!showSettings)}
-          variant="outline"
-          size="lg"
-        > 
-          Edit
-        </button>
-      </div>
+    <>
+      <div className="game-layout">
+        {/* Settings Button */}
+        <div className="settingsButton">
+          <button 
+            onClick={() => setShowSettings(!showSettings)}
+          > 
+            Edit
+          </button>
+        </div>
 
-      {/* Main Content Area */}
-      <div className={`main-content ${showSettings ? 'settings-open' : ''}`}>
-        {/* Gameboard Container */}
-        <div className={`gameboard-container ${showSettings ? 'shifted' : ''}`}>
-          <div className="container">
-            <div className="wheel-container" ref={containerRef}>
-              <svg
-                className="wheel-svg"
-                viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <defs>
-                  <filter id="whiteShadow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feDropShadow 
-                      dx="0" // horizontal offset
-                      dy="0" // vertical offset
-                      stdDeviation="10" // blur amount
-                      floodColor="#180707ff" // shadow color (white)
-                    />
-                  </filter>
-                </defs>            
-                {/* Render rings from innermost to outermost */}
-                {gameConfig.ringData.map((ring) => {
-                  const numSlices = ring.labels.length;
-                  const rotation = rotations[ring.id] || 0;
-                  const anglePerSlice = 360 / numSlices;
-                  
-                  return (
-                    <g
-                      key={ring.id}
-                      transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
-                    >
-                      
-                      {/* Render slices */}
-                      {ring.labels.map((label, i) => {
-                        const startAngle = i * anglePerSlice;
-                        const endAngle = (i + 1) * anglePerSlice;
-                        const color = label.color;
+        {/* Main Content Area */}
+        <div className={`main-content ${showSettings ? 'settings-open' : ''}`}>
+          {/* Gameboard Container */}
+          <div className={`gameboard-container ${showSettings ? 'shifted' : ''}`}>
+            <div className="container">
+              <div className="wheel-container" ref={containerRef}>
+                <svg
+                  className="wheel-svg"
+                  viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <defs>
+                    <filter id="whiteShadow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feDropShadow 
+                        dx="0" // horizontal offset
+                        dy="0" // vertical offset
+                        stdDeviation="10" // blur amount
+                        floodColor="#180707ff" // shadow color (white)
+                      />
+                    </filter>
+                  </defs>            
+                  {/* Render rings from innermost to outermost */}
+                  {gameConfig.ringData.map((ring) => {
+                    const numSlices = ring.labels.length;
+                    const rotation = rotations[ring.id] || 0;
+                    const anglePerSlice = 360 / numSlices;
+                    
+                    return (
+                      <g
+                        key={ring.id}
+                        transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
+                      >
                         
-                        return (
-                          <g key={`${ring.id}-slice-${i}`}>
-                            {/* Slice shape */}
-                            <path
-                              className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
-                              d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
-                              fill={color}
-                              stroke="#f5f2d0"
-                              strokeWidth={whiteLineThickness}
-                              onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
-                              onClick={(e) => handleSliceClick(e, label)}
-                              style={{ cursor: "pointer" }}
-                              filter="url(#whiteShadow)"
-                            />
-                            {/* Text */}
-                            {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
-                          </g>
-                        );
-                      })}
-                    </g>
-                  );
-                })}
+                        {/* Render slices */}
+                        {ring.labels.map((label, i) => {
+                          const startAngle = i * anglePerSlice;
+                          const endAngle = (i + 1) * anglePerSlice;
+                          const color = label.color;
+                          
+                          return (
+                            <g key={`${ring.id}-slice-${i}`}>
+                              {/* Slice shape */}
+                              <path
+                                className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
+                                d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
+                                fill={color}
+                                stroke="#f5f2d0"
+                                strokeWidth={whiteLineThickness}
+                                onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
+                                onClick={(e) => handleSliceClick(e, label)}
+                                style={{ cursor: "pointer" }}
+                                filter="url(#whiteShadow)"
+                              />
+                              {/* Text */}
+                              {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
+                            </g>
+                          );
+                        })}
+                      </g>
+                    );
+                  })}
 
                 {/* Separator Circles */}
                 {gameConfig.ringData.map((ring) => (
@@ -410,27 +447,28 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
                 />
               </svg>
               <div className="start-circle">Start!</div>
+              </div>
             </div>
+          </div>
+
+          {/* Settings Panel */}
+          <div className={`settings-panel ${showSettings ? 'open' : ''}`}>
+            <GameBoardSettings
+              gameConfig={gameConfig}
+              onConfigChange={setGameConfig}
+              onSave={(config) => console.log("save config", config)}
+              isVisible={showSettings}
+              onClose={() => setShowSettings(false)}
+            />
           </div>
         </div>
 
-        {/* Settings Panel */}
-        <div className={`settings-panel ${showSettings ? 'open' : ''}`}>
-          <GameBoardSettings
-            gameConfig={gameConfig}
-            onConfigChange={setGameConfig}
-            onSave={(config) => console.log("save config", config)}
-            isVisible={showSettings}
-            onClose={() => setShowSettings(false)}
-          />
-        </div>
+        {/* Settings Overlay */}
+        {showSettings && (
+          <div className="settings-overlay" onClick={() => setShowSettings(false)} />
+        )}
       </div>
-
-      {/* Settings Overlay */}
-      {showSettings && (
-        <div className="settings-overlay" onClick={() => setShowSettings(false)} />
-      )}
-    </div>
+    </>
   );
 };
 
