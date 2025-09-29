@@ -30,15 +30,12 @@ def update_points(data: ChangePoints):
 
 class NewBoard(BaseModel):
     name: str
-    rings: list[dict]
+    ringData: list[dict]
 @router.put("/save")
 def save_board(data: NewBoard):
-    db.boards.update_one({"name": data.name}, {"$set": {"name": data.name, "rings": data.rings}}, upsert=True)
+    db.boards.update_one({"name": data.name}, {"$set": {"name": data.name, "ringData": data.ringData}}, upsert=True)
 
 @router.get("/load_all")
 def load_boards():
-    boards = db.boards.find(projection={"_id": False})
-    listed_boards = []
-    for x in boards:
-        listed_boards.append(x)
-    return listed_boards
+    boards = list(db.boards.find(projection={"_id": False}))
+    return boards
