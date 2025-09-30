@@ -3,7 +3,7 @@ import "../App.css";
 import GameBoardSettings from "./GameBoardSettings";
 import EnergyMarkers from "./EnergyMarkers";
 
-const GameBoard = ({ onSliceClick = () => {} }) => {
+const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
   const [rotations, setRotations] = useState({
     ring0: 0,
     ring1: 0,
@@ -155,7 +155,7 @@ const GameBoard = ({ onSliceClick = () => {} }) => {
     e.stopPropagation();
     const angle = getAngleFromMouse(e.clientX, e.clientY);
     dragState.current = {
-      isDragging: true,
+      isDragging: false,
       ringId,
       startAngle: angle,
       startRotation: rotations[ringId] || 0
