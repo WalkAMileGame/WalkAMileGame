@@ -308,9 +308,6 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
               fill="#000"
               fontSize="20"
               fontWeight="600"
-              // These two attributes stretch the text to fill the calculated space
-              textLength={textLength}
-              lengthAdjust="spacingAndGlyphs"
             >
               {line}
             </textPath>

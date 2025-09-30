@@ -30,6 +30,7 @@ const ColorPicker = ({ value, onChange, colors = [] }) => {
 const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) => {
   const [localConfig, setLocalConfig] = useState(gameConfig);
   const [templates, setTemplates] = useState([]);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [savedGameboards, setSavedGameboards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -59,6 +60,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
   const handleNameChange = (value) => {
     const updatedConfig = { ...localConfig, name: value };
     setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
     onConfigChange(updatedConfig);
   };
 
@@ -66,6 +68,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     const updatedConfig = { ...localConfig };
     updatedConfig.ringData[layerIndex].labels[labelIndex].text = text;
     setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
     onConfigChange(updatedConfig);
   };
 
@@ -73,6 +76,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     const updatedConfig = { ...localConfig };
     updatedConfig.ringData[layerIndex].labels[labelIndex].color = color;
     setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
     onConfigChange(updatedConfig);
   };
 
@@ -89,6 +93,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     });
     
     setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
     onConfigChange(updatedConfig);
   };
 
@@ -96,11 +101,13 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     const updatedConfig = { ...localConfig };
     updatedConfig.ringData[layerIndex].labels.splice(labelIndex, 1);
     setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
     onConfigChange(updatedConfig);
   };
 
   const loadSavedGameboard = async (boardData) => {
     setLocalConfig(boardData);
+    setUnsavedChanges(false);
     onConfigChange(boardData);
     console.log("load saved gameboard");
   };
@@ -115,6 +122,7 @@ const handleSave = async () => {
   setIsSaving(true);
   try {
     const response = await saveGameboard();
+    if (response.ok) {setUnsavedChanges(false);}
 
     if (!response.ok) {
       let errorMsg = "Failed to save gameboard.";
@@ -149,7 +157,7 @@ const saveGameboard = () => {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
-      name: localConfig.name, 
+      name: localConfig.name?.trim(), 
       ringData: localConfig.ringData 
     }),
   });
@@ -189,9 +197,15 @@ const saveGameboard = () => {
           <p className="isloading">Loading templates...</p>
         ) : (
           <select onChange={(e) => {
+            if (unsavedChanges) {
+              const confirmBox = window.confirm(
+                `Unsaved changes will be discarded. Are you sure you want to proceed?`
+              )
+              if (!confirmBox) {return}
+            }
             const selectedTemplate = templates.find(t => t.name === e.target.value)
             if (selectedTemplate) {
-              loadSavedGameboard(selectedTemplate);
+              loadSavedGameboard(selectedTemplate)
             }
           }} className="w-full border rounded p-2">
             <option>Choose a template</option>
@@ -250,7 +264,15 @@ const saveGameboard = () => {
         {/* Save */}
         <div className="pt-4 border-t">
           <button
-            onClick={handleSave}
+            onClick={() => {
+              if (templates.find(t => t.name === localConfig.name?.trim())) {
+                const confirmBox = window.confirm(
+                  `Are you sure you want to overwrite ${localConfig.name?.trim()}?`
+                )
+                if (!confirmBox) {return}
+              }
+              handleSave()
+            }}
             disabled={isSaving}
             // disabled={isSaving || !localConfig.name?.trim()}
             className="save-button"
@@ -265,3 +287,4 @@ const saveGameboard = () => {
 };
 
 export default GameBoardSettings;
+
