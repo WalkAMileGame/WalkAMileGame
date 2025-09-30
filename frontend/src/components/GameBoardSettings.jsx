@@ -195,6 +195,12 @@ const saveGameboard = () => {
           <p className="isloading">Loading templates...</p>
         ) : (
           <select onChange={(e) => {
+            if (unsavedChanges) {
+              const confirmBox = window.confirm(
+                `Unsaved changes will be discarded. Are you sure you want to proceed?`
+              )
+              if (!confirmBox) {return}
+            }
             const selectedTemplate = templates.find(t => t.name === e.target.value)
             if (selectedTemplate) {
               loadSavedGameboard(selectedTemplate)
@@ -259,11 +265,11 @@ const saveGameboard = () => {
             onClick={() => {
               if (templates.find(t => t.name === localConfig.name?.trim())) {
                 const confirmBox = window.confirm(
-                  `Do you really want to overwrite ${localConfig.name?.trim()}?`
+                  `Are you sure you want to overwrite ${localConfig.name?.trim()}?`
                 )
-                if (confirmBox) { handleSave() }
+                if (!confirmBox) {return}
               }
-              else { handleSave() }
+              handleSave()
             }}
             disabled={isSaving}
             // disabled={isSaving || !localConfig.name?.trim()}
