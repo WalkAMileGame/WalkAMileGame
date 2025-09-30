@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import Snackbar from "./ui/snackbar"
 
 
-
-const ColorPicker = ({ value, onChange, colors = [] }) => {
+        {/* Available colors */}
+const ColorPicker = ({ onChange, colors = [] }) => {
   const defaultColors = [
     "#ffc072", "#ffb088", "#d79543", "#e17f4d", "#a3d7ff", "#a0b8ca", "#d3eafc",
     "#bb98d5", "#a872d1", "#e4c1ff", "#5375d0", "#9fb9ff", "#7e9ef3", "#7892d8",
@@ -27,11 +27,10 @@ const ColorPicker = ({ value, onChange, colors = [] }) => {
   );
 };
 
-const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) => {
+const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const [localConfig, setLocalConfig] = useState(gameConfig);
   const [templates, setTemplates] = useState([]);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
-  const [savedGameboards, setSavedGameboards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
@@ -131,7 +130,7 @@ const handleSave = async () => {
         if (data?.error) {
           errorMsg = ` ${data.error}`;
         }
-      } catch (e) {
+      } catch {
         // ignore JSON parse errors
       }
       setSnackbarMessage(errorMsg);
@@ -151,7 +150,7 @@ const handleSave = async () => {
   }
 };
 
-// Make sure saveGameboard RETURNS the fetch result
+{/* Make sure saveGameboard RETURNS the fetch result */ }
 const saveGameboard = () => {
   return fetch("http://localhost:8000/save", {
     method: "PUT",
@@ -192,7 +191,8 @@ const saveGameboard = () => {
         </div>
 
         {/* Templates */}
-        <h3 className="loadgameboard-title">Load gameboards</h3>
+        <div className="templates">
+        <div className="loadgameboard-title">Load gameboards: </div>
         {isLoading ? (
           <p className="isloading">Loading templates...</p>
         ) : (
@@ -207,7 +207,7 @@ const saveGameboard = () => {
             if (selectedTemplate) {
               loadSavedGameboard(selectedTemplate)
             }
-          }} className="w-full border rounded p-2">
+          }} className="template-dropdown">
             <option>Choose a template</option>
             {templates.map((template) => (
               <option key={template.name} value={template.name}>
@@ -216,6 +216,7 @@ const saveGameboard = () => {
             ))}
           </select>
         )}
+        </div>
 
         {/* Layers */}
         <h3 className="layeredit-title">Edit layers and buttons</h3>

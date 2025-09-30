@@ -42,15 +42,18 @@ const EnergyMarkers = ({
               transform={`rotate(${rotation} ${centerX} ${centerY})`}
               style={{ pointerEvents: 'none' }}
             >
-              {/* Red circle with white border */}
-              <circle
-                cx={pos.x}
-                cy={pos.y}
-                r="20"
-                fill="#ff4444"
-                stroke="#ffffff"
-                strokeWidth="3"
-              />
+              {/* Enregy emoji */}
+            <text
+              x={pos.x}
+              y={pos.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="40"
+              transform={`rotate(-20, ${pos.x}, ${pos.y})`}
+            >
+              ⚡
+            </text>
+
             </g>
           );
         });

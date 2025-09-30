@@ -276,9 +276,9 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
         return null;
       }
 
-      const arcLength = textRadius * angleRad;
-      // Use a percentage of the arc length to provide some padding
-      const textLength = arcLength * 0.9;
+      // const arcLength = textRadius * angleRad;
+      // // Use a percentage of the arc length to provide some padding
+      // const textLength = arcLength * 0.9;
 
       // Adjust angles to start from top for SVG path calculation
       const startAngle = (startAngleDeg - 90) * Math.PI / 180;
@@ -317,6 +317,7 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
     });
   };
 
+  // eslint-disable-next-line no-unused-vars
   const getAnnularSectorPoints = (innerRadius, outerRadius, startAngleDeg, endAngleDeg) => {
     const startAngle = (startAngleDeg - 90) * Math.PI / 180;
     const endAngle = (endAngleDeg - 90) * Math.PI / 180;
@@ -349,7 +350,7 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
           <button 
             onClick={() => setShowSettings(!showSettings)}
           > 
-            Edit
+            ⚙️
           </button>
         </div>
 
