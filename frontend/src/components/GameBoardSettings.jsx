@@ -107,6 +107,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
 
   const loadSavedGameboard = async (boardData) => {
     setLocalConfig(boardData);
+    setUnsavedChanges(false);
     onConfigChange(boardData);
     console.log("load saved gameboard");
   };
@@ -121,6 +122,7 @@ const handleSave = async () => {
   setIsSaving(true);
   try {
     const response = await saveGameboard();
+    if (response.ok) {setUnsavedChanges(false);}
 
     if (!response.ok) {
       let errorMsg = "Failed to save gameboard.";
