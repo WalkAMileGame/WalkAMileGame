@@ -157,7 +157,7 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
     e.stopPropagation();
     const angle = getAngleFromMouse(e.clientX, e.clientY);
     dragState.current = {
-      isDragging: false,
+      isDragging: true,
       ringId,
       startAngle: angle,
       startRotation: rotations[ringId] || 0,
@@ -169,29 +169,24 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
   const handleSliceClick = (e, label) => {
     e.stopPropagation();
     
-    // Don't handle click if we're dragging or recently dragged is true
     if (dragState.current.isDragging || dragState.current.recentlyDragged) {
       return;
     }
-
-    onSliceClick(label); 
     
     const hasMarker = activeMarkers.has(label.id);
     
     if (hasMarker) {
-      // Remove marker (free action - no energy cost)
+      onSliceClick(1); // Remove marker - refund energy
       setActiveMarkers(prev => {
         const newSet = new Set(prev);
         newSet.delete(label.id);
         return newSet;
       });
     } else if (points > 0) {
-      // Add marker only if we have energy points
+      onSliceClick(-1); // Add marker - spend energy
       setActiveMarkers(prev => new Set([...prev, label.id]));
-      
     }
-    // If points === 0 and no marker, do nothing (can't add new markers)
-  };
+  }
   
 
   // Global mouse move handler

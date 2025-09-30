@@ -20,11 +20,11 @@ function App() {
     .then((data) => setPoints(data.values));
 }, []);
 
-  const updatingPoints = () => {
+  const updatingPoints = (change = -1) => { // takes input number now
     fetch("http://localhost:8000/items", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ change: -1 }), 
+      body: JSON.stringify({ change }), 
     })
       .then((res) => res.json())
       .then((data) => setPoints(data.values));
