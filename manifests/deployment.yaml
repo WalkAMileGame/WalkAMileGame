@@ -13,11 +13,11 @@ spec:
         app: walkamile
     spec:
       containers:
-        - name: walkamile
-          image: WalkAMileGame/walkamile:1
+        - name: walkamile-backend
+          image: walkamile/walkamile-backend
           ports:
             - containerPort: 3000
           env:
-           - name: DB_URL
-            #to be set:
-             value: postgresql://ohtuprojektitesti:passwordhere@hostnamehere:5432/ohtuprojekti?targetServerType=primary&ssl=true
+            - name: DB_URL
+              #to be set:
+              value: noneS
