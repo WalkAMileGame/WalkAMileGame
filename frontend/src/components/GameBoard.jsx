@@ -14,12 +14,6 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
   const [activeMarkers, setActiveMarkers] = useState(new Set());
   
   const containerRef = useRef(null);
-  const dragState = useRef({
-    isDragging: false,
-    ringId: null,
-    startAngle: 0,
-    startRotation: 0
-  });
 
   // Data for all rings (from innermost to outermost)
   const [gameConfig, setGameConfig] = useState({
@@ -149,6 +143,14 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
     return angle;
   };
 
+  const dragState = useRef({
+    isDragging: false,
+    ringId: null,
+    startAngle: 0,
+    startRotation: 0,
+    recentlyDragged: false
+  });
+  
   // Handle ring drag start
   const handleRingMouseDown = (e, ringId) => {
     e.preventDefault();
@@ -158,7 +160,8 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
       isDragging: false,
       ringId,
       startAngle: angle,
-      startRotation: rotations[ringId] || 0
+      startRotation: rotations[ringId] || 0,
+      recentlyDragged: false
     };
   };
 
@@ -166,10 +169,12 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
   const handleSliceClick = (e, label) => {
     e.stopPropagation();
     
-    // Don't handle click if we're dragging
-    if (!dragState.current.isDragging) {
-      onSliceClick(label); // This calls the updatingPoints function from App.jsx
+    // Don't handle click if we're dragging or recently dragged is true
+    if (dragState.current.isDragging || dragState.current.recentlyDragged) {
+      return;
     }
+
+    onSliceClick(label); 
     
     const hasMarker = activeMarkers.has(label.id);
     
@@ -193,6 +198,8 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!dragState.current.isDragging) return;
+
+      dragState.current.recentlyDragged = true;
       
       const currentAngle = getAngleFromMouse(e.clientX, e.clientY);
       let deltaAngle = currentAngle - dragState.current.startAngle;
@@ -210,9 +217,14 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
     };
 
     const handleMouseUp = () => {
-      dragState.current.isDragging = false;
-      dragState.current.ringId = null;
-    };
+    dragState.current.isDragging = false;
+    
+    setTimeout(() => {
+      dragState.current.recentlyDragged = false;
+    }, 100); 
+    
+    dragState.current.ringId = null;
+  };
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);

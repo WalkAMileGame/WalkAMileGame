@@ -50,8 +50,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     setIsLoading(true);
     console.log("loading gamebords")
     fetch("http://localhost:8000/load_all")
-        .then((res) => res.json())
-        .then((data) => setTemplates(data));
+      .then((res) => res.json())
+      .then((data) => setTemplates(data));
     setIsLoading(false);
     console.log("loading complete")
   };
@@ -99,8 +99,10 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     onConfigChange(updatedConfig);
   };
 
-  const loadSavedGameboard = async (gameboardId) => {
-    console.log("load saved gameboard")
+  const loadSavedGameboard = async (boardData) => {
+    setLocalConfig(boardData);
+    onConfigChange(boardData);
+    console.log("load saved gameboard");
   };
 
 const handleSave = async () => {
@@ -148,7 +150,7 @@ const saveGameboard = () => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
       name: localConfig.name, 
-      rings: localConfig.ringData 
+      ringData: localConfig.ringData 
     }),
   });
 };
@@ -186,10 +188,15 @@ const saveGameboard = () => {
         {isLoading ? (
           <p className="isloading">Loading templates...</p>
         ) : (
-          <select onChange={(e) => console.log("loadTemplate", e.target.value)} className="w-full border rounded p-2">
+          <select onChange={(e) => {
+            const selectedTemplate = templates.find(t => t.name === e.target.value)
+            if (selectedTemplate) {
+              loadSavedGameboard(selectedTemplate);
+            }
+          }} className="w-full border rounded p-2">
             <option>Choose a template</option>
             {templates.map((template) => (
-              <option key={template.id} value={template.id}>
+              <option key={template.name} value={template.name}>
                 {template.name}
               </option>
             ))}
