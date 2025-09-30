@@ -30,6 +30,7 @@ const ColorPicker = ({ value, onChange, colors = [] }) => {
 const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) => {
   const [localConfig, setLocalConfig] = useState(gameConfig);
   const [templates, setTemplates] = useState([]);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [savedGameboards, setSavedGameboards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -59,6 +60,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
   const handleNameChange = (value) => {
     const updatedConfig = { ...localConfig, name: value };
     setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
     onConfigChange(updatedConfig);
   };
 
@@ -66,6 +68,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     const updatedConfig = { ...localConfig };
     updatedConfig.ringData[layerIndex].labels[labelIndex].text = text;
     setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
     onConfigChange(updatedConfig);
   };
 
@@ -73,6 +76,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     const updatedConfig = { ...localConfig };
     updatedConfig.ringData[layerIndex].labels[labelIndex].color = color;
     setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
     onConfigChange(updatedConfig);
   };
 
@@ -89,6 +93,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     });
     
     setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
     onConfigChange(updatedConfig);
   };
 
@@ -96,6 +101,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, onSave, isVisible }) =>
     const updatedConfig = { ...localConfig };
     updatedConfig.ringData[layerIndex].labels.splice(labelIndex, 1);
     setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
     onConfigChange(updatedConfig);
   };
 
@@ -149,7 +155,7 @@ const saveGameboard = () => {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
-      name: localConfig.name, 
+      name: localConfig.name?.trim(), 
       ringData: localConfig.ringData 
     }),
   });
@@ -191,7 +197,7 @@ const saveGameboard = () => {
           <select onChange={(e) => {
             const selectedTemplate = templates.find(t => t.name === e.target.value)
             if (selectedTemplate) {
-              loadSavedGameboard(selectedTemplate);
+              loadSavedGameboard(selectedTemplate)
             }
           }} className="w-full border rounded p-2">
             <option>Choose a template</option>
@@ -250,7 +256,15 @@ const saveGameboard = () => {
         {/* Save */}
         <div className="pt-4 border-t">
           <button
-            onClick={handleSave}
+            onClick={() => {
+              if (templates.find(t => t.name === localConfig.name?.trim())) {
+                const confirmBox = window.confirm(
+                  `Do you really want to overwrite ${localConfig.name?.trim()}?`
+                )
+                if (confirmBox) { handleSave() }
+              }
+              else { handleSave() }
+            }}
             disabled={isSaving}
             // disabled={isSaving || !localConfig.name?.trim()}
             className="save-button"
@@ -265,3 +279,4 @@ const saveGameboard = () => {
 };
 
 export default GameBoardSettings;
+
