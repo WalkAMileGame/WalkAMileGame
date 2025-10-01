@@ -16,7 +16,7 @@
 
 
 ### Server discussion
-- Arni contacts course staff about possibility to host commercial product on a university server, during developement phase university server is used
+- Arni contacts course staff about possibility to host commercial product on a university server, during development phase university server is used
 
 
 ### Additional content
