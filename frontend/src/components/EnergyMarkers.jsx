@@ -32,13 +32,14 @@ const EnergyMarkers = ({
         const rotation = rotations[ring.id] || 0;
         
         return ring.labels.map((label, index) => {
-          if (!activeMarkers.has(label.id)) return null;
+          const compositeKey = `${ring.id}-${label.id}`;
+          if (!activeMarkers.has(compositeKey)) return null;
 
           const pos = getMarkerPosition(ring, index);
           
           return (
             <g 
-              key={`marker-${label.id}`}
+              key={`marker-${compositeKey}`}
               transform={`rotate(${rotation} ${centerX} ${centerY})`}
               style={{ pointerEvents: 'none' }}
             >
