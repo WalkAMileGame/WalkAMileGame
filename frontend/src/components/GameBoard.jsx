@@ -3,7 +3,7 @@ import "../App.css";
 import GameBoardSettings from "./GameBoardSettings";
 import EnergyMarkers from "./EnergyMarkers";
 
-const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
+const GameBoard = () => {
   const [rotations, setRotations] = useState({
     ring0: 0,
     ring1: 0,
@@ -12,6 +12,23 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
   });
 
   const [activeMarkers, setActiveMarkers] = useState(new Set());
+  const [points, setPoints] = useState(0)
+
+  useEffect(() => {
+  fetch("http://localhost:8000/items")
+    .then((res) => res.json())
+    .then((data) => setPoints(data.values));
+  }, []);
+
+  const updatingPoints = (change = -1) => { // takes input number now
+    fetch("http://localhost:8000/items", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ change }), 
+    })
+      .then((res) => res.json())
+      .then((data) => setPoints(data.values));
+  };
   
   const containerRef = useRef(null);
 
@@ -176,14 +193,14 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
     const hasMarker = activeMarkers.has(label.id);
     
     if (hasMarker) {
-      onSliceClick(1); // Remove marker - refund energy
+      updatingPoints(1); // Remove marker - refund energy
       setActiveMarkers(prev => {
         const newSet = new Set(prev);
         newSet.delete(label.id);
         return newSet;
       });
     } else if (points > 0) {
-      onSliceClick(-1); // Add marker - spend energy
+      updatingPoints(-1); // Add marker - spend energy
       setActiveMarkers(prev => new Set([...prev, label.id]));
     }
   }
@@ -344,6 +361,9 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
 
   return (
     <>
+      <div className="energypoints">
+        Remaining energypoints: {points}
+      </div>
       <div className="game-layout">
         {/* Settings Button */}
         <div className="settingsButton">
