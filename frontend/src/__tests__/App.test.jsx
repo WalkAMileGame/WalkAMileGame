@@ -23,3 +23,28 @@ test('clicking login button renders login page', async () => {
 
   expect(linkElement).toBeInTheDocument()
 })
+
+test('clicking gameboard button renders gameboard', async () => {
+
+  render(<App />)
+
+  const user = userEvent.setup()
+  const button = screen.getByText('Gameboard')
+  await user.click(button)
+
+  const element = screen.getByText('Remaining energypoints:', {exact: false})
+})
+
+test('clicking login and then home button renders homepage', async () => {
+
+  render(<App />)
+
+  const user = userEvent.setup()
+  const button1 = screen.getByText('Gameboard')
+  await user.click(button1)
+
+  const button2 = screen.getByText('Home')
+  await user.click(button2)
+
+  const element = screen.getByText('The Wheel Homepage')
+})

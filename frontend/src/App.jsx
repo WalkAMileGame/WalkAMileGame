@@ -8,7 +8,6 @@ import './styles/App.css';
 import {BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
 
 function App() {
-  const [points, setPoints] = useState(0)
 
   const padding = {
     padding: 5
