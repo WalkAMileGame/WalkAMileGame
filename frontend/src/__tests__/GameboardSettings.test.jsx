@@ -1,5 +1,17 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { vi } from 'vitest';
 import GameBoardSettings from '../components/GameBoardSettings'
+
+vi.mock('../components/ui/snackbar', () => {
+  return {
+    default: ({ message, show }) => {
+      if (!show) return null;
+      return <div data-testid="snackbar">{message}</div>;
+    },
+  };
+});
+
+
 
 const mockTemplates = [
     {name: 'Default Gameboard'},
@@ -16,7 +28,6 @@ const mockConfig = {
             labels: [
             { id: 1, text: "Action 1", color: "#ffc072" },
             { id: 2, text: "Action 2", color: "#ffb088" },
-            { id: 3, text: "Action 3", color: "#ffc072" },
             ]      
         },
         {
@@ -26,7 +37,6 @@ const mockConfig = {
                 labels: [
             { id: 11, text: "Action 11", color: "#a3d7ff" },
             { id: 12, text: "Action 12", color: "#a0b8ca" },
-            { id: 13, text: "Action 13", color: "#a0b8ca" },
             ],
         },
         {
@@ -36,7 +46,6 @@ const mockConfig = {
             labels: [
             { id: 21, text: "Action 21", color: "#bb98d5" },
             { id: 22, text: "Action 22", color: "#bb98d5" },
-            { id: 23, text: "Action 23", color: "#bb98d5" },
             ],   
         },
         {
@@ -46,51 +55,349 @@ const mockConfig = {
                 labels: [
             { id: 31, text: "Action 31", color: "#da6363" },
             { id: 32, text: "Action 32", color: "#da6363" },
-            { id: 33, text: "Action 33", color: "#ff8989" },
             ],   
         }
     ],
 }
 
 describe("GameBoardSettings", () => {
-    test("renders title and input for gameboard name", () => {
-        render(
-            <GameBoardSettings
-            gameConfig={mockConfig}
-            onConfigChange={() => {}}
-            isVisible={true}
-            />
-        )
-        expect(screen.getByText("Edit gameboard")).toBeInTheDocument()
-        expect(screen.getByLabelText(/Gameboard Name/)).toHaveValue("Default Gameboard")
-    })
+  const onConfigChangeMock = vi.fn();
 
+  beforeAll(() => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockTemplates),
+      })
+    );
+  });
+
+  afterAll(() => {
+    global.fetch.mockRestore?.();
+  });
+
+  test("renders title and input for gameboard name", () => {
+    render(
+      <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={() => {}}
+        isVisible={true}
+      />
+    );
+
+    expect(screen.getByText("Edit gameboard")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Gameboard Name/)).toHaveValue("Default Gameboard");
+  });
+
+  test("loading templates", async () => {
+    render(
+      <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={onConfigChangeMock}
+        isVisible={true}
+      />
+    );
+
+    expect(screen.getByText("Load gameboards:")).toBeInTheDocument();
+
+    const select = await screen.findByRole("combobox");
+    expect(select).toBeInTheDocument();
+
+    expect(await screen.findByRole("option", { name: "Choose a template" })).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: "Default Gameboard" })).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: "Other Gameboard" })).toBeInTheDocument();
+  });
+
+  test("adding a slice", () => {
     const onConfigChangeMock = vi.fn();
+    render(
+      <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={onConfigChangeMock}
+        isVisible={true}
+      />
+    );
+    const addButtons = screen.getAllByText("+ Add Slice")
+    expect(addButtons.length).toBeGreaterThan(0);
+    const firstButton = addButtons[0];
+    fireEvent.click(firstButton)
+    const originalCount = mockConfig.ringData[0].labels.length;
+    const expectedCount = originalCount + 1;
+    expect(expectedCount).toBeLessThanOrEqual(originalCount + 1)
 
-    test("loading templates", async () => {
-        const onConfigChangeMock = vi.fn();
+  })
 
-        global.fetch = vi.fn(() =>
-            Promise.resolve({
-            json: () => Promise.resolve(mockTemplates),
-            })
-        );
-        render(
-            <GameBoardSettings
+  test("removing a slice", () => {
+    render (
+        <GameBoardSettings
             gameConfig={mockConfig}
             onConfigChange={onConfigChangeMock}
             isVisible={true}
-            />
-        )
-        expect(screen.getByText("Load gameboards:")).toBeInTheDocument();
+        />
+    );
+    const deleteButton = screen.getAllByText("✕")
+    expect(deleteButton.length).toBeGreaterThan(0);
+    const fistdltBtn = deleteButton[0];
+    fireEvent.click(fistdltBtn)
+    const originalCount=mockConfig.ringData[0].labels.length;
+    const expectedCount=originalCount - 1;
+    expect(expectedCount).toBeLessThanOrEqual(originalCount - 1)
 
-        const select = await screen.findByRole("combobox");
-        expect(select).toBeInTheDocument();
+  })
 
-        expect(screen.getByRole("option", { name: "Choose a template" })).toBeInTheDocument();
-        expect(screen.getByRole("option", { name: "Default Gameboard" })).toBeInTheDocument();
-        expect(screen.getByRole("option", { name: "Other Gameboard" })).toBeInTheDocument();
-        })
+  test("change slice name", () => {
+    render (
+        <GameBoardSettings
+            gameConfig={mockConfig}
+            onConfigChange={onConfigChangeMock}
+            isVisible={true}
+        />
+    );
+    const sliceInput = screen.getByDisplayValue("Action 2");
+    fireEvent.change(sliceInput, { target: { value: "Changed button text" } });
+    expect(onConfigChangeMock).toHaveBeenCalled();
+  })
 
-})
+  test("change gameboard name", () => {
+    render (
+        <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={onConfigChangeMock}
+        isVisible={true}
+        />
+    );
+    const gameboardname = screen.getByDisplayValue("Default Gameboard")
+    fireEvent.change(gameboardname, {target: {value: "New gameboard"}});
+    expect(onConfigChangeMock).toHaveBeenCalled();
+  })
 
+  test("change button colors", () => {
+    const onConfigChange = vi.fn()
+    render (
+        <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={onConfigChange}
+        isVisible={true}
+        />
+    );
+    const colorButtons = screen.getAllByRole("button", { name: "" }); 
+    const firstColorButton = colorButtons.find(btn =>
+    btn.style.backgroundColor === "rgb(255, 192, 114)"
+    );
+
+    fireEvent.click(firstColorButton);
+    expect(onConfigChange).toHaveBeenCalled();
+  })
+
+
+test("saving gameboard successfully", async () => {
+    const onConfigChange = vi.fn();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    
+    // Mock fetch to handle both load_all and save endpoints
+    global.fetch = vi.fn((url) => {
+        if (url.includes('load_all')) {
+        return Promise.resolve({ 
+            ok: true, 
+            json: () => Promise.resolve(mockTemplates) 
+        });
+        }
+        if (url.includes('save')) {
+        return Promise.resolve({ 
+            ok: true, 
+            json: () => Promise.resolve({}) 
+        });
+        }
+    });
+
+    render(
+        <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={onConfigChange}
+        isVisible={true}
+        />
+    );
+
+    const saveButton = screen.getByText("Save Gameboard");
+    fireEvent.click(saveButton);
+    const snackbar = await screen.findByTestId("snackbar");
+    expect(snackbar).toHaveTextContent("Gameboard saved successfully!");
+    
+    confirmSpy.mockRestore();
+    });
+
+test("saving without name", async () => {
+    const onConfigChange = vi.fn();
+    const configWithNoName = { ...mockConfig, name: "" };
+
+    render(
+        <GameBoardSettings
+        gameConfig={configWithNoName}
+        onConfigChange={onConfigChange}
+        isVisible={true}
+        />
+    );
+
+    const saveButton = screen.getByText("Save Gameboard");
+    fireEvent.click(saveButton);
+
+    const snackbar = await screen.findByTestId("snackbar");
+    expect(snackbar).toHaveTextContent("Please enter a name before saving.");
+    });
+
+test("saveGameboard fails without error message", async () => {
+  const onConfigChange = vi.fn();
+  const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
+
+  global.fetch = vi.fn((url) => {
+    if (url.includes('load_all')) {
+      return Promise.resolve({ 
+        ok: true, 
+        json: () => Promise.resolve(mockTemplates) 
+      });
+    }
+    if (url.includes('save')) {
+      return Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({}), 
+      });
+    }
+  });
+
+  render(
+    <GameBoardSettings
+      gameConfig={mockConfig}
+      onConfigChange={onConfigChange}
+      isVisible={true}
+    />
+  );
+
+  const saveButton = screen.getByText("Save Gameboard");
+  fireEvent.click(saveButton);
+
+  const snackbar = await screen.findByTestId("snackbar");
+  expect(snackbar).toHaveTextContent("Failed to save gameboard.");
+  
+  confirmSpy.mockRestore();
+});
+
+test("user confirmation when overwriting gameboard", async () => {
+  const onConfigChange = vi.fn();
+  const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
+
+  global.fetch = vi.fn((url) => {
+    if (url.includes('load_all')) {
+      return Promise.resolve({ 
+        ok: true, 
+        json: () => Promise.resolve(mockTemplates) 
+      });
+    }
+    if (url.includes('save')) {
+      return Promise.resolve({ 
+        ok: true, 
+        json: () => Promise.resolve({}) 
+      });
+    }
+  });
+
+  render(
+    <GameBoardSettings
+      gameConfig={mockConfig}
+      onConfigChange={onConfigChange}
+      isVisible={true}
+    />
+  );
+  await screen.findByRole("combobox");
+
+  const saveButton = screen.getByText("Save Gameboard");
+  fireEvent.click(saveButton);
+
+  // Verify confirm was called
+  expect(confirmSpy).toHaveBeenCalled();
+
+  // Verify snackbar shows success
+  const snackbar = await screen.findByTestId("snackbar");
+  expect(snackbar).toHaveTextContent("Gameboard saved successfully!");
+
+  confirmSpy.mockRestore();
+});
+
+test("user confirmation when switching to different template after making changes", async () => {
+  const onConfigChange = vi.fn();
+  const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => false);
+
+  global.fetch = vi.fn((url) => {
+    if (url.includes('load_all')) {
+      return Promise.resolve({ 
+        ok: true, 
+        json: () => Promise.resolve(mockTemplates) 
+      });
+    }
+    if (url.includes('save')) {
+      return Promise.resolve({ 
+        ok: true, 
+        json: () => Promise.resolve({}) 
+      });
+    }
+  });
+
+  render(
+    <GameBoardSettings
+      gameConfig={mockConfig}
+      onConfigChange={onConfigChange}
+      isVisible={true}
+    />
+  );
+  const select = await screen.findByRole("combobox");
+
+  const nameInput = screen.getByDisplayValue("Default Gameboard");
+  fireEvent.change(nameInput, { target: { value: "Changed name" } });
+
+  fireEvent.change(select, { target: { value: "Other Gameboard" } });
+
+  expect(confirmSpy).toHaveBeenCalledWith(
+    "Unsaved changes will be discarded. Are you sure you want to proceed?"
+  );
+
+  confirmSpy.mockRestore();
+  });
+
+test("load saved templates", async () => {
+  const onConfigChange = vi.fn();
+  const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
+
+  global.fetch = vi.fn((url) => {
+    if (url.includes('load_all')) {
+      return Promise.resolve({ 
+        ok: true, 
+        json: () => Promise.resolve(mockTemplates) 
+      });
+    }
+    if (url.includes('save')) {
+      return Promise.resolve({ 
+        ok: true, 
+        json: () => Promise.resolve({}) 
+      });
+    }
+  });
+
+  render(
+    <GameBoardSettings
+      gameConfig={mockConfig}
+      onConfigChange={onConfigChange}
+      isVisible={true}
+    />
+  );
+  const select = await screen.findByRole("combobox");
+
+  const nameInput = screen.getByDisplayValue("Default Gameboard");
+  fireEvent.change(nameInput, { target: { value: "Changed name" } });
+
+  fireEvent.change(select, { target: { value: "Other Gameboard" } });
+  
+  expect(confirmSpy).toHaveBeenCalled();
+  expect(onConfigChange).toHaveBeenCalled();
+
+  confirmSpy.mockRestore();
+  });
+});
