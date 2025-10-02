@@ -2,9 +2,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import APIRouter
-from .db import db
 from pydantic import BaseModel
 from backend.app.models import Points, Boards
+from .db import db
+
 
 
 router = APIRouter()
@@ -33,7 +34,9 @@ class NewBoard(BaseModel):
     ringData: list[dict]
 @router.put("/save")
 def save_board(data: NewBoard):
-    db.boards.update_one({"name": data.name}, {"$set": {"name": data.name, "ringData": data.ringData}}, upsert=True)
+    db.boards.update_one({"name": data.name},
+                         {"$set": {"name": data.name, "ringData": data.ringData}},
+                           upsert=True)
 
 @router.get("/load_all")
 def load_boards():
