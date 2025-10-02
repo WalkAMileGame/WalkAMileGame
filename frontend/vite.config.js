@@ -14,7 +14,9 @@ export default defineConfig({
       exclude: [
         'src/components/ui/snackbar.jsx',
         'src/setupTests.js',
-        'src/main.jsx'
+        'src/main.jsx',
+        'vite.config.js',
+        'eslint.config.js'
       ],
     },
   }
