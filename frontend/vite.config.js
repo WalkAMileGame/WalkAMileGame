@@ -8,6 +8,15 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/setupTests.js',     
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      exclude: [
+        'src/components/ui/snackbar.jsx',
+        'src/setupTests.js',
+        'src/main.jsx'
+      ],
+    },
   }
 })
 
