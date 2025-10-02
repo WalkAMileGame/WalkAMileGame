@@ -2,7 +2,7 @@ import React from "react"
 
 const HomePage = () => {
     return (
-      <div>
+      <div className="home-text">
         <header>
           <h1>The Wheel Homepage</h1>
         </header>
