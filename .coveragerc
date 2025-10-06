@@ -1,0 +1,5 @@
+[run]
+source = backend
+
+omit =
+    backend/backend_tests/*
