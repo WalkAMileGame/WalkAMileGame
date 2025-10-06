@@ -55,7 +55,7 @@ jobs:
         run: npm install
 
       - name: Run Jest tests with coverage
-        working-directory: frontend/src
+        working-directory: frontend
         run: npm run test:coverage
 
       - name: Upload frontend coverage to Codecov
