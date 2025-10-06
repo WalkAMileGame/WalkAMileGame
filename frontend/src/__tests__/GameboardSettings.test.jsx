@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { vi } from 'vitest';
 import GameBoardSettings from '../components/GameBoardSettings'
 
@@ -76,7 +76,7 @@ describe("GameBoardSettings", () => {
     global.fetch.mockRestore?.();
   });
 
-  test("renders title and input for gameboard name", () => {
+  test("renders title and input for gameboard name", async () => {
     render(
       <GameBoardSettings
         gameConfig={mockConfig}
@@ -85,9 +85,14 @@ describe("GameBoardSettings", () => {
       />
     );
 
-    expect(screen.getByText("Edit gameboard")).toBeInTheDocument();
-    expect(screen.getByLabelText(/Gameboard Name/)).toHaveValue("Default Gameboard");
+    const title = await screen.findByText("Edit gameboard");
+    expect(title).toBeInTheDocument();
+
+    const input = await screen.findByLabelText(/Gameboard Name/);
+    expect(input).toHaveValue("Default Gameboard");
   });
+
+
 
   test("loading templates", async () => {
     render(
@@ -108,7 +113,7 @@ describe("GameBoardSettings", () => {
     expect(await screen.findByRole("option", { name: "Other Gameboard" })).toBeInTheDocument();
   });
 
-  test("adding a slice", () => {
+  test("adding a slice", async () => {
     const onConfigChangeMock = vi.fn();
     render(
       <GameBoardSettings
@@ -120,14 +125,17 @@ describe("GameBoardSettings", () => {
     const addButtons = screen.getAllByText("+ Add Slice")
     expect(addButtons.length).toBeGreaterThan(0);
     const firstButton = addButtons[0];
-    fireEvent.click(firstButton)
+    await act(async () => {
+      fireEvent.click(firstButton) 
+    })
+    
     const originalCount = mockConfig.ringData[0].labels.length;
     const expectedCount = originalCount + 1;
     expect(expectedCount).toBeLessThanOrEqual(originalCount + 1)
 
   })
 
-  test("removing a slice", () => {
+  test("removing a slice", async () => {
     render (
         <GameBoardSettings
             gameConfig={mockConfig}
@@ -138,14 +146,16 @@ describe("GameBoardSettings", () => {
     const deleteButton = screen.getAllByText("✕")
     expect(deleteButton.length).toBeGreaterThan(0);
     const fistdltBtn = deleteButton[0];
-    fireEvent.click(fistdltBtn)
+    await act(async () => {
+      fireEvent.click(fistdltBtn)
+    })
     const originalCount=mockConfig.ringData[0].labels.length;
     const expectedCount=originalCount - 1;
     expect(expectedCount).toBeLessThanOrEqual(originalCount - 1)
 
   })
 
-  test("change slice name", () => {
+  test("change slice name", async () => {
     render (
         <GameBoardSettings
             gameConfig={mockConfig}
@@ -154,11 +164,13 @@ describe("GameBoardSettings", () => {
         />
     );
     const sliceInput = screen.getByDisplayValue("Action 2");
+    await act(async () => {
     fireEvent.change(sliceInput, { target: { value: "Changed button text" } });
+    })
     expect(onConfigChangeMock).toHaveBeenCalled();
   })
 
-  test("change gameboard name", () => {
+  test("change gameboard name", async () => {
     render (
         <GameBoardSettings
         gameConfig={mockConfig}
@@ -167,11 +179,13 @@ describe("GameBoardSettings", () => {
         />
     );
     const gameboardname = screen.getByDisplayValue("Default Gameboard")
-    fireEvent.change(gameboardname, {target: {value: "New gameboard"}});
+    await act(async () => {
+      fireEvent.change(gameboardname, {target: {value: "New gameboard"}});
+    })
     expect(onConfigChangeMock).toHaveBeenCalled();
   })
 
-  test("change button colors", () => {
+  test("change button colors", async () => {
     const onConfigChange = vi.fn()
     render (
         <GameBoardSettings
@@ -184,8 +198,9 @@ describe("GameBoardSettings", () => {
     const firstColorButton = colorButtons.find(btn =>
     btn.style.backgroundColor === "rgb(255, 192, 114)"
     );
-
-    fireEvent.click(firstColorButton);
+    await act(async () => {
+      fireEvent.click(firstColorButton);
+    })
     expect(onConfigChange).toHaveBeenCalled();
   })
 
@@ -219,7 +234,9 @@ test("saving gameboard successfully", async () => {
     );
 
     const saveButton = screen.getByText("Save Gameboard");
-    fireEvent.click(saveButton);
+    await act(async () => {
+      fireEvent.click(saveButton);
+    })
     const snackbar = await screen.findByTestId("snackbar");
     expect(snackbar).toHaveTextContent("Gameboard saved successfully!");
     
