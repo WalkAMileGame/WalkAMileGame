@@ -26,8 +26,8 @@ const mockConfig = {
             innerRadius: 200,
             outerRadius: 350,
             labels: [
-            { id: 1, text: "Action 1", color: "#ffc072" },
-            { id: 2, text: "Action 2", color: "#ffb088" },
+            { id: 1, text: "Action 1", color: "#ffc072", energyvalue: 1 },
+            { id: 2, text: "Action 2", color: "#ffb088", energyvalue: 2 },
             ]      
         },
         {
@@ -35,8 +35,8 @@ const mockConfig = {
             innerRadius: 350,
             outerRadius: 500,
                 labels: [
-            { id: 11, text: "Action 11", color: "#a3d7ff" },
-            { id: 12, text: "Action 12", color: "#a0b8ca" },
+            { id: 11, text: "Action 11", color: "#a3d7ff",energyvalue: 3 },
+            { id: 12, text: "Action 12", color: "#a0b8ca",energyvalue: 4 },
             ],
         },
         {
@@ -44,8 +44,8 @@ const mockConfig = {
             innerRadius: 500,
             outerRadius: 650,
             labels: [
-            { id: 21, text: "Action 21", color: "#bb98d5" },
-            { id: 22, text: "Action 22", color: "#bb98d5" },
+            { id: 21, text: "Action 21", color: "#bb98d5",energyvalue: 5 },
+            { id: 22, text: "Action 22", color: "#bb98d5",energyvalue: 6 },
             ],   
         },
         {
@@ -53,8 +53,8 @@ const mockConfig = {
             innerRadius: 650,
             outerRadius: 800,
                 labels: [
-            { id: 31, text: "Action 31", color: "#da6363" },
-            { id: 32, text: "Action 32", color: "#da6363" },
+            { id: 31, text: "Action 31", color: "#da6363", energyvalue: 7 },
+            { id: 32, text: "Action 32", color: "#da6363", energyvalue: 8 },
             ],   
         }
     ],
@@ -325,6 +325,12 @@ test("user confirmation when overwriting gameboard", async () => {
     />
   );
   await screen.findByRole("combobox");
+  const addButtons = screen.getAllByText("+ Add Slice")
+  expect(addButtons.length).toBeGreaterThan(0);
+  const firstButton = addButtons[0];
+  await act(async () => {
+      fireEvent.click(firstButton) 
+    })
 
   const saveButton = screen.getByText("Save Gameboard");
   fireEvent.click(saveButton);
@@ -367,7 +373,7 @@ test("user confirmation when switching to different template after making change
   );
   const select = await screen.findByRole("combobox");
 
-  const nameInput = screen.getByDisplayValue("Default Gameboard");
+  const nameInput = screen.getByPlaceholderText("Enter gameboard name");
   fireEvent.change(nameInput, { target: { value: "Changed name" } });
 
   fireEvent.change(select, { target: { value: "Other Gameboard" } });
@@ -407,7 +413,7 @@ test("load saved templates", async () => {
   );
   const select = await screen.findByRole("combobox");
 
-  const nameInput = screen.getByDisplayValue("Default Gameboard");
+  const nameInput = screen.getByPlaceholderText("Enter gameboard name");
   fireEvent.change(nameInput, { target: { value: "Changed name" } });
 
   fireEvent.change(select, { target: { value: "Other Gameboard" } });
@@ -417,4 +423,23 @@ test("load saved templates", async () => {
 
   confirmSpy.mockRestore();
   });
+
+test("handle energyvaluechange", async () => {
+  render(
+    <GameBoardSettings
+    gameConfig={mockConfig}
+    onConfigChange={onConfigChangeMock}
+    isVisible={true}
+    />
+  )
+
+  await screen.findAllByPlaceholderText("Slice text");
+  const energyInput = await screen.findByTestId("energyvalue-input-2");
+  await act(async () => {
+    fireEvent.change(energyInput, {target: {value: "9"}})
+  })
+  expect(onConfigChangeMock).toHaveBeenCalled()
+  expect(energyInput.value).toBe("9")
+
+});
 });

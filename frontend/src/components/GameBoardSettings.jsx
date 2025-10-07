@@ -257,6 +257,7 @@ const saveGameboard = () => {
                     Energypoint value:
                     </span>
                     <input
+                      data-testid={`energyvalue-input-${label.id}`}
                       value={label.energyvalue}
                       onChange={(e) => handleEnergyvalueChange(ringIndex, labelIndex, e.target.value)}
                       className="energyvalue-input"
