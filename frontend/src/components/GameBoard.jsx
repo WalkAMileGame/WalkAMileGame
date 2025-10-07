@@ -207,7 +207,7 @@ const GameBoard = () => {
         newSet.delete(compositeKey);
         return newSet;
       });
-    } else if (points > 0) {
+    } else if (points >= label.energyvalue) {
       updatingPoints(- label.energyvalue); // Add marker - spend energy
       setActiveMarkers(prev => new Set([...prev, compositeKey]));
     }
