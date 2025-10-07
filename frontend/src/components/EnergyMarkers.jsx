@@ -45,6 +45,7 @@ const EnergyMarkers = ({
             >
               {/* Enregy emoji */}
             <text
+              data-testid={`energy-marker-${label.id}`}
               x={pos.x}
               y={pos.y}
               textAnchor="middle"
