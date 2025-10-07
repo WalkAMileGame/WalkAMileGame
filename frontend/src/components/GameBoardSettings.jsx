@@ -63,6 +63,14 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     onConfigChange(updatedConfig);
   };
 
+  const handleEnergyvalueChange = (layerIndex, labelIndex, energyvalue) => {
+    const updatedConfig = { ...localConfig };
+    updatedConfig.ringData[layerIndex].labels[labelIndex].energyvalue = energyvalue;
+    setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
+    onConfigChange(updatedConfig)
+  }
+
   const handleSliceTextChange = (layerIndex, labelIndex, text) => {
     const updatedConfig = { ...localConfig };
     updatedConfig.ringData[layerIndex].labels[labelIndex].text = text;
@@ -208,7 +216,7 @@ const saveGameboard = () => {
               loadSavedGameboard(selectedTemplate)
             }
           }} className="template-dropdown">
-            <option>Choose a template</option>
+            <option value="" disabled >Choose a template</option>
             {templates.map((template) => (
               <option key={template.name} value={template.name}>
                 {template.name}
@@ -244,6 +252,15 @@ const saveGameboard = () => {
                       onChange={(e) => handleSliceTextChange(ringIndex, labelIndex, e.target.value)}
                       className="labelname-input"
                       placeholder="Slice text"
+                    />
+                    <span className="energypoint-text">
+                    Energypoint value:
+                    </span>
+                    <input
+                      data-testid={`energyvalue-input-${label.id}`}
+                      value={label.energyvalue}
+                      onChange={(e) => handleEnergyvalueChange(ringIndex, labelIndex, e.target.value)}
+                      className="energyvalue-input"
                     />
                     <button
                       onClick={() => removeSlice(ringIndex, labelIndex)}
