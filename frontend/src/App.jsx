@@ -3,37 +3,18 @@ import {useEffect, useState } from 'react'
 import HomePage from './components/HomePage';
 import GameBoard from "./components/GameBoard";
 import Login from './components/Login';
-import './App.css'
+import './styles/App.css';
 // import GameBoard from "./GameBoard.jsx"
 import {BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
 
 function App() {
-  const [points, setPoints] = useState(0)
 
   const padding = {
     padding: 5
   }
 
-  useEffect(() => {
-  fetch("http://localhost:8000/items")
-    .then((res) => res.json())
-    .then((data) => setPoints(data.values));
-}, []);
-
-  const updatingPoints = (change = -1) => { // takes input number now
-    fetch("http://localhost:8000/items", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ change }), 
-    })
-      .then((res) => res.json())
-      .then((data) => setPoints(data.values));
-  };
   return (
     <>
-      <div className="energypoints">
-          Remaining energypoints: {points}
-      </div>
       <Router>
         <div className="links">
           <Link style={padding} to="/">Home</Link>
@@ -42,7 +23,7 @@ function App() {
         </div>
 
         <Routes>
-          <Route path="/gameboard" element={<GameBoard points={points} onSliceClick={updatingPoints}/>} />
+          <Route path="/gameboard" element={<GameBoard />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
         </Routes>

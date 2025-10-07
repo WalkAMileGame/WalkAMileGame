@@ -1,44 +1,32 @@
 import React, { useState } from 'react';
-import '../Login.css'; // Import the dedicated CSS file
+import '../styles/Login.css';
 
-export default function Login() {
-  // State variables to hold the email and password
+
+export default function Login({ onSubmit, onLogout, isLoggedIn, userEmail, error }) {
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Handles the form submission
+
   const handleSubmit = (event) => {
-    event.preventDefault(); // Prevents the default form submission behavior
+    event.preventDefault();
 
-    // Basic validation
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
-
-    // Add backend functionality here
-    console.log('Logging in with:', { email, password });
-    setError('');
-    setIsLoggedIn(true);
+    onSubmit({ email, password });
   };
 
-  // Add backend functionality here
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setEmail('');
-    setPassword('');
-    console.log('User logged out.');
+    onLogout();
   };
 
   return (
     <>
       <div className="login-container">
+        {/* The component uses the `isLoggedIn` prop to decide what to render */}
         {isLoggedIn ? (
           <div className="login-card welcome-card">
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem', color: '#2d3748' }}>Welcome!</h1>
-            <p style={{ color: '#718096', marginBottom: '1.5rem' }}>You have successfully logged in as {email}.</p>
+            <h1>Welcome!</h1>
+            {/* It displays the user's email passed down as a prop */}
+            <p>You have successfully logged in as {userEmail}.</p>
             <button onClick={handleLogout} className="btn btn-danger">
               Logout
             </button>
@@ -47,6 +35,7 @@ export default function Login() {
           <div className="login-card">
             <h2 className="title">Login</h2>
             <p className="subtitle">Welcome back! Please enter your details.</p>
+            <p className="subtitle">IMPORTANT: Do not input actual login credentials at the moment</p>
 
             {error && <p className="error-message">{error}</p>}
 
@@ -65,7 +54,7 @@ export default function Login() {
                   required
                 />
               </div>
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+              <div className="form-group">
                 <label htmlFor="password" className="form-label">
                   Password
                 </label>
@@ -89,4 +78,3 @@ export default function Login() {
     </>
   );
 }
-

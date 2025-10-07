@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import "../App.css";
+import '../styles/App.css';
 import GameBoardSettings from "./GameBoardSettings";
 import EnergyMarkers from "./EnergyMarkers";
 
-const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
+const GameBoard = () => {
   const [rotations, setRotations] = useState({
     ring0: 0,
     ring1: 0,
@@ -17,6 +17,24 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
   const [hoveredSlice, setHoveredSlice] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
+  const [points, setPoints] = useState(0)
+
+  useEffect(() => {
+  fetch("http://localhost:8000/items")
+    .then((res) => res.json())
+    .then((data) => setPoints(data.values));
+  }, []);
+
+  const updatingPoints = (change = -1) => { // takes input number now
+    fetch("http://localhost:8000/items", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ change }), 
+    })
+      .then((res) => res.json())
+      .then((data) => setPoints(data.values));
+  };
+  
   const containerRef = useRef(null);
 
   // Data for all rings (from innermost to outermost)
@@ -28,16 +46,16 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
         innerRadius: 200,
         outerRadius: 350,
         labels: [
-          { id: 1, text: "Action 1", color: "#ffc072" },
-          { id: 2, text: "Action 2", color: "#ffb088" },
-          { id: 3, text: "Action 3", color: "#ffc072" },
-          { id: 4, text: "Action 4", color: "#ffb088" },
-          { id: 5, text: "Action 5", color: "#d79543" },
-          { id: 6, text: "Action 6", color: "#d79543" },
-          { id: 7, text: "Action 7", color: "#d79543" },
-          { id: 8, text: "Action 8", color: "#e17f4d" },
-          { id: 9, text: "Action 9", color: "#e17f4d" },
-          { id: 10, text: "Action 10", color: "#e17f4d" }
+          { id: 1, text: "Action 1", color: "#ffc072", energyvalue: 1 },
+          { id: 2, text: "Action 2", color: "#ffb088", energyvalue: 1  },
+          { id: 3, text: "Action 3", color: "#ffc072", energyvalue: 1  },
+          { id: 4, text: "Action 4", color: "#ffb088", energyvalue: 1  },
+          { id: 5, text: "Action 5", color: "#d79543", energyvalue: 1  },
+          { id: 6, text: "Action 6", color: "#d79543", energyvalue: 1  },
+          { id: 7, text: "Action 7", color: "#d79543", energyvalue: 1  },
+          { id: 8, text: "Action 8", color: "#e17f4d", energyvalue: 1  },
+          { id: 9, text: "Action 9", color: "#e17f4d", energyvalue: 1  },
+          { id: 10, text: "Action 10", color: "#e17f4d", energyvalue: 1  }
         ]      
       },
       {
@@ -45,16 +63,16 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
         innerRadius: 350,
         outerRadius: 500,
         labels: [
-          { id: 11, text: "Action 11", color: "#a3d7ff" },
-          { id: 12, text: "Action 12", color: "#a0b8ca" },
-          { id: 13, text: "Action 13", color: "#a0b8ca" },
-          { id: 14, text: "Action 14", color: "#a0b8ca" },
-          { id: 15, text: "Action 15", color: "#a3d7ff" },
-          { id: 16, text: "Action 16", color: "#d3eafc" },
-          { id: 17, text: "Action 17", color: "#a3d7ff" },
-          { id: 18, text: "Action 18", color: "#d3eafc" },
-          { id: 19, text: "Action 19", color: "#a3d7ff" },
-          { id: 20, text: "Action 20", color: "#d3eafc" }
+          { id: 11, text: "Action 11", color: "#a3d7ff", energyvalue: 1  },
+          { id: 12, text: "Action 12", color: "#a0b8ca", energyvalue: 1  },
+          { id: 13, text: "Action 13", color: "#a0b8ca", energyvalue: 1  },
+          { id: 14, text: "Action 14", color: "#a0b8ca", energyvalue: 1  },
+          { id: 15, text: "Action 15", color: "#a3d7ff", energyvalue: 1  },
+          { id: 16, text: "Action 16", color: "#d3eafc", energyvalue: 1  },
+          { id: 17, text: "Action 17", color: "#a3d7ff", energyvalue: 1  },
+          { id: 18, text: "Action 18", color: "#d3eafc", energyvalue: 1  },
+          { id: 19, text: "Action 19", color: "#a3d7ff", energyvalue: 1  },
+          { id: 20, text: "Action 20", color: "#d3eafc", energyvalue: 1  }
         ],
       },
       {
@@ -62,35 +80,35 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
         innerRadius: 500,
         outerRadius: 650,
         labels: [
-          { id: 21, text: "Action 21", color: "#bb98d5" },
-          { id: 22, text: "Action 22", color: "#bb98d5" },
-          { id: 23, text: "Action 23", color: "#bb98d5" },
-          { id: 24, text: "Action 24", color: "#a872d1" },
-          { id: 25, text: "Action 25", color: "#e4c1ff" },
-          { id: 26, text: "Action 26", color: "#5375d0" },
-          { id: 27, text: "Action 27", color: "#5375d0" },
-          { id: 28, text: "Action 28", color: "#9fb9ff" },
-          { id: 29, text: "Action 29", color: "#7e9ef3" },
-          { id: 30, text: "Action 30", color: "#9fb9ff" }
+          { id: 21, text: "Action 21", color: "#bb98d5", energyvalue: 1  },
+          { id: 22, text: "Action 22", color: "#bb98d5", energyvalue: 1  },
+          { id: 23, text: "Action 23", color: "#bb98d5", energyvalue: 1  },
+          { id: 24, text: "Action 24", color: "#a872d1", energyvalue: 1  },
+          { id: 25, text: "Action 25", color: "#e4c1ff", energyvalue: 1  },
+          { id: 26, text: "Action 26", color: "#5375d0", energyvalue: 1  },
+          { id: 27, text: "Action 27", color: "#5375d0", energyvalue: 1  },
+          { id: 28, text: "Action 28", color: "#9fb9ff", energyvalue: 1  },
+          { id: 29, text: "Action 29", color: "#7e9ef3", energyvalue: 1  },
+          { id: 30, text: "Action 30", color: "#9fb9ff", energyvalue: 1  }
         ],   
       },
       {
         id: 4,
         innerRadius: 650,
         outerRadius: 800,
-        labels: [
-          { id: 31, text: "Action 31", color: "#da6363" },
-          { id: 32, text: "Action 32", color: "#da6363" },
-          { id: 33, text: "Action 33", color: "#ff8989" },
-          { id: 34, text: "Action 34", color: "#da8a8a" },
-          { id: 35, text: "Action 35", color: "#da8a8a" },
-          { id: 36, text: "Action 36", color: "#da8a8a" },
-          { id: 37, text: "Action 37", color: "#da8a8a" },
-          { id: 38, text: "Action 38", color: "#da8a8a" },
-          { id: 39, text: "Action 39", color: "#da6363" },
-          { id: 40, text: "Action 40", color: "#da6363" }
-        ],   
-      }
+          labels: [
+          { id: 31, text: "Action 31", color: "#da6363", energyvalue: 1  },
+          { id: 32, text: "Action 32", color: "#da6363", energyvalue: 1  },
+          { id: 33, text: "Action 33", color: "#ff8989", energyvalue: 1  },
+          { id: 34, text: "Action 34", color: "#da8a8a", energyvalue: 1  },
+          { id: 35, text: "Action 35", color: "#da8a8a", energyvalue: 1  },
+          { id: 36, text: "Action 36", color: "#da8a8a", energyvalue: 1  },
+          { id: 37, text: "Action 37", color: "#da8a8a", energyvalue: 1  },
+          { id: 38, text: "Action 38", color: "#da8a8a", energyvalue: 1  },
+          { id: 39, text: "Action 39", color: "#da6363", energyvalue: 1  },
+          { id: 40, text: "Action 40", color: "#da6363", energyvalue: 1  }
+        ],
+      },
     ]
   });
   
@@ -183,14 +201,14 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
     const hasMarker = activeMarkers.has(compositeKey);
     
     if (hasMarker) {
-      onSliceClick(1); // Remove marker - refund energy
+      updatingPoints(label.energyvalue); // Remove marker - refund energy
       setActiveMarkers(prev => {
         const newSet = new Set(prev);
         newSet.delete(compositeKey);
         return newSet;
       });
     } else if (points > 0) {
-      onSliceClick(-1); // Add marker - spend energy
+      updatingPoints(- label.energyvalue); // Add marker - spend energy
       setActiveMarkers(prev => new Set([...prev, compositeKey]));
     }
   };
@@ -343,6 +361,9 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
 
   return (
     <>
+      <div className="energypoints">
+        Remaining energypoints: {points}
+      </div>
       <div className="game-layout">
         {/* Settings Button */}
         <div className="settingsButton">
@@ -492,8 +513,8 @@ const GameBoard = ({ onSliceClick = () => {}, points = 0 }) => {
             }}
           >
             {/* To show energy cost just change the ' ✓' into the energy cost variable */}
-            {hoveredSlice.text}
-            {activeMarkers.has(`${hoveredSlice.ringId}-${hoveredSlice.id}`) && ' ✓'}
+            Energy cost: -{hoveredSlice.energyvalue}
+            {activeMarkers.has(`${hoveredSlice.ringId}-${hoveredSlice.id}`) && `${hoveredSlice.energyvalue}`}
           </div>
         )}
       </div>

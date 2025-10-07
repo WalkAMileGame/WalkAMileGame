@@ -29,10 +29,6 @@ To run unit tests use command:
 ```
 invoke test
 ```
-to run robot tests use command:
-```
-invoke robot
-```
 
 
 ## Lint
