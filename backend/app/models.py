@@ -6,4 +6,4 @@ class Points(BaseModel):
 
 class Boards(BaseModel):
     name: str
-    rings: list[dict]
+    rings: list

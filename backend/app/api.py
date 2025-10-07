@@ -31,12 +31,18 @@ def update_points(data: ChangePoints):
 
 class NewBoard(BaseModel):
     name: str
-    ringData: list[dict]
+    ringData: list
 @router.put("/save")
 def save_board(data: NewBoard):
     db.boards.update_one({"name": data.name},
                          {"$set": {"name": data.name, "ringData": data.ringData}},
                            upsert=True)
+    
+class DeleteBoard(BaseModel):
+    name: str
+@router.delete("/delete")
+def delete_board(data: DeleteBoard):
+    db.boards.delete_one({"name": data.name})
 
 @router.get("/load_all")
 def load_boards():
