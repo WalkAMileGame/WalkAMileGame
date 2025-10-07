@@ -6,11 +6,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: walkamile
+      app: walkamile-frontend
   template:
     metadata:
       labels:
-        app: walkamile
+        app: walkamile-frontend
     spec:
       containers:
         - name: walkamile-frontend
