@@ -150,8 +150,17 @@ def server(c, backend=False, frontend=False):
         signal_handler(signal.SIGINT, None)
 
 @task
-def test(c):
-    c.run("pytest", pty=False)
+def test(c, backend=False, frontend=False):
+    """Run tests for frontend and/or backend pytest and vitest respectively"""
+    if not backend and not frontend:
+        backend = frontend = True
+    
+    if backend:
+        c.run("pytest", pty=False)
+    
+    if frontend:
+        with c.cd('frontend'):
+            c.run('npm test')
 
 @task
 def coverage(c):

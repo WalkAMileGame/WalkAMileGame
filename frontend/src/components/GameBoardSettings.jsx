@@ -33,6 +33,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
@@ -126,10 +127,33 @@ const handleSave = async () => {
     return; 
   }
 
+  if (templates.find(t => t.name === localConfig.name?.trim())) {
+    const confirmBox = window.confirm(
+      `Are you sure you want to overwrite ${localConfig.name?.trim()}?`
+      )
+    if (!confirmBox) {
+      setSnackbarMessage("Saving aborted");
+      setShowSnackbar(true);
+      return;
+    }
+  }
+
   setIsSaving(true);
   try {
     const response = await saveGameboard();
-    if (response.ok) {setUnsavedChanges(false);}
+    if (response.ok) {
+      setUnsavedChanges(false);
+      if (templates.find(t => t.name === localConfig.name?.trim())) {
+        const updatedTemplates = templates.map(t =>
+        t.name === localConfig.name?.trim()
+          ? { ...t, ringData: localConfig.ringData } : t
+        );
+        setTemplates(updatedTemplates)
+      } else {
+        const updatedTemplates = [...templates, localConfig];
+        setTemplates(updatedTemplates);
+      }
+    }
 
     if (!response.ok) {
       let errorMsg = "Failed to save gameboard.";
@@ -170,6 +194,73 @@ const saveGameboard = () => {
   });
 };
 
+const handleDelete = async () => {
+  if (!localConfig.name?.trim()) {
+    setSnackbarMessage("Please enter the name of the board you wish to delete.");
+    setShowSnackbar(true);
+    return; 
+  }
+
+  if (!templates.find(t => t.name === localConfig.name?.trim())) {
+    setSnackbarMessage("No board with given name exists.");
+    setShowSnackbar(true);
+    return; 
+  }
+
+  const confirmBox = window.confirm(
+    `Are you sure you want to delete ${localConfig.name?.trim()}?`
+    )
+  if (!confirmBox) {
+    setSnackbarMessage("Delete aborted");
+    setShowSnackbar(true);
+    return;
+  }
+
+  setIsDeleting(true);
+  try {
+    const response = await deleteGameboard();
+    if (response.ok) {
+      setUnsavedChanges(false);
+      const updatedTemplates = templates.filter(t => t.name !== localConfig.name?.trim());
+      setTemplates(updatedTemplates);
+    }
+
+    if (!response.ok) {
+      let errorMsg = "Failed to delete gameboard.";
+      try {
+        const data = await response.json();
+        if (data?.error) {
+          errorMsg = ` ${data.error}`;
+        }
+      } catch {
+        // ignore JSON parse errors
+      }
+      setSnackbarMessage(errorMsg);
+      setShowSnackbar(true);
+      return;
+    }
+
+    setSnackbarMessage("Gameboard deleted successfully!");
+    setShowSnackbar(true);
+
+  } catch (err) {
+    console.error("Delete failed:", err);
+    setSnackbarMessage("Failed to delete gameboard (network error).");
+    setShowSnackbar(true);
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
+const deleteGameboard = () => {
+  return fetch("http://localhost:8000/delete", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      name: localConfig.name?.trim(), 
+    }),
+  });
+};
 
   return (
     <>
@@ -213,7 +304,8 @@ const saveGameboard = () => {
             }
             const selectedTemplate = templates.find(t => t.name === e.target.value)
             if (selectedTemplate) {
-              loadSavedGameboard(selectedTemplate)
+              const clonedTemplate = structuredClone(selectedTemplate);
+              loadSavedGameboard(clonedTemplate);
             }
           }} className="template-dropdown">
             <option value="" disabled >Choose a template</option>
@@ -283,12 +375,6 @@ const saveGameboard = () => {
         <div className="pt-4 border-t">
           <button
             onClick={() => {
-              if (templates.find(t => t.name === localConfig.name?.trim())) {
-                const confirmBox = window.confirm(
-                  `Are you sure you want to overwrite ${localConfig.name?.trim()}?`
-                )
-                if (!confirmBox) {return}
-              }
               handleSave()
             }}
             disabled={isSaving}
@@ -297,7 +383,18 @@ const saveGameboard = () => {
           >
             {isSaving ? "Saving..." : "Save Gameboard"}
           </button>
-        </div>
+          {/* Delete */}
+          <button
+            onClick={() => {
+              handleDelete()
+            }}
+            disabled={isDeleting}
+            // disabled={isSaving || !localConfig.name?.trim()}
+            className="delete-button"
+          >
+            {isDeleting ? "Deleting..." : "Delete Gameboard"}
+          </button>
+        </div>        
       </div>
     </div>
     </>
