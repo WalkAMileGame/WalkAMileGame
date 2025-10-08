@@ -191,7 +191,7 @@ const GameBoard = () => {
   };
 
   // Handle slice click
-  const handleSliceClick = (e, label, ringId) => {
+  const handleSliceClick = (e, label, ringId, energyvalue) => {
     e.stopPropagation();
     
     if (dragState.current.isDragging || dragState.current.recentlyDragged) {
@@ -201,22 +201,22 @@ const GameBoard = () => {
     const hasMarker = activeMarkers.has(compositeKey);
     
     if (hasMarker) {
-      updatingPoints(label.energyvalue); // Remove marker - refund energy
+      updatingPoints(energyvalue); // Remove marker - refund energy
       setActiveMarkers(prev => {
         const newSet = new Set(prev);
         newSet.delete(compositeKey);
         return newSet;
       });
-    } else if (points >= label.energyvalue) {
-      updatingPoints(- label.energyvalue); // Add marker - spend energy
+    } else if (points >= energyvalue) {
+      updatingPoints(- energyvalue); // Add marker - spend energy
       setActiveMarkers(prev => new Set([...prev, compositeKey]));
     }
   };
 
   // Handle slice hover for tooltip
-  const handleSliceMouseEnter = (e, label, ringId) => {
+  const handleSliceMouseEnter = (e, label, ringId, energyvalue) => {
     if (dragState.current.isDragging) return;
-    setHoveredSlice({ ...label, ringId });
+    setHoveredSlice({ ...label, ringId, energyvalue });
     setTooltipPosition({ x: e.clientX, y: e.clientY });
   };
 
@@ -423,8 +423,8 @@ const GameBoard = () => {
                                 stroke="#f5f2d0"
                                 strokeWidth={whiteLineThickness}
                                 onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
-                                onClick={(e) => handleSliceClick(e, label, ring.id)}
-                                onMouseEnter={(e) => handleSliceMouseEnter(e, label, ring.id)}
+                                onClick={(e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
+                                onMouseEnter={(e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
                                 onMouseLeave={handleSliceMouseLeave}
                                 onMouseMove={handleSliceMouseMove}
                                 style={{ cursor: "pointer" }}
