@@ -3,38 +3,8 @@ import '../styles/App.css';
 import GameBoardSettings from "./GameBoardSettings";
 import EnergyMarkers from "./EnergyMarkers";
 
-const GameBoard = () => {
-  const [rotations, setRotations] = useState({
-    ring0: 0,
-    ring1: 0,
-    ring2: 0,
-    ring3: 0,
-  });
-
-  const [activeMarkers, setActiveMarkers] = useState(new Set());
-  const [points, setPoints] = useState(0)
-
-  useEffect(() => {
-  fetch("http://localhost:8000/items")
-    .then((res) => res.json())
-    .then((data) => setPoints(data.values));
-  }, []);
-
-  const updatingPoints = (change = -1) => { // takes input number now
-    fetch("http://localhost:8000/items", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ change }), 
-    })
-      .then((res) => res.json())
-      .then((data) => setPoints(data.values));
-  };
-  
-  const containerRef = useRef(null);
-
-  // Data for all rings (from innermost to outermost)
-  const [gameConfig, setGameConfig] = useState({
-    name: 'Default Gameboard',
+const defaultGameData = {
+name: 'Default Gameboard',
     ringData: [
       {
         id: 1,
@@ -58,7 +28,7 @@ const GameBoard = () => {
         innerRadius: 350,
         outerRadius: 500,
               labels: [
-          { id: 11, text: "Action ", color: "#a3d7ff", energyvalue: 1  },
+          { id: 11, text: "Action 11", color: "#a3d7ff", energyvalue: 1  },
           { id: 12, text: "Action 12", color: "#a0b8ca", energyvalue: 1  },
           { id: 13, text: "Action 13", color: "#a0b8ca", energyvalue: 1  },
           { id: 14, text: "Action 14", color: "#a0b8ca", energyvalue: 1  },
@@ -105,7 +75,38 @@ const GameBoard = () => {
         ],   
       }
     ]
+  }
+
+const GameBoard = ({initialconfig=defaultGameData}) => {
+  const [gameConfig, setGameConfig] = useState(initialconfig);
+
+  const [rotations, setRotations] = useState({
+    ring0: 0,
+    ring1: 0,
+    ring2: 0,
+    ring3: 0,
   });
+
+  const [activeMarkers, setActiveMarkers] = useState(new Set());
+  const [points, setPoints] = useState(0)
+
+  useEffect(() => {
+  fetch("http://localhost:8000/items")
+    .then((res) => res.json())
+    .then((data) => setPoints(data.values));
+  }, []);
+
+  const updatingPoints = (change = -1) => { // takes input number now
+    fetch("http://localhost:8000/items", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ change }), 
+    })
+      .then((res) => res.json())
+      .then((data) => setPoints(data.values));
+  };
+  
+  const containerRef = useRef(null);
   
   const whiteLineThickness = 14; // Stroke width for slice borders
   const blackLineThickness = 8; // Stroke width for separator circles
@@ -334,31 +335,6 @@ const GameBoard = () => {
     });
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const getAnnularSectorPoints = (innerRadius, outerRadius, startAngleDeg, endAngleDeg) => {
-    const startAngle = (startAngleDeg - 90) * Math.PI / 180;
-    const endAngle = (endAngleDeg - 90) * Math.PI / 180;
-
-    return {
-        innerStart: {
-            x: CENTER_X + innerRadius * Math.cos(startAngle),
-            y: CENTER_Y + innerRadius * Math.sin(startAngle)
-        },
-        innerEnd: {
-            x: CENTER_X + innerRadius * Math.cos(endAngle),
-            y: CENTER_Y + innerRadius * Math.sin(endAngle)
-        },
-        outerStart: {
-            x: CENTER_X + outerRadius * Math.cos(startAngle),
-            y: CENTER_Y + outerRadius * Math.sin(startAngle)
-        },
-        outerEnd: {
-            x: CENTER_X + outerRadius * Math.cos(endAngle),
-            y: CENTER_Y + outerRadius * Math.sin(endAngle)
-        }
-    };
-  };
-
   return (
     <>
       <div className="energypoints">
@@ -403,6 +379,7 @@ const GameBoard = () => {
                     
                     return (
                       <g
+                        data-testid={`ring-group-${ring.id}`}
                         key={ring.id}
                         transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
                       >
@@ -417,6 +394,7 @@ const GameBoard = () => {
                             <g key={`${ring.id}-slice-${i}`}>
                               {/* Slice shape */}
                               <path
+                                data-testid={`slice-${label.id}`}
                                 className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
                                 d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
                                 fill={color}
