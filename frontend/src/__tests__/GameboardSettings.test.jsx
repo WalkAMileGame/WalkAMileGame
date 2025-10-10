@@ -478,4 +478,71 @@ test("user confirmation when switching to different template after making change
     confirmSpy.mockRestore();
   });
 
+  test("cancel gamboard delete", async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => false);
+
+    render(
+        <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={onConfigChangeMock}
+        isVisible={true}
+        />
+    );
+    await screen.findByText(mockTemplates[0].name);
+    const deleteButton = screen.getByText("Delete Gameboard");
+    await act(async () => {
+      fireEvent.click(deleteButton);
+    })
+    const snackbar = await screen.findByTestId("snackbar");
+    expect(snackbar).toHaveTextContent("Delete aborted");
+    expect(confirmSpy).toHaveBeenCalledWith(
+    "Are you sure you want to delete Default Gameboard?"
+    );
+
+    confirmSpy.mockRestore();
+  });
+
+  test("try to delete gamboard with no name given", async () => {
+
+    render(
+        <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={onConfigChangeMock}
+        isVisible={true}
+        />
+    );
+    const gameboardname = screen.getByDisplayValue("Default Gameboard")
+    await act(async () => {
+      fireEvent.change(gameboardname, {target: {value: ""}});
+    })
+    const deleteButton = screen.getByText("Delete Gameboard");
+    await act(async () => {
+      fireEvent.click(deleteButton);
+    })
+    const snackbar = await screen.findByTestId("snackbar");
+    expect(snackbar).toHaveTextContent("Please enter the name of the board you wish to delete.");
+  });
+
+  test("try to delete gamboard that does not exist", async () => {
+
+    render(
+        <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={onConfigChangeMock}
+        isVisible={true}
+        />
+    );
+    await screen.findByText(mockTemplates[0].name);
+    const gameboardname = screen.getByDisplayValue("Default Gameboard")
+    await act(async () => {
+      fireEvent.change(gameboardname, {target: {value: "New Gameboard"}});
+    })
+    const deleteButton = screen.getByText("Delete Gameboard");
+    await act(async () => {
+      fireEvent.click(deleteButton);
+    })
+    const snackbar = await screen.findByTestId("snackbar");
+    expect(snackbar).toHaveTextContent("No board with given name exists.");
+  });
+
 });
