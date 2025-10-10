@@ -512,9 +512,10 @@ const GameBoard = () => {
               whiteSpace: 'nowrap'
             }}
           >
-            {/* To show energy cost just change the ' ✓' into the energy cost variable */}
-            Energy cost: -{hoveredSlice.energyvalue}
-            {activeMarkers.has(`${hoveredSlice.ringId}-${hoveredSlice.id}`) && `${hoveredSlice.energyvalue}`}
+            {activeMarkers.has(`${hoveredSlice.ringId}-${hoveredSlice.id}`) 
+            ? `Refund: +${hoveredSlice.energyvalue}`
+            : `Energy cost: -${hoveredSlice.energyvalue}`
+            }
           </div>
         )}
       </div>
