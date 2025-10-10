@@ -10,8 +10,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      DOCKER_REGISTRY: docker.io
+      DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASS: ${{ secrets.DOCKER_PASSWORD }}
+
     steps:
-      # Single checkout only
       - uses: actions/checkout@v5
 
       - name: Set up Python 3.12
@@ -30,7 +34,7 @@ jobs:
 
       - name: Coverage report
         run: poetry run coverage xml
-      
+
       - name: Pylint
         run: poetry run invoke lint --backend
 
@@ -41,7 +45,6 @@ jobs:
           files: ./coverage.xml
           fail_ci_if_error: true
 
-      # Debug: show repo files so we can confirm Dockerfiles exist and paths
       - name: List repo files (debug)
         run: |
           echo "Repo root: $(pwd)"
@@ -49,27 +52,37 @@ jobs:
           echo "--- recursive listing ---"
           ls -laR
 
-      # Docker build steps (no second checkout)
       - uses: docker/setup-buildx-action@v2
 
-      - uses: docker/login-action@v2
+      - name: Log in to Docker registry
+        uses: docker/login-action@v2
         with:
-          registry: docker.io
-          username: walkamile
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASS }}
+
+      # Debug: show the tags we'll use (non-secret)
+      - name: Debug show tags
+        run: |
+          echo "Backend tags: ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-backend:latest, ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-backend:${GITHUB_SHA}"
+          echo "Frontend tags: ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-frontend:latest, ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-frontend:${GITHUB_SHA}"
 
       - name: Build & push backend
         uses: docker/build-push-action@v6
         with:
-          context: .                 # build context = repo root
-          file: Dockerfile          # path to Dockerfile relative to context
+          context: .
+          file: Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/walkamile-backend:latest,${{ secrets.DOCKER_USERNAME }}/walkamile-backend:${{ github.sha }}
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-backend:latest
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-backend:${{ github.sha }}
 
       - name: Build & push frontend
         uses: docker/build-push-action@v6
         with:
-          context: .                 # if frontend files are under ./frontend change this
-          file: Dockerfile.frontend  # path relative to context; change if file is elsewhere
+          context: .
+          file: Dockerfile.frontend
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/walkamile-frontend:latest,${{ secrets.DOCKER_USERNAME }}/walkamile-frontend:${{ github.sha }}
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-frontend:latest
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-frontend:${{ github.sha }}
