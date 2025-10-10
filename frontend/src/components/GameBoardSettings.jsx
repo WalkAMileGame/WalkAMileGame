@@ -30,6 +30,7 @@ const ColorPicker = ({ onChange, colors = [] }) => {
 const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const [localConfig, setLocalConfig] = useState(gameConfig);
   const [templates, setTemplates] = useState([]);
+  const [selectedTemplateName, setSelectedTemplateName] = useState("");
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -97,7 +98,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     ring.labels.push({
       id: newLabelId,
       text: `New Action ${newLabelId}`,
-      color: '#6b7280'
+      color: '#6b7280',
+      energyvalue: 1
     });
     
     setLocalConfig(updatedConfig);
@@ -113,12 +115,23 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     onConfigChange(updatedConfig);
   };
 
-  const loadSavedGameboard = async (boardData) => {
-    setLocalConfig(boardData);
-    setUnsavedChanges(false);
-    onConfigChange(boardData);
-    console.log("load saved gameboard");
+const loadSavedGameboard = async (boardData) => {
+  const normalisedData = {
+    ...boardData,
+    ringData: boardData.ringData.map((ring) => ({
+      ...ring, 
+      labels: ring.labels.map((label) => ({
+        ...label, 
+        energyvalue: label.energyvalue ?? 1, // add default if missing
+      })),
+    })),
   };
+
+  setLocalConfig(normalisedData);
+  setUnsavedChanges(false);
+  onConfigChange(normalisedData);
+};
+
 
 const handleSave = async () => {
   if (!localConfig.name?.trim()) {
@@ -295,13 +308,16 @@ const deleteGameboard = () => {
         {isLoading ? (
           <p className="isloading">Loading templates...</p>
         ) : (
-          <select onChange={(e) => {
+          <select 
+          value={selectedTemplateName}
+          onChange={(e) => {
             if (unsavedChanges) {
               const confirmBox = window.confirm(
                 `Unsaved changes will be discarded. Are you sure you want to proceed?`
               )
               if (!confirmBox) {return}
             }
+            setSelectedTemplateName(e.target.value)
             const selectedTemplate = templates.find(t => t.name === e.target.value)
             if (selectedTemplate) {
               const clonedTemplate = structuredClone(selectedTemplate);

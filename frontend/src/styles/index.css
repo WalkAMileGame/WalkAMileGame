@@ -1,11 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Monteserrant", sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  /* color-scheme: ligh, dark; */
   color: rgba(10, 10, 10, 0.87);
-  background-color: #000000;
+  background-color: #3F695D;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -47,7 +51,7 @@ button:focus-visible {
 @media (prefers-color-scheme: dark) {
   :root {
     color: white;
-    background-color: black
+    background-color: #3F695D
   }
   a:hover {
     color: #747bff;
