@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: walkamile-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: walkamile-frontend
+  template:
+    metadata:
+      labels:
+        app: walkamile-frontend
+    spec:
+      containers:
+        - name: walkamile-frontend
+          image: walkamile/walkamile-frontend
+          ports:
+            - containerPort: 3000

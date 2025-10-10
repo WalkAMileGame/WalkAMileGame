@@ -20,4 +20,4 @@ spec:
           env:
             - name: DB_URL
               #to be set:
-              value: noneS
+              value: none
