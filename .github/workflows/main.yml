@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Single checkout only
       - uses: actions/checkout@v5
 
       - name: Set up Python 3.12
@@ -40,27 +41,35 @@ jobs:
           files: ./coverage.xml
           fail_ci_if_error: true
 
-  docker:
-    runs-on: ubuntu-latest
-    needs: build  # Run after tests pass
-    if: github.ref == 'refs/heads/main'
+      # Debug: show repo files so we can confirm Dockerfiles exist and paths
+      - name: List repo files (debug)
+        run: |
+          echo "Repo root: $(pwd)"
+          ls -la
+          echo "--- recursive listing ---"
+          ls -laR
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      # Docker build steps (no second checkout)
+      - uses: docker/setup-buildx-action@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v2
         with:
+          registry: docker.io
           username: walkamile
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
+      - name: Build & push backend
+        uses: docker/build-push-action@v6
         with:
-          context: .
+          context: .                 # build context = repo root
+          file: Dockerfile          # path to Dockerfile relative to context
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/walkamile:staging
+          tags: ${{ secrets.DOCKER_USERNAME }}/walkamile-backend:latest,${{ secrets.DOCKER_USERNAME }}/walkamile-backend:${{ github.sha }}
+
+      - name: Build & push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .                 # if frontend files are under ./frontend change this
+          file: Dockerfile.frontend  # path relative to context; change if file is elsewhere
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/walkamile-frontend:latest,${{ secrets.DOCKER_USERNAME }}/walkamile-frontend:${{ github.sha }}
