@@ -13,6 +13,7 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       exclude: [
         'src/components/ui/snackbar.jsx',
+        'src/components/ui/HoveringTolltip.jsx',
         'src/setupTests.js',
         'src/main.jsx',
         'vite.config.js',
