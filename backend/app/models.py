@@ -2,6 +2,7 @@
 from pydantic import BaseModel
 
 class Points(BaseModel):
+    id: str
     values: int
 
 class Boards(BaseModel):
