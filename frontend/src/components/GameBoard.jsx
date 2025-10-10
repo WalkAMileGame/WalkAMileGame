@@ -517,8 +517,8 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
           >
             {/* To show energy cost just change the ' ✓' into the energy cost variable */}
             {activeMarkers.has(`${hoveredSlice.ringId}-${hoveredSlice.id}`) 
-            ? `Refund: +${hoveredSlice.energyvalue}`
-            : `Energy cost: -${hoveredSlice.energyvalue}`
+            ? `Refund: ${hoveredSlice.energyvalue}`
+            : `Energy cost: ${hoveredSlice.energyvalue}`
             }
           </div>
         )}
