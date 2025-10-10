@@ -545,4 +545,43 @@ test("user confirmation when switching to different template after making change
     expect(snackbar).toHaveTextContent("No board with given name exists.");
   });
 
+  test("deleteGameboard fails without error message", async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
+
+    global.fetch = vi.fn((url) => {
+      if (url.includes('load_all')) {
+        return Promise.resolve({ 
+          ok: true, 
+          json: () => Promise.resolve(mockTemplates) 
+        });
+      }
+      if (url.includes('delete')) {
+        return Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({}), 
+        });
+      }
+    });
+
+    render(
+      <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={onConfigChangeMock}
+        isVisible={true}
+      />
+    );
+
+    await screen.findByText(mockTemplates[0].name);
+    const deleteButton = screen.getByText("Delete Gameboard");
+    await act(async () => {
+      fireEvent.click(deleteButton);
+    })
+    const snackbar = await screen.findByTestId("snackbar");
+    expect(snackbar).toHaveTextContent("Failed to delete gameboard.");
+    expect(confirmSpy).toHaveBeenCalledWith(
+    "Are you sure you want to delete Default Gameboard?"
+    );
+
+    confirmSpy.mockRestore();
+  });
 });
