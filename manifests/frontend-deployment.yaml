@@ -1,6 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: "*"
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"walkamile-frontend:staging","namespace":"ohtuprojekti-staging"},"fieldPath":"spec.template.spec.containers[?(@.name==\"walkamile-frontend\")].image","pause":"false"}]
   name: walkamile-frontend
 spec:
   replicas: 1
@@ -14,6 +18,6 @@ spec:
     spec:
       containers:
         - name: walkamile-frontend
-          image: walkamile/walkamile-frontend
+          image: walkamile/walkamile-frontend:staging
           ports:
             - containerPort: 3000
