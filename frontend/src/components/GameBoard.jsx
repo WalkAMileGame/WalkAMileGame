@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import '../styles/App.css';
+import '../styles/Gameboard.css';
 import GameBoardSettings from "./GameBoardSettings";
 import EnergyMarkers from "./EnergyMarkers";
 
@@ -392,7 +392,7 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
                         dx="0" // horizontal offset
                         dy="0" // vertical offset
                         stdDeviation="10" // blur amount
-                        floodColor="#180707ff" // shadow color (white)
+                        floodColor="#111010ff" // shadow color (white)
                       />
                     </filter>
                   </defs>
@@ -423,7 +423,7 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
                                 className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
                                 d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
                                 fill={color}
-                                stroke="#f5f2d0"
+                                stroke="#f5f5f3ff"
                                 strokeWidth={whiteLineThickness}
                                 onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
                                 onClick={(e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
@@ -462,7 +462,7 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
                       r={gameConfig.ringData[gameConfig.ringData.length - 1].outerRadius}
                       fill="none"
                       stroke="black"
-                      strokeWidth={whiteLineThickness * 2.1}
+                      strokeWidth={blackLineThickness}
                       style={{ pointerEvents: 'none' }}
                     />
                   )}
@@ -517,8 +517,8 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
           >
             {/* To show energy cost just change the ' ✓' into the energy cost variable */}
             {activeMarkers.has(`${hoveredSlice.ringId}-${hoveredSlice.id}`) 
-            ? `Refund: +${hoveredSlice.energyvalue}`
-            : `Energy cost: -${hoveredSlice.energyvalue}`
+            ? `Refund: ${hoveredSlice.energyvalue}`
+            : `Energy cost: ${hoveredSlice.energyvalue}`
             }
           </div>
         )}

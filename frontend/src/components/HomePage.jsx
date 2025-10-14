@@ -1,17 +1,55 @@
 import React from "react"
+import '../styles/HomePage.css';
+
 
 const HomePage = () => {
     return (
       <div className="home-text">
         <header>
-          <h1>The Wheel Homepage</h1>
+          <h1>WALK A MILE:</h1>
         </header>
+        <hr></hr>
         <main>
-          <p>Welocme to the Walk a Mile game</p>
+          <h2>THE INTERNATIONAL PATH TO FINNISH EDUCATION</h2>
         </main>
-      </div>
-            
-    );
-}
 
-export default HomePage
+      <div className="half-circle">
+        <svg viewBox="0 0 500 500">
+          <path id="curve" fill="transparent" stroke="none" d="M73.2,125.6c4-6.1,65.5-96.8,178.6-95.6c111.3,1.2,170.8,90.3,175.1,97" />
+            <text width="300" fontSize="25" fill="white" fontFamily="Lilita One, sans-serif">
+              <textPath href="#curve" startOffset="50%" textAnchor="middle">
+                <a href="#" style={{ fill: "white", textDecoration: "none" }}>ABOUT US</a>
+              </textPath>
+            </text>
+        </svg>
+        <div className="half-circle1">
+          <svg viewBox="0 0 500 500">
+            <path id="curve" fill="transparent" stroke="none" d="M73.2,110.6c4-6.1,65.5-96.8,178.6-95.6c111.3,1.2,170.8,90.3,175.1,97" />
+              <text width="300" fontSize="25" fill="white" fontFamily="Lilita One, sans-serif">
+                <textPath href="#curve" startOffset="50%" textAnchor="middle">
+                  <a href="#" style={{ fill: "white", textDecoration: "none" }}>INSTRUCTIONS</a>
+                </textPath>
+              </text>
+        </svg>
+        </div>
+        <div className="half-circle2">
+          <svg viewBox="0 0 500 500">
+          <path id="curve" fill="transparent" stroke="none" d="M73.2,110.6c4-6.1,65.5-96.8,178.6-95.6c111.3,1.2,170.8,90.3,175.1,97" />
+            <text width="300" fontSize="30" fill="white" fontFamily="Lilita One, sans-serif">
+              <textPath href="#curve" startOffset="50%" textAnchor="middle">
+                START
+              </textPath>
+            </text>
+        </svg>
+          <div className="start">
+              <p>ENTER GAME CODE: </p>
+                <input type="text"  />
+                <button>JOIN</button>
+          </div>
+        </div>
+        </div>
+      </div>
+  );
+};
+
+export default HomePage;
