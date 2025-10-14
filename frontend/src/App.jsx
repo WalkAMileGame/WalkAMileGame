@@ -6,6 +6,7 @@ import Login from './components/Login';
 import './styles/App.css';
 // import GameBoard from "./GameBoard.jsx"
 import {BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
+import ConnectionStatus from './components/ConnectionStatus';
 
 function App() {
 
@@ -16,6 +17,7 @@ function App() {
   return (
     <>
       <Router>
+        <ConnectionStatus />
         <div className="links">
           <Link style={padding} to="/">Home</Link>
           <Link style={padding} to="/gameboard">Gameboard</Link>

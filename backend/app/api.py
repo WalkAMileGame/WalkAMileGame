@@ -48,3 +48,11 @@ def delete_board(data: DeleteBoard):
 def load_boards():
     boards = list(db.boards.find(projection={"_id": False}))
     return boards
+
+@router.get("/health", tags=["health"])
+async def health_check():
+    """Health check endpoint to verify backend is running"""
+    return {
+        "status": "healthy",
+        "message": "Backend server is running"
+    }
