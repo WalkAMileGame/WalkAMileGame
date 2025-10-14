@@ -1,6 +1,7 @@
 // EnergyMarkers.jsx
 import React from 'react';
 import '../styles/EnergyMarkers.css';
+import energyIcon from '../assets/WAM_Element_4.png';
 
 const EnergyMarkers = ({ 
   gameConfig, 
@@ -44,18 +45,16 @@ const EnergyMarkers = ({
               transform={`rotate(${rotation} ${centerX} ${centerY})`}
               style={{ pointerEvents: 'none' }}
             >
-              {/* Enregy emoji */}
-            <text
+              {/* Energy icon */}
+            <image
               data-testid={`energy-marker-${label.id}`}
-              x={pos.x}
-              y={pos.y}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="40"
+              href={energyIcon}
+              x={pos.x - 60}
+              y={pos.y - 60}
+              width="120"
+              height="120"
               transform={`rotate(-20, ${pos.x}, ${pos.y})`}
-            >
-              ⚡
-            </text>
+            />
 
             </g>
           );

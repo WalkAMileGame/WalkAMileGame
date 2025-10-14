@@ -3,7 +3,7 @@ import {useEffect, useState } from 'react'
 import HomePage from './components/HomePage';
 import GameBoard from "./components/GameBoard";
 import Login from './components/Login';
-import './styles/App.css';
+// import './styles/App.css';
 // import GameBoard from "./GameBoard.jsx"
 import {BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
 
