@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import '../styles/App.css';
+import '../styles/Gameboard.css';
 import GameBoardSettings from "./GameBoardSettings";
 import EnergyMarkers from "./EnergyMarkers";
 
