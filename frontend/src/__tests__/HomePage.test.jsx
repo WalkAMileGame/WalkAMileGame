@@ -5,6 +5,6 @@ test('renders content', () => {
 
     render(<HomePage />)
 
-    const element1 = screen.getByText('The Wheel Homepage')
-    const element2 = screen.getByText('Welocme to the Walk a Mile game')
+    const element1 = screen.getByText('WALK A MILE:')
+    const element2 = screen.getByText('THE INTERNATIONAL PATH TO FINNISH EDUCATION')
 })
