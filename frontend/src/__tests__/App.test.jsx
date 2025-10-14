@@ -62,7 +62,7 @@ describe("GameBoardSettings", () => {
   
     const button2 = screen.getByText('Home')
     await user.click(button2)
-  
-    const element = screen.getByText('THE INTERNATIONAL PATH TO FINNISH EDUCATION')
+
+    const element = screen.getByText('WALK A MILE:')
   })
 });
