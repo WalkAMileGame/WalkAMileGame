@@ -24,7 +24,8 @@ const EnergyMarkers = ({
     
     return {
       x: centerX + midRadius * Math.cos(midAngle),
-      y: centerY + midRadius * Math.sin(midAngle)
+      y: centerY + midRadius * Math.sin(midAngle),
+      midAngleDeg
     };
   };
 
@@ -37,7 +38,7 @@ const EnergyMarkers = ({
           const compositeKey = `${ring.id}-${label.id}`;
           if (!activeMarkers.has(compositeKey)) return null;
 
-          const pos = getMarkerPosition(ring, index);
+          const { x, y, midAngleDeg } = getMarkerPosition(ring, index);
           
           return (
             <g 
@@ -45,18 +46,17 @@ const EnergyMarkers = ({
               transform={`rotate(${rotation} ${centerX} ${centerY})`}
               style={{ pointerEvents: 'none' }}
             >
-              {/* Energy icon */}
+            <g transform={`rotate(${midAngleDeg} ${x} ${y})`}>
             <image
               data-testid={`energy-marker-${label.id}`}
               href={energyIcon}
-              x={pos.x - 60}
-              y={pos.y - 60}
+              x={x - 60}
+              y={y - 60}
               width="120"
               height="120"
-              transform={`rotate(-20, ${pos.x}, ${pos.y})`}
             />
-
-            </g>
+          </g>
+          </g>
           );
         });
       })}
