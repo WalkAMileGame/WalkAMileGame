@@ -64,8 +64,8 @@ jobs:
       # Debug: show the tags we'll use (non-secret)
       - name: Debug show tags
         run: |
-          echo "Backend tags: ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-backend:latest, ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-backend:${GITHUB_SHA}"
-          echo "Frontend tags: ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-frontend:latest, ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-frontend:${GITHUB_SHA}"
+          echo "Backend tags: ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-backend:staging, ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-backend:${GITHUB_SHA}"
+          echo "Frontend tags: ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-frontend:staging, ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-frontend:${GITHUB_SHA}"
 
       - name: Build & push backend
         uses: docker/build-push-action@v6
@@ -74,7 +74,7 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-backend:latest
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-backend:staging
             ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-backend:${{ github.sha }}
 
       - name: Build & push frontend
@@ -84,5 +84,5 @@ jobs:
           file: Dockerfile.frontend
           push: true
           tags: |
-            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-frontend:latest
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-frontend:staging
             ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-frontend:${{ github.sha }}
