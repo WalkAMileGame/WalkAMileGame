@@ -1,6 +1,7 @@
 // EnergyMarkers.jsx
 import React from 'react';
 import '../styles/EnergyMarkers.css';
+import energyIcon from '../assets/WAM_Element_4.png';
 
 const EnergyMarkers = ({ 
   gameConfig, 
@@ -23,7 +24,8 @@ const EnergyMarkers = ({
     
     return {
       x: centerX + midRadius * Math.cos(midAngle),
-      y: centerY + midRadius * Math.sin(midAngle)
+      y: centerY + midRadius * Math.sin(midAngle),
+      midAngleDeg
     };
   };
 
@@ -36,7 +38,7 @@ const EnergyMarkers = ({
           const compositeKey = `${ring.id}-${label.id}`;
           if (!activeMarkers.has(compositeKey)) return null;
 
-          const pos = getMarkerPosition(ring, index);
+          const { x, y, midAngleDeg } = getMarkerPosition(ring, index);
           
           return (
             <g 
@@ -44,20 +46,17 @@ const EnergyMarkers = ({
               transform={`rotate(${rotation} ${centerX} ${centerY})`}
               style={{ pointerEvents: 'none' }}
             >
-              {/* Enregy emoji */}
-            <text
+            <g transform={`rotate(${midAngleDeg} ${x} ${y})`}>
+            <image
               data-testid={`energy-marker-${label.id}`}
-              x={pos.x}
-              y={pos.y}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="40"
-              transform={`rotate(-20, ${pos.x}, ${pos.y})`}
-            >
-              ⚡
-            </text>
-
-            </g>
+              href={energyIcon}
+              x={x - 60}
+              y={y - 60}
+              width="120"
+              height="120"
+            />
+          </g>
+          </g>
           );
         });
       })}

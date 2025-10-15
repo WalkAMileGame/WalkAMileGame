@@ -12,19 +12,20 @@ export default defineConfig({
     allowedHosts: true
   },
   test: {
-		environment: 'jsdom',
-		globals: true,
-		setupFiles: './src/setupTests.js',     
-		coverage: {
-			provider: 'v8',
-			reporter: ['text', 'lcov'],
-			exclude: [
-				'src/components/ui/snackbar.jsx',
-				'src/setupTests.js',
-				'src/main.jsx',
-				'vite.config.js',
-				'eslint.config.js'
-			],
-		},
-	}
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/setupTests.js',     
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      exclude: [
+        'src/components/ui/snackbar.jsx',
+        'src/components/ui/HoveringTolltip.jsx',
+        'src/setupTests.js',
+        'src/main.jsx',
+        'vite.config.js',
+        'eslint.config.js'
+      ],
+    },
+  }
 })

@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+
+h1 {
+  font-family: "Lilita One", sans-serif;
+  font-size: 60px;
+  margin-top: 30px;
+
+
+}
+
+.half-circle {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1200px;
+  height: 600px;
+  background-color: #E76F51;
+  border-top-left-radius: 1410px;
+  border-top-right-radius: 1410px;
+  overflow: hidden;
+  
+}
+
+.half-circle1,
+.half-circle2 {
+  position: absolute;
+  bottom: 0;           
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom: 0;
+}
+
+.half-circle1 {
+  width: 1000px;
+  height: 500px;
+  background-color: #F3A261;
+  border-top-left-radius: 910px;
+  border-top-right-radius: 910px;
+}
+
+.half-circle2 {
+  width: 800px;
+  height: 400px;
+  background-color: #E9C46A;
+  border-top-left-radius: 710px;
+  border-top-right-radius: 710px;
+}
+
+.start {
+  text-align: center;
+  color: white;
+  font-family: "Lilita One", sans-serif;
+  font-size: 40px;
+  margin-top: -700px;
+  flex-direction: column;
+}
+
+.start input {
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-left: 10px;
+  height: 40px;
+  width: 200px;
+  font-size: 18px;
+  font-family: "Montserrat", sans-serif;
+}
+.start button {
+  border: none;
+  background-color: #e76f51;
+  color: white;
+  border-radius: 8px;
+  margin-left: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+  height: 40px;
+  width: 80px;
+  font-size: 16px;
+}
