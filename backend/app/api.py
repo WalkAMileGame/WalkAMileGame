@@ -52,7 +52,16 @@ def load_boards():
 @router.get("/health", tags=["health"])
 async def health_check():
     """Health check endpoint to verify backend is running"""
-    return {
-        "status": "healthy",
-        "message": "Backend server is running"
-    }
+    
+    try:
+        db.client.server_info()
+        
+        return {
+            "status": "healthy",
+            "message": "Backend server is running"
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "message": f"Database connection failed: {str(e)}"
+        }

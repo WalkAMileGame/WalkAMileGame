@@ -92,3 +92,58 @@ def test_update_points_no_body():
     """Test updating points without request body"""
     response = client.put("/items")
     assert response.status_code == 422  # Validation error
+
+@patch('backend.app.api.db')
+def test_health_check_healthy(mock_db_instance):
+    """Test health check when database connection is healthy"""
+    # Mock successful database connection
+    mock_db_instance.client.server_info.return_value = {"version": "5.0.0"}
+
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "healthy",
+        "message": "Backend server is running"
+    }
+
+    # Verify server_info was called
+    mock_db_instance.client.server_info.assert_called_once()
+
+
+@patch('backend.app.api.db')
+def test_health_check_unhealthy(mock_db_instance):
+    """Test health check when database connection fails"""
+    # Mock database connection failure
+    mock_db_instance.client.server_info.side_effect = Exception("Connection timeout")
+
+    response = client.get("/health")
+    assert response.status_code == 200  # Endpoint still returns 200
+    
+    response_data = response.json()
+    assert response_data["status"] == "unhealthy"
+    assert "Database connection failed" in response_data["message"]
+    assert "Connection timeout" in response_data["message"]
+
+    # Verify server_info was called
+    mock_db_instance.client.server_info.assert_called_once()
+
+
+@patch('backend.app.api.db')
+def test_health_check_various_db_errors(mock_db_instance):
+    """Test health check with different database error types"""
+    # Test with different error messages
+    test_errors = [
+        "Authentication failed",
+        "Network unreachable",
+        "Database does not exist"
+    ]
+
+    for error_msg in test_errors:
+        mock_db_instance.client.server_info.side_effect = Exception(error_msg)
+
+        response = client.get("/health")
+        assert response.status_code == 200
+
+        response_data = response.json()
+        assert response_data["status"] == "unhealthy"
+        assert error_msg in response_data["message"]
