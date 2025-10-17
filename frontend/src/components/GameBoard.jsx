@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import '../styles/Gameboard.css';
 import GameBoardSettings from "./GameBoardSettings";
 import EnergyMarkers from "./EnergyMarkers";
+import ZoomControls from './ZoomControls';
 
 
 const defaultGameData = {
@@ -155,6 +156,17 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
     ].join(' ');
     
     return path;
+  };
+
+  // zoom stuff
+  const [zoom, setZoom] = useState(1);
+
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.2, 2));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 0.2, 0.5));
   };
 
   // Get angle from mouse position relative to center
@@ -380,7 +392,11 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
           {/* Gameboard Container */}
           <div className={`gameboard-container ${showSettings ? 'shifted' : ''}`}>
             <div className="container">
-              <div className="wheel-container" ref={containerRef}>
+              <div className="wheel-container" ref={containerRef} style={{ 
+                    transform: `scale(${zoom})`, 
+                    transition: 'transform 0.2s ease',
+                    transformOrigin: 'center'
+                  }}>
                 <svg
                   className="wheel-svg"
                   viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
@@ -478,6 +494,13 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
                 <div className="start-circle">Start!</div>
               </div>
             </div>
+            <ZoomControls 
+              zoom={zoom}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              minZoom={0.5}
+              maxZoom={2}
+            />
           </div>
 
           {/* Settings Panel */}
