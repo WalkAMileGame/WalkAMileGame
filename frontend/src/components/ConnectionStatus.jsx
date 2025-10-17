@@ -37,7 +37,7 @@ const ConnectionStatus = () => {
 
   useEffect(() => {
     checkConnection();
-    const interval = setInterval(checkConnection, 30000);
+    const interval = setInterval(checkConnection, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -104,7 +104,7 @@ const ConnectionStatus = () => {
           onMouseOver={(e) => e.target.style.opacity = '0.8'}
           onMouseOut={(e) => e.target.style.opacity = '1'}
         >
-          Reconnect
+          Check
         </button>
       </div>
       
