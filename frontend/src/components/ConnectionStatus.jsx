@@ -72,7 +72,7 @@ const ConnectionStatus = () => {
       bottom: '20px',
       left: '20px',
       padding: '10px 20px',
-      backgroundColor: 'white',
+      backgroundColor: '#FFF4E6',
       border: `2px solid ${currentConfig.color}`,
       borderRadius: '8px',
       color: currentConfig.color,
