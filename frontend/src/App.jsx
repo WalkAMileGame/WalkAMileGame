@@ -4,6 +4,7 @@ import HomePage from './components/HomePage';
 import GameBoard from "./components/GameBoard";
 import Login from './components/Login';
 import LandingPage from './components/LadingPage';
+import HostGamePage from './components/HostGame';
 
 import {BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
 import ConnectionStatus from './components/ConnectionStatus';
@@ -29,6 +30,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} /> {/* if admin not logged in */}
           <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
+          <Route path="/hostgame" element={<HostGamePage />} />
         </Routes>
       </Router>
     </>

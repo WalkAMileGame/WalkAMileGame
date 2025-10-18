@@ -1,0 +1,184 @@
+.host-game-container {
+  min-height: 100vh;
+  background: #3F695D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.host-game-card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 28rem;
+}
+
+.host-game-title {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #3F695D;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #3F695D; /* FIXED: Was white, should be dark green */
+  margin-bottom: 0.5rem;
+}
+
+/* Common input styles */
+.select-input, .text-input {
+  padding: 0.5rem 1rem;
+  border: 2px solid #86B18A;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+/* Select takes full width */
+.select-input {
+  width: 100%;
+}
+
+.select-input:focus, .text-input:focus {
+  border-color: #3F695D;
+  box-shadow: 0 0 0 3px rgba(63, 105, 93, 0.1);
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Text input inside input-group uses flex */
+.text-input {
+  flex: 1; /* FIXED: Removed width: 100% conflict */
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-copy {
+  background-color: #E76F51;
+  color: white; /* FIXED: Changed to white for better contrast */
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-copy:hover {
+  background-color: #3F695D;
+}
+
+.btn-copy:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-generate {
+  width: 100%;
+  background-color: #F3A261;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-generate:hover {
+  background-color: #3F695D;
+}
+
+.btn-start {
+  width: 100%;
+  padding: 0.75rem;
+  background: #E9C46A;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgba(231, 111, 81, 0.3);
+}
+
+.btn-start:hover {
+  transform: scale(1.02);
+  background-color: #3F695D;
+  box-shadow: 0 6px 8px -1px rgba(231, 111, 81, 0.4);
+}
+
+.game-details {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: rgba(134, 177, 138, 0.1);
+  border-radius: 0.5rem;
+  border-left: 4px solid #86B18A;
+}
+
+.game-details h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #3F695D;
+  margin-bottom: 0.5rem;
+}
+
+.game-details p {
+  font-size: 0.875rem;
+  color: #3F695D;
+  margin: 0.25rem 0;
+}
+
+.game-details span {
+  font-weight: 600;
+}
+
+.instructions {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: rgba(233, 196, 106, 0.1);
+  border-radius: 0.5rem;
+}
+
+.instructions h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #3F695D;
+  margin-bottom: 0.5rem;
+}
+
+.instructions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.instructions li {
+  font-size: 0.75rem;
+  color: #3F695D;
+  margin: 0.25rem 0;
+}
+
+.icon-copied {
+  color: #86B18A;
+}
+
+.icon-default {
+  color: white;
+}
