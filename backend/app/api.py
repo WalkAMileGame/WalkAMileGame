@@ -48,3 +48,10 @@ def delete_board(data: DeleteBoard):
 def load_boards():
     boards = list(db.boards.find(projection={"_id": False}))
     return boards
+
+@router.get("/instructions")
+def load_instructions():
+    instructions_doc = db.instructions.find_one({"id": "0"}, {"_id": 0})
+    if instructions_doc:
+        return instructions_doc
+    return {"instructions": "No instructions found."}

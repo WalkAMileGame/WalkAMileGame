@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
 
 .home-text {
-  height: 100%;
+  height: 100vh;
   margin: 0;
   overflow: hidden;
 }
@@ -18,14 +18,14 @@ h1 {
 
 .half-circle {
   position: absolute;
-  bottom: 0;
+  bottom: -40vh;
   left: 50%;
   transform: translateX(-50%);
-  width: 1200px;
-  height: 600px;
+  width: 90vw;
+  height: 100vh;
   background-color: #E76F51;
-  border-top-left-radius: 1410px;
-  border-top-right-radius: 1410px;
+  border-top-left-radius: 100vw;
+  border-top-right-radius: 100vw;
   overflow: hidden;
   
 }
@@ -40,27 +40,30 @@ h1 {
 }
 
 .half-circle1 {
-  width: 1000px;
-  height: 500px;
+  width: 80vw;
+  height: 90vh;
   background-color: #F3A261;
-  border-top-left-radius: 910px;
-  border-top-right-radius: 910px;
+  border-top-left-radius: 90vw;
+  border-top-right-radius: 90vw;
 }
 
 .half-circle2 {
-  width: 800px;
-  height: 400px;
+  width: 70vw;
+  height: 80vh;
   background-color: #E9C46A;
-  border-top-left-radius: 710px;
-  border-top-right-radius: 710px;
+  border-top-left-radius: 80vw;
+  border-top-right-radius: 80vw;
 }
 
 .start {
+  position: absolute;
+  top: 25%;        
+  left: 50%;
+  transform: translate(-50%, -50%);
   text-align: center;
   color: white;
   font-family: "Lilita One", sans-serif;
   font-size: 40px;
-  margin-top: -700px;
   flex-direction: column;
 }
 
