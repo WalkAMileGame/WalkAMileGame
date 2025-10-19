@@ -6,6 +6,7 @@ import signal
 import sys
 import os
 import atexit
+from dotenv import dotenv_values
 
 _processes = []
 
@@ -41,8 +42,24 @@ atexit.register(cleanup_processes)
 @task
 def server(c, backend=False, frontend=False):
     """Run local server via vite using threading for parallel execution"""
+
     if not backend and not frontend:
         backend = frontend = True
+
+    if backend:
+        if not os.path.exists('.env'):
+            print("╯‵Д′)╯彡┻━┻ ERROR: .env file not found!")
+            print("Please create a .env file with MONGO_URI defined.")
+            print("Or use only frontend if developing")
+        try:
+            env_vars = dotenv_values('.env')
+            if 'MONGO_URI' not in env_vars or not env_vars['MONGO_URI']:
+                print("╯‵Д′)╯彡┻━┻ ERROR: MONGO_URI is not defined in .env file!")
+                print("Please add MONGO_URI to your .env file before starting the server.")
+                print("Or use only frontend if developing")
+        except ImportError:
+            print("╯‵Д′)╯彡┻━┻ ERROR: python-dotenv not installed!")
+            print("Please install it with: pip install python-dotenv")
     
     def signal_handler(signum, frame):
         """Handle interrupt signals gracefully"""

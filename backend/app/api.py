@@ -49,6 +49,23 @@ def load_boards():
     boards = list(db.boards.find(projection={"_id": False}))
     return boards
 
+@router.get("/health", tags=["health"])
+async def health_check():
+    """Health check endpoint to verify backend is running"""
+    
+    try:
+        db.client.server_info()
+        
+        return {
+            "status": "healthy",
+            "message": "Backend server is running"
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "message": f"Database connection failed: {str(e)}"
+        }
+
 @router.get("/instructions")
 def load_instructions():
     instructions_doc = db.instructions.find_one({"id": "0"}, {"_id": 0})
