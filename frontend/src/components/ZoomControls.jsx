@@ -1,9 +1,22 @@
 import React from 'react';
 import '../styles/ZoomControls.css';
 
-const ZoomControls = ({ zoom, onZoomIn, onZoomOut, minZoom = 0.5, maxZoom = 2 }) => {
+const ZoomControls = ({ zoom, onZoomIn, onZoomOut, onReset, minZoom = 0.5, maxZoom = 2 }) => {
   return (
     <div className="zoom-controls-container">
+      {/* Reset Button */}
+      <button
+        onClick={onReset}
+        className="zoom-button zoom-reset-button"
+        aria-label="Reset view"
+        title="Reset zoom and pan"
+      >
+        ⟲
+      </button>
+
+      {/* Divider */}
+      <div className="zoom-divider" />
+      
       {/* Zoom In Button */}
       <button
         onClick={onZoomIn}
