@@ -37,9 +37,9 @@ const Instructions = ({ show, onClose, apiUrl = "http://localhost:8000/instructi
           color: black;
           border-radius: 12px;
           padding: 30px;
-          width: 50vw;
-          height: 40vw;
+
           max-width: 50vw;
+          max-height: 90vh;
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
           font-family: "Montserrat", sans-serif;
           text-align: center;
@@ -47,6 +47,7 @@ const Instructions = ({ show, onClose, apiUrl = "http://localhost:8000/instructi
           font-size: 20px;
           white-space: pre-line;
           font-style: bold;
+          overflow-y: auto; 
         }
 
 
