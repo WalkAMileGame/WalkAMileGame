@@ -6,28 +6,41 @@ import '../styles/LandingPage.css';
 
 const LandingPage = () => {
     return (
-      <div className="landing-text">
+      <div className="landing-page">
+        <div className="header-area">
         <header>
-          <h1>CONTROL PANEL</h1>
+          <h1>DASHBOARD</h1>
         </header>
-        <hr></hr>
-        <main>
-          <h2>You can edit gameboard templates and host a game here</h2>
-        </main>
-
-        <div className="buttons">
-            <Link to="/gameboard">
-                <button>🎲 EDIT GAMEBOARDS</button>
-            </Link>
-            <Link to="/hostgame">
-                <button>🕹️ HOST A GAME</button>
-            </Link>
-            <Link to="/landing/#">
-                <button>👤 EDIT USERS</button> {/* This needs the admin authentication */}
-            </Link>
+          <h2>You are logged in as username</h2>
         </div>
-
-
+        <div className="content-area">
+          <div className="cards">
+            <div className="card">
+              <div className="card-icon">⚙️</div>
+              <h3>EDIT GAMEBOARDS</h3>
+              <p>Edit gameboard templates or create new ones</p>
+              <Link to="/gameboard">
+                <button>Edit</button>
+              </Link>
+            </div>
+            <div className="card">
+              <div className="card-icon">🕹️</div>
+              <h3>HOST A GAME</h3>
+              <p>Start hosting a game </p>
+              <Link to="/hostgame">
+                <button>Host</button>
+              </Link>
+            </div>
+            <div className="card">
+              <div className="card-icon">👤</div>
+              <h3>EDIT USERS</h3>
+              <p>Manage and create users and permissions </p>
+              <Link to="/landing/#">
+                <button>Edit</button>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
   );
 };

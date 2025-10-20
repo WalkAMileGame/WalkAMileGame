@@ -1,28 +1,10 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
   font-family: "Montserrat", sans-serif;
 }
 
-.logo {
-  height:60em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-  border-radius: 70em;
-}
-
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 @media (prefers-reduced-motion: no-preference) {
   a:nth-of-type(2) .logo {
@@ -79,6 +61,7 @@
   user-select: none;   /* no text selection */
   -webkit-user-select: none;
   -ms-user-select: none;  
+  padding: 2rem;
 }
 
 .main-content {
