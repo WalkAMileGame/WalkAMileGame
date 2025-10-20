@@ -65,3 +65,10 @@ async def health_check():
             "status": "unhealthy",
             "message": f"Database connection failed: {str(e)}"
         }
+
+@router.get("/instructions")
+def load_instructions():
+    instructions_doc = db.instructions.find_one({"id": "0"}, {"_id": 0})
+    if instructions_doc:
+        return instructions_doc
+    return {"instructions": "No instructions found."}
