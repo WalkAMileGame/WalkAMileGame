@@ -45,7 +45,7 @@
   padding: 1em 1em;
   margin-left: auto;
   position: absolute;
-  top: 15rem;
+  top: 5rem;
   left: 2rem;
   border: none;
   color: #dfd4d4; 
@@ -53,6 +53,7 @@
   font-size: 25px;
   text-align: center;
   font-family: "Montserrat", sans-serif;
+  z-index: 100;
 }
 .read-the-docs {
   color: #888;

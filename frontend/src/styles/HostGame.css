@@ -36,7 +36,6 @@
   margin-bottom: 0.5rem;
 }
 
-/* Common input styles */
 .select-input, .text-input {
   padding: 0.5rem 1rem;
   border: 2px solid #86B18A;
@@ -45,7 +44,6 @@
   transition: all 0.2s;
 }
 
-/* Select takes full width */
 .select-input {
   width: 100%;
 }
@@ -61,9 +59,8 @@
   margin-bottom: 0.5rem;
 }
 
-/* Text input inside input-group uses flex */
 .text-input {
-  flex: 1; /* FIXED: Removed width: 100% conflict */
+  flex: 1;
 }
 
 .btn {
@@ -77,7 +74,7 @@
 
 .btn-copy {
   background-color: #E76F51;
-  color: white; /* FIXED: Changed to white for better contrast */
+  color: white;
   padding: 0.5rem 0.75rem;
   display: flex;
   align-items: center;

@@ -161,8 +161,16 @@ const GameBoard = () => {
     return path;
   };
 
-  // zoom stuff
+  // zoom and pan stuff
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const panState = useRef({
+    isPanning: false,
+    startX: 0,
+    startY: 0,
+    startPanX: 0,
+    startPanY: 0
+  });
 
   const handleZoomIn = () => {
     setZoom(prev => Math.min(prev + 0.2, 2));
@@ -170,6 +178,55 @@ const GameBoard = () => {
 
   const handleZoomOut = () => {
     setZoom(prev => Math.max(prev - 0.2, 0.5));
+  };
+
+  const handlePanStart = (e) => {
+    if (e.button === 2) { // Right mouse button
+      e.preventDefault();
+      panState.current = {
+        isPanning: true,
+        startX: e.clientX,
+        startY: e.clientY,
+        startPanX: pan.x,
+        startPanY: pan.y
+      };
+      // Change cursor
+      if (containerRef.current) {
+        containerRef.current.style.cursor = 'grabbing';
+      }
+    }
+  };
+
+  const handlePanMove = (e) => {
+    if (panState.current.isPanning) {
+      e.preventDefault();
+      const deltaX = e.clientX - panState.current.startX;
+      const deltaY = e.clientY - panState.current.startY;
+      
+      setPan({
+        x: panState.current.startPanX + deltaX,
+        y: panState.current.startPanY + deltaY
+      });
+    }
+  };
+
+  const handlePanEnd = () => {
+    if (panState.current.isPanning) {
+      panState.current.isPanning = false;
+      if (containerRef.current) {
+        containerRef.current.style.cursor = 'grab';
+      }
+    }
+  };
+
+  const handleResetView = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  // Prevent context menu on right click
+  const handleContextMenu = (e) => {
+    e.preventDefault();
   };
 
   // Get angle from mouse position relative to center
@@ -192,6 +249,7 @@ const GameBoard = () => {
 
   // Handle ring drag start  
   const handleRingMouseDown = (e, ringId) => {
+    if (e.button !== 0) return;
     e.preventDefault();
     e.stopPropagation();
     const angle = getAngleFromMouse(e.clientX, e.clientY);
@@ -249,8 +307,8 @@ const GameBoard = () => {
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (!dragState.current.isDragging) return;
-
+    // Handle ring rotation
+    if (dragState.current.isDragging) {
       dragState.current.recentlyDragged = true;
       setHoveredSlice(null); // Clear tooltip while dragging
       
@@ -267,7 +325,20 @@ const GameBoard = () => {
         ...prev,
         [dragState.current.ringId]: newRotation
       }));
-    };
+    }
+    
+    // Handle panning (independent of ring dragging)
+    if (panState.current.isPanning) {
+      e.preventDefault();
+      const deltaX = e.clientX - panState.current.startX;
+      const deltaY = e.clientY - panState.current.startY;
+      
+      setPan({
+        x: panState.current.startPanX + deltaX,
+        y: panState.current.startPanY + deltaY
+      });
+    }
+  };
 
     const handleMouseUp = () => {
       dragState.current.isDragging = false;
@@ -277,6 +348,7 @@ const GameBoard = () => {
       }, 100); 
       
       dragState.current.ringId = null;
+      handlePanEnd();
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -395,11 +467,16 @@ const GameBoard = () => {
           {/* Gameboard Container */}
           <div className={`gameboard-container ${showSettings ? 'shifted' : ''}`}>
             <div className="container">
-              <div className="wheel-container" ref={containerRef} style={{ 
-                    transform: `scale(${zoom})`, 
-                    transition: 'transform 0.2s ease',
-                    transformOrigin: 'center'
-                  }}>
+              <div className="wheel-container" 
+                ref={containerRef} 
+                onMouseDown={handlePanStart}
+                onContextMenu={handleContextMenu}
+                style={{ 
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, 
+                  transition: panState.current.isPanning ? 'none' : 'transform 0.2s ease',
+                  transformOrigin: 'center',
+                  cursor: 'grab'
+                }}>
                 <svg
                   className="wheel-svg"
                   viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
@@ -501,6 +578,7 @@ const GameBoard = () => {
               zoom={zoom}
               onZoomIn={handleZoomIn}
               onZoomOut={handleZoomOut}
+              onReset={handleResetView}
               minZoom={0.5}
               maxZoom={2}
             />
