@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useLocation } from 'react-router-dom';
 import '../styles/Gameboard.css';
 import GameBoardSettings from "./GameBoardSettings";
 import EnergyMarkers from "./EnergyMarkers";
@@ -79,8 +80,10 @@ name: 'Default Gameboard',
     ]
   }
 
-const GameBoard = ({initialconfig=defaultGameData}) => {
-  const [gameConfig, setGameConfig] = useState(initialconfig);
+const GameBoard = () => {
+  const location = useLocation();
+  const initialConfig = location.state?.boardConfig || defaultGameData;
+  const [gameConfig, setGameConfig] = useState(initialConfig);
 
   const [rotations, setRotations] = useState({
     ring0: 0,

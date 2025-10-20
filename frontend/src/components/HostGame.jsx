@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/HostGame.css';
 
 // Simple SVG Icons as components
@@ -37,6 +38,7 @@ const RefreshIcon = () => (
 );
 
 export default function HostGamePage() {
+  const navigate = useNavigate();
   const [selectedBoard, setSelectedBoard] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [copied, setCopied] = useState(false);
@@ -84,8 +86,14 @@ export default function HostGamePage() {
       alert('Please select a board and generate/enter an invite code');
       return;
     }
-    alert(`Game starting with board: ${selectedBoard}\nInvite Code: ${inviteCode}`);
-  };
+    const selectedBoardData = boards.find(board => board.name === selectedBoard);
+    navigate('/gameboard', {
+        state: { 
+        boardConfig: selectedBoardData,
+        inviteCode: inviteCode 
+        }
+  });
+};
 
   return (
     <div className="host-game-container">

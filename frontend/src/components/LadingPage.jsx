@@ -19,7 +19,7 @@ const LandingPage = () => {
             <Link to="/gameboard">
                 <button>🎲 EDIT GAMEBOARDS</button>
             </Link>
-            <Link to="/landing/#">
+            <Link to="/hostgame">
                 <button>🕹️ HOST A GAME</button>
             </Link>
             <Link to="/landing/#">
