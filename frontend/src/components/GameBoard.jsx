@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import '../styles/Gameboard.css';
 import GameBoardSettings from "./GameBoardSettings";
 import EnergyMarkers from "./EnergyMarkers";
+import { API_BASE } from '../api';
 
 
 const defaultGameData = {
@@ -92,13 +93,13 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
   const [points, setPoints] = useState(0)
 
   useEffect(() => {
-  fetch("http://localhost:8000/items")
+  fetch(`${API_BASE}/items`)
     .then((res) => res.json())
     .then((data) => setPoints(data.values));
   }, []);
 
   const updatingPoints = (change = -1) => { // takes input number now
-    fetch("http://localhost:8000/items", {
+    fetch(`${API_BASE}/items`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ change }), 

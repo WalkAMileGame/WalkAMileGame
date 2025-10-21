@@ -1,0 +1,15 @@
+#This service file makes a namespace for the backend pod so that it can be connected to.
+apiVersion: v1
+kind: Service
+metadata:
+  name: walkamile-backend
+  labels:
+    app: walkamile-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: walkamile
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000

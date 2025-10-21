@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import '../styles/GameboardSettings.css';
 import Snackbar from "./ui/snackbar"
-
+import { API_BASE } from "../api";
 
         {/* Available colors */}
 const ColorPicker = ({ onChange, colors = [] }) => {
@@ -52,7 +52,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const loadGameboards = async () => {
     setIsLoading(true);
     console.log("loading gamebords")
-    fetch("http://localhost:8000/load_all")
+    fetch(`${API_BASE}/load_all`)
       .then((res) => res.json())
       .then((data) => setTemplates(data));
     setIsLoading(false);
@@ -198,7 +198,7 @@ const handleSave = async () => {
 
 {/* Make sure saveGameboard RETURNS the fetch result */ }
 const saveGameboard = () => {
-  return fetch("http://localhost:8000/save", {
+  return fetch(`${API_BASE}/save`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
@@ -267,7 +267,7 @@ const handleDelete = async () => {
 };
 
 const deleteGameboard = () => {
-  return fetch("http://localhost:8000/delete", {
+  return fetch(`${API_BASE}/delete`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
