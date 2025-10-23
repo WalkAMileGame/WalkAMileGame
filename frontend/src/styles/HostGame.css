@@ -10,6 +10,7 @@
 .host-game-card {
   background: white;
   border-radius: 0.5rem;
+  border: 3px solid black;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   padding: 2rem;
   width: 100%;
