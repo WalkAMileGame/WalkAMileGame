@@ -11,6 +11,11 @@ describe('ZoomControls', () => {
     onReset: vi.fn(),
   };
 
+  test('renders without crashing', () => {
+    const { container } = render(<ZoomControls {...defaultProps} />);
+    expect(container.firstChild).toBeInTheDocument();
+  });
+
   test('renders all three buttons', () => {
     render(<ZoomControls {...defaultProps} />);
     

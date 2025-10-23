@@ -2,6 +2,7 @@ import React from "react"
 import '../styles/HomePage.css';
 import { useState, useEffect } from "react";
 import Instructions from "./ui/Instructions";
+import dudeIcon from '../assets/WAM_Element_3.png';
 
 
 
@@ -29,6 +30,9 @@ const HomePage = () => {
         <main>
           <h2>THE INTERNATIONAL PATH TO FINNISH EDUCATION</h2>
         </main>
+        {/* Icon positioned on top of the arc */}
+        <img src={dudeIcon} alt="Character" className="dude-icon" />
+        
 
       <div className="half-circle">
         <svg viewBox="0 0 500 500">

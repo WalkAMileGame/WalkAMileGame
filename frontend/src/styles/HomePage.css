@@ -19,6 +19,15 @@
   }
 }
 
+@keyframes sunrise-icon {
+  from {
+    transform: translateX(-50%) translateY(100vh) rotate(-45deg);
+  }
+  to {
+    transform: translateX(-50%) translateY(0) rotate(-45deg);
+  }
+}
+
 .home-text {
   height: 100vh;
   margin: 0;
@@ -114,4 +123,16 @@ h1 {
   height: 40px;
   width: 80px;
   font-size: 16px;
+}
+
+.dude-icon {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  bottom: 34vh;
+  left: 18%;
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+  z-index: 10;
+  animation: sunrise-icon 1.5s ease-out forwards;
 }
