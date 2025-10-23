@@ -176,3 +176,62 @@ test('should rotate a ring when dragged with the mouse', async () =>{
   expect(finalTransform).not.toBe(initialTransform);
   expect(finalTransform).toContain('rotate');
 })
+
+test('should pan the board when right-click dragging', async () => {
+  const user = userEvent.setup();
+  renderWithRouter();
+  await screen.findByText(/Remaining energypoints: 100/i);
+  const wheelContainer = screen.getByTestId('ring-group-1').closest('.wheel-container');
+  const initialTransform = wheelContainer.style.transform;
+  expect(initialTransform).toContain('translate(0px, 0px)');
+
+  fireEvent.mouseDown(wheelContainer, { 
+    button: 2, 
+    clientX: 500, 
+    clientY: 500 
+  });
+  
+  fireEvent.mouseMove(window, { 
+    clientX: 650, 
+    clientY: 700 
+  });
+  
+  fireEvent.mouseUp(window);
+
+  const finalTransform = wheelContainer.style.transform;
+  expect(finalTransform).not.toBe(initialTransform);
+  expect(finalTransform).toContain('translate(150px, 200px)');
+});
+
+test('should update pan position continuously while dragging', async () => {
+  renderWithRouter();
+  await screen.findByText(/Remaining energypoints: 100/i);
+  const wheelContainer = screen.getByTestId('ring-group-1').closest('.wheel-container');
+
+  fireEvent.mouseDown(wheelContainer, { 
+    button: 2, 
+    clientX: 400, 
+    clientY: 400 
+  });
+
+  fireEvent.mouseMove(window, { 
+    clientX: 450, 
+    clientY: 450 
+  });
+  
+  let currentTransform = wheelContainer.style.transform;
+  expect(currentTransform).toContain('translate(50px, 50px)');
+
+  // Second move (should continue from the start position, not accumulate)
+  fireEvent.mouseMove(window, { 
+    clientX: 500, 
+    clientY: 550 
+  });
+  
+  currentTransform = wheelContainer.style.transform;
+  expect(currentTransform).toContain('translate(100px, 150px)');
+  fireEvent.mouseUp(window);
+
+  const finalTransform = wheelContainer.style.transform;
+  expect(finalTransform).toContain('translate(100px, 150px)');
+});

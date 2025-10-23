@@ -134,7 +134,15 @@ export default function HostGamePage() {
             <input
               type="text"
               value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              onChange={(e) => {
+              const allowedChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                const filtered = e.target.value
+                  .toUpperCase()
+                  .split('')
+                  .filter(char => allowedChars.includes(char))
+                  .join('');
+                setInviteCode(filtered);
+              }}
               placeholder="Enter or generate code"
               className="text-input"
               maxLength={10}
