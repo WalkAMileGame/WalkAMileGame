@@ -26,17 +26,17 @@ const LandingPage = () => {
             <div className="card">
               <div className="card-icon">🕹️</div>
               <h3>HOST A GAME</h3>
-              <p>Start hosting a game </p>
+              <p>Start hosting a game here</p>
               <Link to="/hostgame">
                 <button>Host</button>
               </Link>
             </div>
             <div className="card">
               <div className="card-icon">👤</div>
-              <h3>EDIT USERS</h3>
-              <p>Manage and create users and permissions </p>
+              <h3>MANAGE USERS</h3>
+              <p>Create users and manage their permissions </p>
               <Link to="/landing/#">
-                <button>Edit</button>
+                <button>Manage</button>
               </Link>
             </div>
           </div>

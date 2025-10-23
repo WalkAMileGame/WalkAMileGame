@@ -3,7 +3,7 @@
 import HomePage from './components/HomePage';
 import GameBoard from "./components/GameBoard";
 import Login from './components/Login';
-import LandingPage from './components/LadingPage';
+import LandingPage from './components/LandingPage';
 import HostGamePage from './components/HostGame';
 
 import {BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
