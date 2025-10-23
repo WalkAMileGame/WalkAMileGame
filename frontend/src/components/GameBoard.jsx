@@ -198,19 +198,6 @@ const GameBoard = () => {
     }
   };
 
-  const handlePanMove = (e) => {
-    if (panState.current.isPanning) {
-      e.preventDefault();
-      const deltaX = e.clientX - panState.current.startX;
-      const deltaY = e.clientY - panState.current.startY;
-      
-      setPan({
-        x: panState.current.startPanX + deltaX,
-        y: panState.current.startPanY + deltaY
-      });
-    }
-  };
-
   const handlePanEnd = () => {
     if (panState.current.isPanning) {
       panState.current.isPanning = false;

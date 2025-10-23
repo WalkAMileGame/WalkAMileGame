@@ -1,3 +1,4 @@
+/* global global */
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '../App'
@@ -23,9 +24,9 @@ describe("GameBoardSettings", () => {
   
       render(<App />)
   
-      const element1 = screen.getByText('Home')
-      const element2 = screen.getByText('Gameboard')
-      const element3 = screen.getByText('Login')
+      const _element1 = screen.getByText('Home')
+      const _element2 = screen.getByText('Gameboard')
+      const _element3 = screen.getByText('Login')
   })
   
   test('clicking login button renders login page', async () => {
@@ -49,7 +50,7 @@ describe("GameBoardSettings", () => {
     const button = screen.getByText('Gameboard')
     await user.click(button)
   
-    const element = screen.getByText('Remaining energypoints:', {exact: false})
+    const _element = screen.getByText('Remaining energypoints:', {exact: false})
   })
   
   test('clicking login and then home button renders homepage', async () => {
@@ -63,6 +64,6 @@ describe("GameBoardSettings", () => {
     const button2 = screen.getByText('Home')
     await user.click(button2)
   
-    const element = screen.getByText('WALK A MILE:')
+    const _element = screen.getByText('WALK A MILE:')
   })
 });
