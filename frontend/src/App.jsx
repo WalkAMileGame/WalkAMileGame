@@ -7,7 +7,7 @@ import LandingPage from './components/LandingPage';
 import HostGamePage from './components/HostGame';
 
 import {BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
-import ConnectionStatus from './components/ConnectionStatus';
+import ConnectionStatus from './components/ui/ConnectionStatus';
 
 function App() {
 

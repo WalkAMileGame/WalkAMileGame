@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
 import '../styles/Gameboard.css';
 import GameBoardSettings from "./GameBoardSettings";
-import EnergyMarkers from "./EnergyMarkers";
-import ZoomControls from './ZoomControls';
+import EnergyMarkers from "./ui/EnergyMarkers";
+import ZoomControls from './ui/ZoomControls';
 import ColorGuide from './ui/ColorGuide';
 
 
