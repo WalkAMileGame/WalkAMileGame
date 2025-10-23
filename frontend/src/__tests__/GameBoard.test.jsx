@@ -1,6 +1,7 @@
+/* global global */
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from 'react-router-dom';
 import GameBoard from '../components/GameBoard'
 
@@ -178,7 +179,6 @@ test('should rotate a ring when dragged with the mouse', async () =>{
 })
 
 test('should pan the board when right-click dragging', async () => {
-  const user = userEvent.setup();
   renderWithRouter();
   await screen.findByText(/Remaining energypoints: 100/i);
   const wheelContainer = screen.getByTestId('ring-group-1').closest('.wheel-container');

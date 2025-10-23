@@ -30,6 +30,7 @@ const ConnectionStatus = () => {
         setStatusMessage(`HTTP ${response.status}`);
       }
     } catch (error) {
+      console.error('Backend health check failed:', error);
       setBackendStatus('disconnected');
       setStatusMessage('Cannot reach backend server');
     }

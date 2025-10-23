@@ -47,7 +47,8 @@ def test_get_items(mock_db_instance):
 def test_update_points_increase(mock_db_instance):
     """Test updating points with positive change"""
     # Mock database response
-    mock_db_instance.points.update_one.return_value = MagicMock(modified_count=1)
+    mock_db_instance.points.update_one.return_value = MagicMock(
+        modified_count=1)
     mock_db_instance.points.find_one.return_value = {"id": "0", "values": 150}
 
     response = client.put("/items", json={"change": 50})
@@ -60,14 +61,16 @@ def test_update_points_increase(mock_db_instance):
         {"$inc": {"values": 50}},
         upsert=True
     )
-    mock_db_instance.points.find_one.assert_called_once_with({"id": "0"}, {"_id": 0})
+    mock_db_instance.points.find_one.assert_called_once_with({"id": "0"}, {
+                                                             "_id": 0})
 
 
 @patch('backend.app.api.db')
 def test_update_points_decrease(mock_db_instance):
     """Test updating points with negative change"""
     # Mock database response
-    mock_db_instance.points.update_one.return_value = MagicMock(modified_count=1)
+    mock_db_instance.points.update_one.return_value = MagicMock(
+        modified_count=1)
     mock_db_instance.points.find_one.return_value = {"id": "0", "values": 50}
 
     response = client.put("/items", json={"change": -50})
@@ -93,6 +96,7 @@ def test_update_points_no_body():
     response = client.put("/items")
     assert response.status_code == 422  # Validation error
 
+
 @patch('backend.app.api.db')
 def test_health_check_healthy(mock_db_instance):
     """Test health check when database connection is healthy"""
@@ -114,11 +118,12 @@ def test_health_check_healthy(mock_db_instance):
 def test_health_check_unhealthy(mock_db_instance):
     """Test health check when database connection fails"""
     # Mock database connection failure
-    mock_db_instance.client.server_info.side_effect = Exception("Connection timeout")
+    mock_db_instance.client.server_info.side_effect = Exception(
+        "Connection timeout")
 
     response = client.get("/health")
     assert response.status_code == 200  # Endpoint still returns 200
-    
+
     response_data = response.json()
     assert response_data["status"] == "unhealthy"
     assert "Database connection failed" in response_data["message"]
