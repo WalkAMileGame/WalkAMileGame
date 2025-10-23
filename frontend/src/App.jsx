@@ -9,6 +9,7 @@ import Game from './components/Game'
 import { useNavigate, BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ConnectionStatus from './components/ui/ConnectionStatus';
+import EditUsers from './components/EditUsers';
 
 
 function App() {
@@ -64,6 +65,7 @@ function AppContent() {
           <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
           <Route path="/hostgame" element={<HostGamePage />} />
           <Route path="/game/:gamecode" element={<Game />} />
+          <Route path="/editusers" element={<EditUsers />} />
         </Routes>
     </>
   )
