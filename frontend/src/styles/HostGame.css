@@ -14,6 +14,7 @@
   padding: 2rem;
   width: 100%;
   max-width: 28rem;
+  position: relative;
 }
 
 .host-game-title {
@@ -70,6 +71,28 @@
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s;
+}
+
+.btn-back {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: transparent;
+  color: #3F695D;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  border: 2px solid #86B18A;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.btn-back:hover {
+  background-color: #3F695D;
+  color: white;
+  border-color: #3F695D;
 }
 
 .btn-copy {
