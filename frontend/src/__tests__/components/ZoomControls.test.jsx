@@ -1,7 +1,7 @@
 import { describe, test, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from '@testing-library/user-event';
-import ZoomControls from '../../components/ZoomControls';
+import ZoomControls from '../../components/ui/ZoomControls';
 
 describe('ZoomControls', () => {
   const defaultProps = {
