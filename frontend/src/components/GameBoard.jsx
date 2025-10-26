@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
 import '../styles/Gameboard.css';
 import GameBoardSettings from "./GameBoardSettings";
-import EnergyMarkers from "./EnergyMarkers";
-import ZoomControls from './ZoomControls';
+import EnergyMarkers from "./ui/EnergyMarkers";
+import ZoomControls from './ui/ZoomControls';
+import ColorGuide from './ui/ColorGuide';
 
 
 const defaultGameData = {
@@ -607,12 +608,22 @@ const GameBoard = () => {
             }}
           >
             {/* To show energy cost just change the ' ✓' into the energy cost variable */}
-            {activeMarkers.has(`${hoveredSlice.ringId}-${hoveredSlice.id}`) 
+            {activeMarkers.has(`${hoveredSlice.ringId}-${hoveredSlice.id}`)
             ? `Refund: ${hoveredSlice.energyvalue}`
             : `Energy cost: ${hoveredSlice.energyvalue}`
             }
           </div>
         )}
+
+        {/* Color Guide */}
+        <div style={{
+          position: 'fixed',
+          bottom: '120px',
+          left: '20px',
+          zIndex: 100
+        }}>
+          <ColorGuide />
+        </div>
       </div>
     </>
   );

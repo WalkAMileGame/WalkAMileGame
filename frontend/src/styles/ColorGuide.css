@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
+
+.color-guide-container {
+  background-color: #3F695D;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: fit-content;
+  border: 3px solid #86B18A;
+}
+
+.color-guide-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.color-box {
+  width: 60px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.split-box {
+  display: flex;
+}
+
+.color-half {
+  width: 50%;
+  height: 100%;
+}
+
+.single-color {
+  width: 60px;
+  height: 40px;
+}
+
+/* Color definitions */
+.orange {
+  background-color: #ffb088;
+}
+
+.light-blue {
+  background-color: #a3d7ff;
+}
+
+.blue {
+  background-color: #7e9ef3;
+}
+
+.light-purple {
+  background-color: #bb98d5;
+}
+
+.red {
+  background-color: #ff8989;
+}
+
+.color-text {
+  color: white;
+  font-family: 'Lilita One', cursive;
+  font-weight: bold;
+  font-size: 20px;
+  letter-spacing: 1px;
+}

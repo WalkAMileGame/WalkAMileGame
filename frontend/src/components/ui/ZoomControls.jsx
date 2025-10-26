@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/ZoomControls.css';
+import '../../styles/ZoomControls.css';
 
 const ZoomControls = ({ zoom, onZoomIn, onZoomOut, onReset, minZoom = 0.5, maxZoom = 2 }) => {
   return (
