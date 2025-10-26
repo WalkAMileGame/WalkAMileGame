@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
+/* global global */
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { vi } from 'vitest';
 import GameBoardSettings from '../components/GameBoardSettings'
 

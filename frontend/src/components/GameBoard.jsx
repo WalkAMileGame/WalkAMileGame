@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useLocation } from 'react-router-dom';
 import '../styles/Gameboard.css';
 import GameBoardSettings from "./GameBoardSettings";
-import EnergyMarkers from "./EnergyMarkers";
+import EnergyMarkers from "./ui/EnergyMarkers";
+import ZoomControls from './ui/ZoomControls';
+import ColorGuide from './ui/ColorGuide';
 
 
 const defaultGameData = {
@@ -78,8 +81,10 @@ name: 'Default Gameboard',
     ]
   }
 
-const GameBoard = ({initialconfig=defaultGameData}) => {
-  const [gameConfig, setGameConfig] = useState(initialconfig);
+const GameBoard = () => {
+  const location = useLocation();
+  const initialConfig = location.state?.boardConfig || defaultGameData;
+  const [gameConfig, setGameConfig] = useState(initialConfig);
 
   const [rotations, setRotations] = useState({
     ring0: 0,
@@ -157,6 +162,61 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
     return path;
   };
 
+  // zoom and pan stuff
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const panState = useRef({
+    isPanning: false,
+    startX: 0,
+    startY: 0,
+    startPanX: 0,
+    startPanY: 0
+  });
+
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.2, 2));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 0.2, 0.5));
+  };
+
+  const handlePanStart = (e) => {
+    if (e.button === 2) { // Right mouse button
+      e.preventDefault();
+      panState.current = {
+        isPanning: true,
+        startX: e.clientX,
+        startY: e.clientY,
+        startPanX: pan.x,
+        startPanY: pan.y
+      };
+      // Change cursor
+      if (containerRef.current) {
+        containerRef.current.style.cursor = 'grabbing';
+      }
+    }
+  };
+
+  const handlePanEnd = () => {
+    if (panState.current.isPanning) {
+      panState.current.isPanning = false;
+      if (containerRef.current) {
+        containerRef.current.style.cursor = 'grab';
+      }
+    }
+  };
+
+  const handleResetView = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  // Prevent context menu on right click
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+  };
+
   // Get angle from mouse position relative to center
   const getAngleFromMouse = (clientX, clientY) => {
     if (!containerRef.current) return 0;
@@ -177,6 +237,7 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
 
   // Handle ring drag start  
   const handleRingMouseDown = (e, ringId) => {
+    if (e.button !== 0) return;
     e.preventDefault();
     e.stopPropagation();
     const angle = getAngleFromMouse(e.clientX, e.clientY);
@@ -234,8 +295,8 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (!dragState.current.isDragging) return;
-
+    // Handle ring rotation
+    if (dragState.current.isDragging) {
       dragState.current.recentlyDragged = true;
       setHoveredSlice(null); // Clear tooltip while dragging
       
@@ -252,7 +313,20 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
         ...prev,
         [dragState.current.ringId]: newRotation
       }));
-    };
+    }
+    
+    // Handle panning (independent of ring dragging)
+    if (panState.current.isPanning) {
+      e.preventDefault();
+      const deltaX = e.clientX - panState.current.startX;
+      const deltaY = e.clientY - panState.current.startY;
+      
+      setPan({
+        x: panState.current.startPanX + deltaX,
+        y: panState.current.startPanY + deltaY
+      });
+    }
+  };
 
     const handleMouseUp = () => {
       dragState.current.isDragging = false;
@@ -262,6 +336,7 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
       }, 100); 
       
       dragState.current.ringId = null;
+      handlePanEnd();
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -380,7 +455,16 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
           {/* Gameboard Container */}
           <div className={`gameboard-container ${showSettings ? 'shifted' : ''}`}>
             <div className="container">
-              <div className="wheel-container" ref={containerRef}>
+              <div className="wheel-container" 
+                ref={containerRef} 
+                onMouseDown={handlePanStart}
+                onContextMenu={handleContextMenu}
+                style={{ 
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, 
+                  transition: panState.current.isPanning ? 'none' : 'transform 0.2s ease',
+                  transformOrigin: 'center',
+                  cursor: 'grab'
+                }}>
                 <svg
                   className="wheel-svg"
                   viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
@@ -478,6 +562,14 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
                 <div className="start-circle">Start!</div>
               </div>
             </div>
+            <ZoomControls 
+              zoom={zoom}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onReset={handleResetView}
+              minZoom={0.5}
+              maxZoom={2}
+            />
           </div>
 
           {/* Settings Panel */}
@@ -516,12 +608,22 @@ const GameBoard = ({initialconfig=defaultGameData}) => {
             }}
           >
             {/* To show energy cost just change the ' ✓' into the energy cost variable */}
-            {activeMarkers.has(`${hoveredSlice.ringId}-${hoveredSlice.id}`) 
+            {activeMarkers.has(`${hoveredSlice.ringId}-${hoveredSlice.id}`)
             ? `Refund: ${hoveredSlice.energyvalue}`
             : `Energy cost: ${hoveredSlice.energyvalue}`
             }
           </div>
         )}
+
+        {/* Color Guide */}
+        <div style={{
+          position: 'fixed',
+          bottom: '120px',
+          left: '20px',
+          zIndex: 100
+        }}>
+          <ColorGuide />
+        </div>
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import EnergyMarkers from "../../components/EnergyMarkers";
+import EnergyMarkers from "../../components/ui/EnergyMarkers";
 
 describe("EnergyMarkers", () => {
   const mockGameConfig = {
