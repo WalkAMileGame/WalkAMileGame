@@ -20,6 +20,7 @@ origins = [
 origin_regex = r"^https?://([a-z0-9-]+\.)*ext\.ocp-test-0\.k8s\.it\.helsinki\.fi(:\d+)?$"
 app.add_middleware(
     CORSMiddleware,
+    #This must be changed before production.
     allow_origins=["*"],
     allow_origin_regex=origin_regex,
     allow_credentials=True,
