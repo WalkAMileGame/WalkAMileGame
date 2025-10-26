@@ -20,7 +20,7 @@ spec:
         - name: walkamile-backend
           image: walkamile/walkamile-backend:staging
           ports:
-            - containerPort: 3000
+            - containerPort: 8000
           env:
             - name: DB_URL
               #to be set:

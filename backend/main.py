@@ -12,21 +12,23 @@ app = FastAPI()
 if os.getenv('TESTING') != 'true':
     initialize_database()
 
-app.include_router(router)
-
 origins = [
     "http://localhost:5173",
-    "localhost:5173"
+    "localhost:5173",
+    "https://walkamile.ext.ocp-test-0.k8s.it.helsinki.fi"
 ]
-
+origin_regex = r"^https?://([a-z0-9-]+\.)*ext\.ocp-test-0\.k8s\.it\.helsinki\.fi(:\d+)?$"
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
+    allow_origin_regex=origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
+app.include_router(router)
 
+#test
 if __name__ == "__main__":
     uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)

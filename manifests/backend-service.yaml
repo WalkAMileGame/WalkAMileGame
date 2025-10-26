@@ -3,13 +3,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: walkamile-backend
-  labels:
-    app: walkamile-backend
 spec:
-  type: ClusterIP
   selector:
     app: walkamile
   ports:
     - name: http
       port: 3000
-      targetPort: 3000
+      targetPort: 8000
+  type: ClusterIP

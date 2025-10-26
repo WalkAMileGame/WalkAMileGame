@@ -33,6 +33,9 @@ USER 1001
 ENV HOST=0.0.0.0
 ENV BROWSER=none
 EXPOSE 5173
+ARG VITE_API_URL
+ENV VITE_API_URL=https://walkamile-backend.ext.ocp-test-0.k8s.it.helsinki.fi
+
 
 CMD ["/bin/sh","-lc","${POETRY_HOME}/bin/poetry run invoke server --frontend"]
 #CMD ["/bin/sh","-lc","invoke","server","--frontend"]
