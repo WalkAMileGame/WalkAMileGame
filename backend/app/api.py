@@ -1,14 +1,13 @@
 """fast api logic"""
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.app.models import Points, Boards
+from backend.app.models import Points, Boards, LoginRequest
 from .db import db
-
+from backend.app.security import verify_password, create_access_token, get_current_active_user
 
 router = APIRouter()
-
 
 @router.get("/", tags=["root"])
 async def read_root() -> dict:
@@ -87,3 +86,35 @@ def load_instructions():
     if instructions_doc:
         return instructions_doc
     return {"instructions": "No instructions found."}
+
+@router.post("/login")
+def login(form_data: LoginRequest):
+    user_in_db = db.users.find_one({"email": form_data.email})
+    #print("form data:", form_data)
+    #print("db output:", user_in_db)
+    #pw = get_password_hash(form_data.password)
+    #print("hashed:", pw)
+
+    if not user_in_db:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+    
+    if not verify_password(form_data.password, user_in_db["password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+    
+    access_token = create_access_token(
+        data={"sub": user_in_db["email"], "role": user_in_db["role"]}
+    )
+
+    user_info = {"email": user_in_db["email"], "role": user_in_db["role"]}
+
+    return {"access_token": access_token, "user": user_info}
+
+@router.get("/users/me", tags=["auth"])
+def read_current_user(current_user: dict = Depends(get_current_active_user)):
+    return current_user

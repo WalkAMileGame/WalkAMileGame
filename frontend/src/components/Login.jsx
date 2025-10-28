@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Login.css';
 
 export default function Login() {
-
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, login, logout, error: authError } = useAuth();
 
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
@@ -11,67 +11,82 @@ export default function Login() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [error, setError] = useState('');
+  const [localError, setLocalError] = useState('');
+  const isLoggedIn = !!user;
+  const userEmailDisplay = user?.email || userEmail;
 
-  // Handles the form submission for logging in
-  const handleLogin = (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault();
     setError('');
+    setError &&  setError(null);
 
     if (!email || !password) {
       setError('Please enter both email and password.');
       return;
     }
-    // Mock Login Logic
-    setIsLoggedIn(true);
-    setUserEmail(email);
-    setPassword('');
+    try {
+      await login(email, password);
+      setPassword('');
+      setUserEmail(email);
+    } catch (e) {
+      setLocalError(e.message || 'Login failed.');
+    }
   };
 
-  // Handles the form submission for registration
-  const handleRegister = (event) => {
+  const handleRegister = async (event) => {
     event.preventDefault();
-    setError('');
+    setLocalError('');
+    setError && setError(null);
 
     if (!email || !password || !confirmPassword) {
-        setError('Please fill out all fields.');
-        return;
+      setLocalError('Please fill out all fields.');
+      return;
     }
     if (password !== confirmPassword) {
-        setError('Passwords do not match.');
-        return;
+      setLocalError('Passwords do not match.');
+      return;
     }
-    // Mock Registration Logic
-    setIsLoggedIn(true);
-    setUserEmail(email);
-    setPassword('');
-    setConfirmPassword('');
+
+    // Mock registration for now
+    try {
+      await login(email, password);
+      setPassword('');
+      setConfirmPassword('');
+    } catch (e) {
+      setLocalError(e.message || 'Registration failed.');
+    }
   };
 
-  // Handles logging the user out
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUserEmail('');
+    logout();
     setEmail('');
     setPassword('');
     setConfirmPassword('');
-    setError('');
+    setLocalError('');
+    setError && setError(null);
   };
 
   const toggleForm = () => {
     setIsRegistering(!isRegistering);
-    setError('');
+    setLocalError('');
     setEmail('');
     setPassword('');
     setConfirmPassword('');
-  }
+    setError && setError(null);
+  };
 
-  return (
+ return (
     <>
+      {/* Show login status and email at the top */}
+      {/* Mostly for debugging */}
+      <div className="login-status" style={{ textAlign: 'center', margin: '12px 0', color: '#fff' }}>
+        {isLoggedIn ? `Logged in as ${userEmailDisplay}` : 'Not logged in'}
+      </div>
       <div className="login-container">
         {isLoggedIn ? (
           <div className="login-card welcome-card">
             <h1>Welcome!</h1>
-            <p>You have successfully logged in as {userEmail}.</p>
+            <p>You have successfully logged in as {userEmailDisplay}.</p>
             <button onClick={handleLogout} className="btn btn-danger">
               Logout
             </button>
@@ -82,7 +97,7 @@ export default function Login() {
               <>
                 <h2 className="title">Register</h2>
                 <p className="subtitle">Create an account to get started.</p>
-                {error && <p className="error-message">{error}</p>}
+                {(error || localError || authError) && <p className="error-message">{localError || error || authError}</p>}
                 <form onSubmit={handleRegister} noValidate>
                   <div className="form-group">
                     <label htmlFor="email" className="form-label">Email Address</label>
@@ -107,7 +122,7 @@ export default function Login() {
               <>
                 <h2 className="title">Login</h2>
                 <p className="subtitle">Welcome back! Please enter your details.</p>
-                {error && <p className="error-message">{error}</p>}
+                {(error || localError || authError) && <p className="error-message">{localError || error || authError}</p>}
                 <form onSubmit={handleLogin} noValidate>
                   <div className="form-group">
                     <label htmlFor="email" className="form-label">Email Address</label>
@@ -131,4 +146,3 @@ export default function Login() {
     </>
   );
 }
-
