@@ -1,5 +1,6 @@
 //ConnectionStatus.jsx
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../../api';
 
 const ConnectionStatus = () => {
   const [backendStatus, setBackendStatus] = useState('checking');
@@ -8,9 +9,8 @@ const ConnectionStatus = () => {
   const checkConnection = async () => {
     setBackendStatus('checking');
     setStatusMessage('');
-    
     try {
-      const response = await fetch('http://localhost:8000/health');
+      const response = await fetch(`${API_BASE}/health`);
       
       if (response.ok) {
         const data = await response.json();
