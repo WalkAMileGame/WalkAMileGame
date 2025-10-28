@@ -147,8 +147,8 @@ h1 {
   position: absolute;
   width: 120px;
   height: 120px;
-  bottom: 34vh;
-  left: 18%;
+  bottom: calc(61vh - 15vw);
+  left: calc(50% - 32vw);
   transform: translateX(-50%);
   transform-origin: center bottom;
   z-index: 10;
