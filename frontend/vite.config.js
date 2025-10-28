@@ -29,6 +29,5 @@ export default defineConfig({
         'eslint.config.js'
       ],
     },
-    setupFiles: './src/setupTests.js'
   }
 })
