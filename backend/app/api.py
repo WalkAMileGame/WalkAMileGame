@@ -170,5 +170,10 @@ class NewUser(BaseModel):
 @router.put("/add_user")
 def add_user(data: NewUser):
     db.users.update_one({"email": data.email},
-                        {"$set": {"email": data.email, "role": data.role}},
+                        {"$set": {"email": data.email, "role": data.role, "status": "existing"}},
                         upsert=True)
+    
+@router.get("/load_users")
+def load_users():
+    users = list(db.users.find(projection={"_id": False}))
+    return users

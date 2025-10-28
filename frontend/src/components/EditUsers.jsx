@@ -15,7 +15,7 @@ const placeHolderUsers = [
 const EditUsers = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [inputValue, setInputValue] = useState("");
-    const [selectedOption, setSelectedOption] = useState("Gamemaster");
+    const [selectedOption, setSelectedOption] = useState("gamemaster");
     const [showSnackbar, setShowSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [isSaving, setIsSaving] = useState(false);
@@ -23,15 +23,27 @@ const EditUsers = () => {
     const [existingUsers, setExistingUsers] = useState([])
 
     useEffect(() => {
-        setExistingUsers(placeHolderUsers);
-      }, [placeHolderUsers]);
+        loadUsers();
+    }, []);
+
+    const loadUsers = async () => {
+        try {
+            console.log("loading users");
+            const res = await fetch("http://localhost:8000/load_users");
+            const data = await res.json();
+            setPendingUsers(data.filter(user => user.status === "pending"));
+            setExistingUsers(data.filter(user => user.status === "existing"));
+        } finally {
+            console.log("loading complete");
+        }
+    };
 
     const handleAdd = async () => {
         if (!inputValue.trim()) {
             setSnackbarMessage("Please enter an email.");
             setShowSnackbar(true);
             return;
-        }
+        };
 
         setIsSaving(true);
         try {
@@ -138,8 +150,8 @@ const EditUsers = () => {
                 <input
                   type="radio"
                   name="choice"
-                  value="Admin"
-                  checked={selectedOption === "Admin"}
+                  value="admin"
+                  checked={selectedOption === "admin"}
                   onChange={(e) => setSelectedOption(e.target.value)}
                 />
                 Admin
@@ -149,8 +161,8 @@ const EditUsers = () => {
                 <input
                   type="radio"
                   name="choice"
-                  value="Gamemaster"
-                  checked={selectedOption === "Gamemaster"}
+                  value="gamemaster"
+                  checked={selectedOption === "gamemaster"}
                   onChange={(e) => setSelectedOption(e.target.value)}
                 />
                 Gamemaster
