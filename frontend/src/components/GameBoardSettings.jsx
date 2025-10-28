@@ -108,10 +108,16 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
 
   const removeSlice = (layerIndex, labelIndex) => {
     const updatedConfig = { ...localConfig };
+
+    if (updatedConfig.ringData[layerIndex].labels.length > 2) {
     updatedConfig.ringData[layerIndex].labels.splice(labelIndex, 1);
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
     onConfigChange(updatedConfig);
+    } else {
+    setSnackbarMessage("Each ring must have at least two labels");
+    setShowSnackbar(true);      
+    }
   };
 
 const loadSavedGameboard = async (boardData) => {
