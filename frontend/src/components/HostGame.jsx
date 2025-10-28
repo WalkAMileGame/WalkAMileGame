@@ -105,7 +105,7 @@ export default function HostGamePage() {
       return;
     }
     const selectedBoardData = boards.find(board => board.name === selectedBoard);
-    navigate('/gameboard', {
+    navigate(`/game/${inviteCode}`, {
         state: { 
         boardConfig: selectedBoardData,
         inviteCode: inviteCode 

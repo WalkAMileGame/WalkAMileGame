@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from backend.app.models import Points, Boards
 from .db import db
+from datetime import datetime, timedelta, timezone
 
 
 router = APIRouter()
@@ -87,3 +88,19 @@ def load_instructions():
     if instructions_doc:
         return instructions_doc
     return {"instructions": "No instructions found."}
+
+
+@router.get("/timer")
+def get_time(site: str ="game"):
+    durations = {"lobby": 5 * 60, "game": 30 * 60}
+    
+    duration = durations.get(site, 60)
+    now = datetime.now(timezone.utc)
+    end = now + timedelta(seconds=duration)
+    return {
+        "server_time": now.isoformat(),
+        "start": now.isoformat(),
+        "end": end.isoformat(),
+        "duration": duration
+    }
+    

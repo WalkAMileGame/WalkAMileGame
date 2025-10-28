@@ -63,12 +63,7 @@ describe("GameBoardSettings", () => {
   
     const button2 = screen.getByText('Home')
     await user.click(button2)
-<<<<<<< HEAD
   
     const _element = screen.getByText('WALK A MILE:')
-=======
-
-    const element = screen.getByText('WALK A MILE:')
->>>>>>> Openshift
   })
 });
