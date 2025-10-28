@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Login.css';
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const { user, login, logout, error: authError } = useAuth();
@@ -15,6 +16,8 @@ export default function Login() {
   const isLoggedIn = !!user;
   const userEmailDisplay = user?.email || userEmail;
 
+  const navigate = useNavigate()
+
   const handleLogin = async (event) => {
     event.preventDefault();
     setError('');
@@ -28,6 +31,7 @@ export default function Login() {
       await login(email, password);
       setPassword('');
       setUserEmail(email);
+      navigate("/landing");
     } catch (e) {
       setLocalError(e.message || 'Login failed.');
     }
@@ -64,6 +68,7 @@ export default function Login() {
     setConfirmPassword('');
     setLocalError('');
     setError && setError(null);
+    navigate("/");
   };
 
   const toggleForm = () => {

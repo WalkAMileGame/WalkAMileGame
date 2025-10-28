@@ -1,26 +1,53 @@
+import React, { useState } from 'react'
 import HomePage from './components/HomePage';
 import GameBoard from "./components/GameBoard";
 import Login from './components/Login';
 import LandingPage from './components/LandingPage';
 import HostGamePage from './components/HostGame';
-
-import {BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
+import { useAuth } from './context/AuthContext';
+import { useNavigate, BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
 import ConnectionStatus from './components/ui/ConnectionStatus';
 
-function App() {
 
-  const padding = {
-    padding: 5
-  }
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}
+
+function AppContent() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [hover, setHover] = useState(false);
+  const padding = {padding: 5}
+  const handleLogout = () => {
+    logout();        
+    navigate("/");   
+  };
 
   return (
     <>
-      <Router>
         <ConnectionStatus />
         <div className="links">
           <Link style={padding} to="/">Home</Link>
-          <Link style={padding} to="/gameboard">Gameboard</Link>
-          <Link style={padding} to="/login">Login</Link>
+          {user ? (
+            <>
+              <Link style={padding} to="/landing">{user.email}</Link>
+              <button onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}  style={{
+              background: "none",
+              border: "none",
+              color: hover ? "#F3A261": "white",
+              textDecoration: "none",
+              cursor: "pointer",
+              padding: 5,
+              font: "inherit",
+            }} onClick={handleLogout}>Logout</button>
+            </>
+          ) : (
+            <Link style={padding} to="/login">Login</Link>
+          )}
         </div>
 
         <Routes>
@@ -30,7 +57,6 @@ function App() {
           <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
           <Route path="/hostgame" element={<HostGamePage />} />
         </Routes>
-      </Router>
     </>
   )
 }
