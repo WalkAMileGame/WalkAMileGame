@@ -18,7 +18,8 @@ function App() {
 
 function AppContent() {
   const location = useLocation();
-  const hideLinks = location.pathname === "/game:gamecode";
+  const hideLinks = location.pathname.startsWith("/game/");
+
 
   const padding = {
     padding: 5
