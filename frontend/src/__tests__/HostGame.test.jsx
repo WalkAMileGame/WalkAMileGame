@@ -112,7 +112,7 @@ describe('HostGamePage - Core Functionality', () => {
     const startButton = screen.getByText('Start Game');
     fireEvent.click(startButton);
     
-    expect(mockNavigate).toHaveBeenCalledWith('/gameboard', {
+    expect(mockNavigate).toHaveBeenCalledWith(`/game/${generatedCode}`, {
       state: {
         boardConfig: mockBoards[0],
         inviteCode: generatedCode,

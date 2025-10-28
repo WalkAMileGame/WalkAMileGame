@@ -2,12 +2,23 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import LandingPage from '../components/LandingPage'
+import { vi } from 'vitest';
+
+
+vi.mock('../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { email: 'test@example.com' },
+    login: vi.fn(),
+    logout: vi.fn(),
+  }),
+}));
+
 
 test('renders content', () => {
 
     render(
     <MemoryRouter>
-      <LandingPage />
+        <LandingPage />
     </MemoryRouter>
   );
 

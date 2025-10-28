@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import Login from '../components/Login';
 import { useAuth } from '../context/AuthContext';
 import { vi } from 'vitest';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+
 
 
 // Mock the entire AuthContext module
@@ -33,7 +35,11 @@ beforeEach(() => {
 });
 
 test('renders login form', () => {
-  render(<Login />);
+  render(
+  <MemoryRouter>
+    <Login />
+  </MemoryRouter>
+);
   const linkElement = screen.getByText(/Email Address/);
   expect(linkElement).toBeInTheDocument();
 });
@@ -41,7 +47,11 @@ test('renders login form', () => {
 test('form calls login submission handler with correct credentials', async () => {
   const user = userEvent.setup();
 
-  render(<Login />);
+  render(
+  <MemoryRouter>
+    <Login />
+  </MemoryRouter>
+  );
 
   await user.type(screen.getByLabelText(/email/i), 'test@example.com');
   await user.type(screen.getByLabelText(/password/i), 'salainensalasana123');

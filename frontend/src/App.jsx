@@ -7,14 +7,16 @@ import HostGamePage from './components/HostGame';
 import Game from './components/Game'
 
 import { useNavigate, BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
-import { useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ConnectionStatus from './components/ui/ConnectionStatus';
 
 
 function App() {
   return (
     <Router>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }
