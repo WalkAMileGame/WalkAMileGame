@@ -1,10 +1,13 @@
-import {useEffect, useState } from 'react'
+// import {useEffect, useState } from 'react'
+// import myLogo from './assets/GB.png'
 import HomePage from './components/HomePage';
 import GameBoard from "./components/GameBoard";
 import Login from './components/Login';
-// import './styles/App.css';
-// import GameBoard from "./GameBoard.jsx"
+import LandingPage from './components/LandingPage';
+import HostGamePage from './components/HostGame';
+
 import {BrowserRouter as Router, Routes, Route, Link} from "react-router-dom"
+import ConnectionStatus from './components/ui/ConnectionStatus';
 
 function App() {
 
@@ -15,6 +18,7 @@ function App() {
   return (
     <>
       <Router>
+        <ConnectionStatus />
         <div className="links">
           <Link style={padding} to="/">Home</Link>
           <Link style={padding} to="/gameboard">Gameboard</Link>
@@ -24,7 +28,9 @@ function App() {
         <Routes>
           <Route path="/gameboard" element={<GameBoard />} />
           <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Login />} /> {/* if admin not logged in */}
+          <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
+          <Route path="/hostgame" element={<HostGamePage />} />
         </Routes>
       </Router>
     </>

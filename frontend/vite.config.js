@@ -21,6 +21,7 @@ export default defineConfig({
       exclude: [
         'src/components/ui/snackbar.jsx',
         'src/components/ui/HoveringTolltip.jsx',
+        'src/components/ui/Instructions.jsx',
         'src/setupTests.js',
         'src/main.jsx',
         'vite.config.js',
