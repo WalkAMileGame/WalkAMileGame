@@ -1,9 +1,19 @@
 /* global global */
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import App from '../App'
+import App from '../App';
+import { AuthProvider } from '../context/AuthContext';
 
 const mockEnergy = {values: 32}
+
+// Helper to render the full app
+const renderApp = () => {
+  return render(
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+};
 
 describe("GameBoardSettings", () => {
 
@@ -31,7 +41,7 @@ describe("GameBoardSettings", () => {
   
   test('clicking login button renders login page', async () => {
   
-    render(<App />)
+    renderApp()
   
     const user = userEvent.setup()
     const button = screen.getByText('Login')
@@ -44,7 +54,7 @@ describe("GameBoardSettings", () => {
   
   test('clicking gameboard button renders gameboard', async () => {
   
-    render(<App />)
+    renderApp()
   
     const user = userEvent.setup()
     const button = screen.getByText('Gameboard')
@@ -55,7 +65,7 @@ describe("GameBoardSettings", () => {
   
   test('clicking login and then home button renders homepage', async () => {
   
-    render(<App />)
+    renderApp()
   
     const user = userEvent.setup()
     const button1 = screen.getByText('Gameboard')
