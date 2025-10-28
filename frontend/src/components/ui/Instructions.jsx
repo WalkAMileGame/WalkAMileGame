@@ -1,8 +1,9 @@
 import React from "react";
 import { useEffect, useState } from 'react'
 import { createPortal } from "react-dom";
+import { API_BASE } from "../../api";
 
-const Instructions = ({ show, onClose, apiUrl = "http://localhost:8000/instructions" }) => {
+const Instructions = ({ show, onClose, apiUrl = `${API_BASE}/instructions` }) => {
   const [instructionsText, setInstructionsText] = useState("");
 
   useEffect(() => {

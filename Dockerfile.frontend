@@ -1,0 +1,41 @@
+FROM python:3.12.3
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    POETRY_HOME=/opt/poetry \
+    POETRY_VERSION=1.8.3 \
+    POETRY_VIRTUALENVS_IN_PROJECT=true \
+    PORT=5173
+
+ENV PATH="${POETRY_HOME}/bin:${PATH}"
+
+# Install system deps, NodeSource Node.js, and install Poetry
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    build-essential curl ca-certificates findutils grep sed coreutils gnupg lsb-release \
+    && curl -sSL https://install.python-poetry.org | python - --version ${POETRY_VERSION} \
+    # Add NodeSource repo for Node 22.x and install nodejs
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY . /app
+
+# Poetry: create lock just in case
+RUN poetry lock
+RUN poetry install --no-interaction --no-ansi --no-root
+
+# Permissions and user
+RUN chgrp -R 0 /app && chmod -R g=u /app
+USER 1001
+ENV HOST=0.0.0.0
+ENV BROWSER=none
+EXPOSE 5173
+ARG VITE_API_URL
+ENV VITE_API_URL=https://walkamile-backend.ext.ocp-test-0.k8s.it.helsinki.fi
+
+
+CMD ["/bin/sh","-lc","${POETRY_HOME}/bin/poetry run invoke server --frontend"]
+#CMD ["/bin/sh","-lc","invoke","server","--frontend"]

@@ -1,7 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: walkamile-dep
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: "*"
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"walkamile:staging","namespace":"ohtuprojekti-staging"},"fieldPath":"spec.template.spec.containers[?(@.name==\"walkamile\")].image","pause":"false"}]
+  name: walkamile-backend
 spec:
   replicas: 1
   selector:
@@ -14,10 +18,10 @@ spec:
     spec:
       containers:
         - name: walkamile-backend
-          image: walkamile/walkamile-backend
+          image: walkamile/walkamile-backend:staging
           ports:
-            - containerPort: 3000
+            - containerPort: 8000
           env:
             - name: DB_URL
               #to be set:
-              value: noneS
+              value: none

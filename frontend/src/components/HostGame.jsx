@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/HostGame.css';
+import { API_BASE } from '../api';
+
 
 // Simple SVG Icons as components
 const CopyIcon = ({ className }) => (
@@ -69,7 +71,7 @@ export default function HostGamePage() {
   const loadGameboards = async () => {
     setIsLoadingBoards(true);
     try {
-        const response = await fetch("http://localhost:8000/load_all");
+        const response = await fetch(`${API_BASE}/load_all`);
         const data = await response.json();
         setBoards(data);
     } catch (error) {

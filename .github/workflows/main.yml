@@ -10,6 +10,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      DOCKER_REGISTRY: docker.io
+      DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASS: ${{ secrets.DOCKER_PASSWORD }}
+
     steps:
       - uses: actions/checkout@v5
 
@@ -29,7 +34,7 @@ jobs:
 
       - name: Coverage report
         run: poetry run coverage xml
-      
+
       - name: Pylint
         run: poetry run invoke lint --backend
 
@@ -39,28 +44,67 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           fail_ci_if_error: true
+          runs-on: ubuntu-latest
 
-  docker:
-    runs-on: ubuntu-latest
-    needs: build  # Run after tests pass
-    if: github.ref == 'refs/heads/main'  # Only on main branch
+      - uses: actions/checkout@v5
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          node-version: '20' 
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Run Jest tests with coverage
+        working-directory: frontend
+        run: npm run test:coverage
+
+      - name: Check coverage files
+        working-directory: frontend
+        run: ls -R coverage
+
+      - name: Upload frontend coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: frontend/coverage/lcov.info
+          flags: frontend
+          fail_ci_if_error: true
+
+      - uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ env.DOCKER_PASS }}
+
+      # Debug: show the tags we'll use (non-secret)
+      - name: Debug show tags
+        run: |
+          echo "Backend tags: ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-backend:staging, ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-backend:${GITHUB_SHA}"
+          echo "Frontend tags: ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-frontend:staging, ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-frontend:${GITHUB_SHA}"
+
+      - name: Build & push backend
+        uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/walkamile:staging
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-backend:staging
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-backend:${{ github.sha }}
+
+      - name: Build & push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.frontend
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-frontend:staging
+            ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-frontend:${{ github.sha }}

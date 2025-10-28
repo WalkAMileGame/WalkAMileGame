@@ -1,0 +1,19 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: walkamile-route
+  namespace: ohtuprojekti-staging
+  labels:
+    app: walkamile-frontend
+    type: external
+spec:
+  host: walkamile.ext.ocp-test-0.k8s.it.helsinki.fi
+  port:
+    targetPort: 5173
+  to:
+    kind: Service
+    name: walkamile-svc
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

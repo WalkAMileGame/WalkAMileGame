@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: "*"
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"walkamile-frontend:staging","namespace":"ohtuprojekti-staging"},"fieldPath":"spec.template.spec.containers[?(@.name==\"walkamile-frontend\")].image","pause":"false"}]
+  name: walkamile-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: walkamile-frontend
+  template:
+    metadata:
+      labels:
+        app: walkamile-frontend
+    spec:
+      containers:
+        - name: walkamile-frontend
+          image: walkamile-frontend:staging
+          ports:
+            - containerPort: 5173
+          env:
+            - name: VITE_API_URL
+              value: "https://walkamile-backend.ext.ocp-test-0.k8s.it.helsinki.fi"
