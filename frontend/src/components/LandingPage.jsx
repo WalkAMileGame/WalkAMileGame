@@ -39,7 +39,7 @@ const LandingPage = () => {
               <div className="card-icon">👤</div>
               <h3>MANAGE USERS</h3>
               <p>Create users and manage their permissions </p>
-              <Link to="/editusers">
+              <Link to="/edit_users">
                 <button>Manage</button>
               </Link>
             </div>

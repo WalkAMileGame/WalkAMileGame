@@ -163,3 +163,12 @@ def get_time(site: str ="game"):
         "duration": duration
     }
     
+class NewUser(BaseModel):
+    email: str
+    role: str
+
+@router.put("/add_user")
+def add_user(data: NewUser):
+    db.users.update_one({"email": data.email},
+                        {"$set": {"email": data.email, "role": data.role}},
+                        upsert=True)

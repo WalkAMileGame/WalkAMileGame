@@ -65,7 +65,7 @@ function AppContent() {
           <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
           <Route path="/hostgame" element={<HostGamePage />} />
           <Route path="/game/:gamecode" element={<Game />} />
-          <Route path="/editusers" element={<EditUsers />} />
+          <Route path="/edit_users" element={<EditUsers />} />
         </Routes>
     </>
   )
