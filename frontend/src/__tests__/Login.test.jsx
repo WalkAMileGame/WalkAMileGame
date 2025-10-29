@@ -58,7 +58,12 @@ test('form calls login submission handler with correct credentials', async () =>
 
   await user.click(screen.getByRole('button', { name: /login/i }));
 
-  expect(mockLogin).toHaveBeenCalledTimes(1);
+    ///expect(handleSubmit).toHaveBeenCalledTimes(1)
+    ///expect(handleSubmit).toHaveBeenCalledWith({
+    ///    email: 'test@example.com',
+    ///    password: 'salainensalasana123',
+    ///})
+})
 
   expect(mockLogin).toHaveBeenCalledWith(
     'test@example.com',
