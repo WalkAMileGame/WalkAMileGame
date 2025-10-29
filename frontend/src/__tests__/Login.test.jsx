@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import Login from '../components/Login';
 import { useAuth } from '../context/AuthContext';
 import { vi } from 'vitest';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+
 
 
 // Mock the entire AuthContext module
