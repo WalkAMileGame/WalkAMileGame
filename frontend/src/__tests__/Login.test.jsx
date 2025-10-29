@@ -36,10 +36,10 @@ beforeEach(() => {
 
 test('renders login form', () => {
   render(
-  <MemoryRouter>
+    <MemoryRouter>
     <Login />
-  </MemoryRouter>
-);
+    </MemoryRouter>
+      );
   const linkElement = screen.getByText(/Email Address/);
   expect(linkElement).toBeInTheDocument();
 });
@@ -48,9 +48,9 @@ test('form calls login submission handler with correct credentials', async () =>
   const user = userEvent.setup();
 
   render(
-  <MemoryRouter>
+    <MemoryRouter>
     <Login />
-  </MemoryRouter>
+    </MemoryRouter>    
   );
 
   await user.type(screen.getByLabelText(/email/i), 'test@example.com');
