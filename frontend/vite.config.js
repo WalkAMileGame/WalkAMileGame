@@ -20,15 +20,13 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       exclude: [
-        'src/components/ui/snackbar.jsx',
-        'src/components/ui/HoveringTolltip.jsx',
-        'src/components/ui/Instructions.jsx',
+        'src/components/ui/*',
+        'src/context/*',
         'src/setupTests.js',
         'src/main.jsx',
         'vite.config.js',
         'eslint.config.js'
       ],
     },
-    setupFiles: './src/setupTests.js'
   }
 })

@@ -1,3 +1,4 @@
+import React, { useState } from 'react'
 import HomePage from './components/HomePage';
 import GameBoard from "./components/GameBoard";
 import Login from './components/Login';
@@ -6,25 +7,41 @@ import HostGamePage from './components/HostGame';
 import Game from './components/Game'
 import Lobby from './components/Lobby';
 
-import {BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
+import { useNavigate, BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ConnectionStatus from './components/ui/ConnectionStatus';
+
 
 function App() {
   return (
     <Router>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }
 
 function AppContent() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [hover, setHover] = useState(false);
+  const padding = {padding: 5}
   const location = useLocation();
+<<<<<<< HEAD
   const hideLinks = location.pathname.startsWith("/game/") || location.pathname.startsWith("/waiting/");
 
 
   const padding = {
     padding: 5
   }
+=======
+  const hideLinks = location.pathname.startsWith("/game/");
+  const handleLogout = () => {
+    logout();        
+    navigate("/");   
+  };
+>>>>>>> b62b1e682c8738f346f7a56f33a1634155179240
 
   return (
     <>
@@ -32,8 +49,22 @@ function AppContent() {
         {!hideLinks && (
         <div className="links">
           <Link style={padding} to="/">Home</Link>
-          <Link style={padding} to="/gameboard">Gameboard</Link>
-          <Link style={padding} to="/login">Login</Link>
+          {user ? (
+            <>
+              <Link style={padding} to="/landing">{user.email}</Link>
+              <button onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}  style={{
+              background: "none",
+              border: "none",
+              color: hover ? "#F3A261": "white",
+              textDecoration: "none",
+              cursor: "pointer",
+              padding: 5,
+              font: "inherit",
+            }} onClick={handleLogout}>Logout</button>
+            </>
+          ) : (
+            <Link style={padding} to="/login">Login</Link>
+          )}
         </div>
         )}
         <Routes>

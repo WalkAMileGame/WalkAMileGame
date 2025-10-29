@@ -1,5 +1,6 @@
 """backend information such as variables"""
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, field_validator
+from enum import Enum
 
 
 class Points(BaseModel):
@@ -10,3 +11,24 @@ class Points(BaseModel):
 class Boards(BaseModel):
     name: str
     rings: list
+
+class Role(str, Enum):
+    """all existing roles are defined here"""
+    ADMIN = "admin"
+    GAMEMASTER = "gamemaster"
+
+class UserData(BaseModel):
+    email: EmailStr
+    password: str
+    role: Role = Role.GAMEMASTER
+
+    @field_validator('password')
+    def password_must_be_strong(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        return v
+
+class LoginRequest(BaseModel):
+    """Model for the data expected in a login request."""
+    email: EmailStr
+    password: str
