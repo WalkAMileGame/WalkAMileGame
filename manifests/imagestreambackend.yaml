@@ -1,0 +1,19 @@
+kind: ImageStream
+apiVersion: image.openshift.io/v1
+
+metadata:
+  name: walkamile
+  labels:
+    app: walkamile
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+    - name: staging
+      from:
+        kind: DockerImage
+        name: walkamile/walkamile-backend:staging
+      importPolicy:
+        scheduled: true
+      referencePolicy:
+        type: Local

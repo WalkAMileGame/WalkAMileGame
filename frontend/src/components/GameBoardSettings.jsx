@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
 import '../styles/GameboardSettings.css';
 import Snackbar from "./ui/snackbar"
-
+import { API_BASE } from "../api";
 
         {/* Available colors */}
 const ColorPicker = ({ onChange, colors = [] }) => {
   const defaultColors = [
-    "#ffc072", "#ffb088", "#d79543", "#e17f4d", "#a3d7ff", "#a0b8ca", "#d3eafc",
-    "#bb98d5", "#a872d1", "#e4c1ff", "#5375d0", "#9fb9ff", "#7e9ef3", "#7892d8",
-    "#89bd8d", "#89b38d", "#659d69", "#da6363", "#ff8989", "#da8a8a"
+    "#ffc072", "#ffb088", "#a3d7ff", "#d3eafc", "#a872d1", "#e4c1ff", "#da6363", "#da8a8a"
   ];
   
   const availableColors = colors.length > 0 ? colors : defaultColors;
@@ -52,7 +50,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const loadGameboards = async () => {
     setIsLoading(true);
     console.log("loading gamebords")
-    fetch("http://localhost:8000/load_all")
+    fetch(`${API_BASE}/load_all`)
       .then((res) => res.json())
       .then((data) => setTemplates(data));
     setIsLoading(false);
@@ -110,10 +108,16 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
 
   const removeSlice = (layerIndex, labelIndex) => {
     const updatedConfig = { ...localConfig };
+
+    if (updatedConfig.ringData[layerIndex].labels.length > 2) {
     updatedConfig.ringData[layerIndex].labels.splice(labelIndex, 1);
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
     onConfigChange(updatedConfig);
+    } else {
+    setSnackbarMessage("Each ring must have at least two labels");
+    setShowSnackbar(true);      
+    }
   };
 
 const loadSavedGameboard = async (boardData) => {
@@ -198,7 +202,7 @@ const handleSave = async () => {
 
 {/* Make sure saveGameboard RETURNS the fetch result */ }
 const saveGameboard = () => {
-  return fetch("http://localhost:8000/save", {
+  return fetch(`${API_BASE}/save`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
@@ -267,7 +271,7 @@ const handleDelete = async () => {
 };
 
 const deleteGameboard = () => {
-  return fetch("http://localhost:8000/delete", {
+  return fetch(`${API_BASE}/delete`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 

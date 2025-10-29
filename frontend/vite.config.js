@@ -8,6 +8,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     // allowedHosts: true allows everything for the purposes of local developement. This is NOT an acceptable solution for
+    // allowedHosts allows everything for the purposes of local developement. This is NOT an acceptable solution for
     // the final production version.
     allowedHosts: true
   },
@@ -21,11 +22,13 @@ export default defineConfig({
       exclude: [
         'src/components/ui/snackbar.jsx',
         'src/components/ui/HoveringTolltip.jsx',
+        'src/components/ui/Instructions.jsx',
         'src/setupTests.js',
         'src/main.jsx',
         'vite.config.js',
         'eslint.config.js'
       ],
     },
+    setupFiles: './src/setupTests.js'
   }
 })

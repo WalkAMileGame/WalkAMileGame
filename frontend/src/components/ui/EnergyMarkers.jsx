@@ -1,7 +1,7 @@
 // EnergyMarkers.jsx
 import React from 'react';
-import '../styles/EnergyMarkers.css';
-import energyIcon from '../assets/WAM_Element_4.png';
+import '../../styles/EnergyMarkers.css';
+import energyIcon from '../../assets/WAM_Element_4.png';
 
 const EnergyMarkers = ({ 
   gameConfig, 

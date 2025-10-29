@@ -1,10 +1,38 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
 
+@keyframes sunrise {
+  from {
+    transform: translateX(-50%) translateY(100%);
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes sunrise-nested {
+  from {
+    transform: translateX(-50%) translateY(100%);
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes sunrise-icon {
+  from {
+    transform: translateX(-50%) translateY(100vh) rotate(-45deg);
+  }
+  to {
+    transform: translateX(-50%) translateY(0) rotate(-45deg);
+  }
+}
+
 .home-text {
-  height: 100%;
+  height: 100vh;
   margin: 0;
   overflow: hidden;
+  padding: 2rem;
 }
 
 
@@ -18,16 +46,17 @@ h1 {
 
 .half-circle {
   position: absolute;
-  bottom: 0;
+  bottom: -40vh;
   left: 50%;
   transform: translateX(-50%);
-  width: 1200px;
-  height: 600px;
+  width: 90vw;
+  height: 100vh;
   background-color: #E76F51;
-  border-top-left-radius: 1410px;
-  border-top-right-radius: 1410px;
+  border-top-left-radius: 100vw;
+  border-top-right-radius: 100vw;
   overflow: hidden;
   
+  animation: sunrise 1.5s ease-out forwards;
 }
 
 .half-circle1,
@@ -40,27 +69,36 @@ h1 {
 }
 
 .half-circle1 {
-  width: 1000px;
-  height: 500px;
+  width: 80vw;
+  height: 90vh;
   background-color: #F3A261;
-  border-top-left-radius: 910px;
-  border-top-right-radius: 910px;
+  border-top-left-radius: 90vw;
+  border-top-right-radius: 90vw;
+  
+  animation: sunrise-nested 1.5s ease-out forwards;
+  transform: translateX(-50%) translateY(100%);
 }
 
 .half-circle2 {
-  width: 800px;
-  height: 400px;
+  width: 70vw;
+  height: 80vh;
   background-color: #E9C46A;
-  border-top-left-radius: 710px;
-  border-top-right-radius: 710px;
+  border-top-left-radius: 80vw;
+  border-top-right-radius: 80vw;
+
+  animation: sunrise-nested 1.5s ease-out 0.4s forwards;
+  transform: translateX(-50%) translateY(100%);
 }
 
 .start {
+  position: absolute;
+  top: 25%;        
+  left: 50%;
+  transform: translate(-50%, -50%);
   text-align: center;
   color: white;
   font-family: "Lilita One", sans-serif;
   font-size: 40px;
-  margin-top: -700px;
   flex-direction: column;
 }
 
@@ -85,4 +123,16 @@ h1 {
   height: 40px;
   width: 80px;
   font-size: 16px;
+}
+
+.dude-icon {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  bottom: calc(61vh - 15vw);
+  left: calc(50% - 32vw);
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+  z-index: 10;
+  animation: sunrise-icon 1.5s ease-out forwards;
 }

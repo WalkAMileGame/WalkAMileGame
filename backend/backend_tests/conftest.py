@@ -1,26 +1,26 @@
-# backend/backend_tests/conftest.py
+""" backend/backend_tests/conftest.py """
 from unittest.mock import MagicMock, patch
 
-# This runs BEFORE any test collection or imports
-_mongo_patcher = None
+_MONGO_PATCHER = None
 
-def pytest_configure(config):
+
+def pytest_configure(config):  # pylint: disable=unused-argument
     """Patch MongoDB before any test modules are imported"""
-    global _mongo_patcher
-    
-    # Create a mock client that won't create real connections
+    global _MONGO_PATCHER  # pylint: disable=global-statement
+
     mock_client = MagicMock()
     mock_db = MagicMock()
-    
+
     mock_client.get_database.return_value = mock_db
     mock_client.admin.command.return_value = None
-    
-    # Patch MongoClient globally
-    _mongo_patcher = patch('pymongo.mongo_client.MongoClient', return_value=mock_client)
-    _mongo_patcher.start()
 
-def pytest_unconfigure(config):
+    _MONGO_PATCHER = patch(
+        'pymongo.mongo_client.MongoClient',
+        return_value=mock_client)
+    _MONGO_PATCHER.start()
+
+
+def pytest_unconfigure(config):  # pylint: disable=unused-argument
     """Clean up the patch after all tests"""
-    global _mongo_patcher
-    if _mongo_patcher:
-        _mongo_patcher.stop()
+    if _MONGO_PATCHER:
+        _MONGO_PATCHER.stop()
