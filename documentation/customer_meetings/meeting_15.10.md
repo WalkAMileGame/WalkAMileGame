@@ -1,0 +1,27 @@
+# Customer Meeting 15.10.2025
+- Compelling argument for 1 computer per team. It sounds better. Customer will still ask about it from their team.
+- Customer will look into choosing a license free font from google fonts.
+- One code for everyone to join sounds better. Groups enter group names when joining a lobby. The idea we proposed sounds good to the customer. As long as it is easy/simple for the host.
+- One or two colors per circle are good, and mostly good for colorblind. There can be less colors than current. Customer will send colors for us. Automatically choosing the color based on the ring layer is a good idea according to customer.
+- It is unclear as to which layer of the circle is which. moving/thriving… etc. Color guide to tell which layer/color is which sounds good.
+- Size of the marker is good. Maybe ability to place it elsewhere than the middle of the button?? Probably other design for the energy marker. Needs a clear border to separate it from buttons that have similar color.
+- The people playing the game are the people who work with the international students, not international students themselves.
+- Target audience: Anyone who works with international students. Maybe even politicians etc.
+- Current link is not good. Customer will look into getting a domain for it. Walkamile.online seems good for example.
+- A new email for docker account etc. Need an email at least for forgetting a password system etc. Customer will look into it.
+- Maybe different color or symbol for coins that cost more.
+- Customer will send the list of different costs for the buttons.
+- Make the start button in the middle look "as little like a button as possible"
+- White color in the middle is good.
+- There could be some tasks that give energy back? Customer will discuss about it with a professional game designer.
+- Customer wants a zoom button for the gameboard. Browsers built in zoom is enough.
+- The game will not be played using mobile.
+- Instructions do not need to be editable.
+- Customer will provide us the "about us" section.
+- Custom would like the rainbow circle to be a bit smaller and wider. The title WALK A MILE: could be larger. Add something to the sides, not functional but decorations so it is not so empty.
+- The game should be saved in some manner, in case something happens to the one computer. Saving on cookies sounds good to the customer.
+- Homepages circle size very big on customers computer.
+- Mentioned about the software maintenance and that they would probably need to hire someone to keep the software up and running.
+- Customer was wondering about how many people playing at the same time can the game handle.
+- Next meeting 29.10. 12.00
+- Customer wants to come watch the final presentation.

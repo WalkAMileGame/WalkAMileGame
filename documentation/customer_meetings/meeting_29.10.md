@@ -1,0 +1,42 @@
+# Customer Meeting 29.10.2025
+- They like the animation!!!!!
+- Player login not super necessary
+  - Maybe later
+- Admins can create Gamemaster accounts individually
+- Or use some kind of code to create gamemaster accounts
+  - For creating batches of accounts without having to do each manually
+- Admins would have control of gamemaster and other admin accounts
+  - Being able to manage permissions and other stuff
+- If everyone on a team can use their computer to view their board maybe only one person has control it so that collaboration is still important
+- Make timer customization in hostgame screen
+- Customers make different value coins for different energy costs
+- Board customization should be organized by group classification i.e. moving, arriving, thriving
+  - For example making a new tile in the thriving section would automatically make it one of the red colours of that group
+- Fix four rings and three colour groups problem
+- Top left link have weird hitboxes, known issue
+- Gamemaster should have the option to change the time on the timer when the game is ongoing
+- Gamemaster should have a real time view of other boards
+- Change countdown colour when low on time
+- Pop up explaining your circumstance
+  - Should be referenceable while playing
+- Gamemaster can assign circumstances or randomize them for the teams
+- Circumstances should be customizable and creatable???
+  - Admins should have moderation of customized circumstances
+- Admins should have general moderation privileges over boards circumstances and other customized content that gamemaster create
+  - This means admins should have the ability to see everything any gamemaster has created
+- Store past games
+- No concrete ideas on energy point refunding / subsidizing from certain tasks
+  - Having the ability would be good on the original board
+  - Customized boards don't necessarily have to have this feature
+- Customers will make instructions for the game masters on what they can do
+- New energy coin coming to telegram
+- Make headers / labels for small groups of tiles
+  - Not all of them
+  - Make it customizable for game masters
+- Improve edit menu by being able to click on editable subject and automatically scrolling to the section its in
+- Edit mode for board editing instead of side menu
+  - Low priority
+- Focus on making game functionable / playable
+- Customer will figure out connecting the domain name to the server
+- Next meeting 11.12.2025 12:00
+
