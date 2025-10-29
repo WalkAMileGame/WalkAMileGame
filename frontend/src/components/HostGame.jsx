@@ -62,11 +62,12 @@ export default function HostGamePage() {
   const [copied, setCopied] = useState(false);
   const [boards, setBoards] = useState([]);
   const [isLoadingBoards, setIsLoadingBoards] = useState(false);
+  const [gamemasterName, setGamemasterName] = useState('');
 
-  // ADD THIS: Load gameboards when component mounts
+  // Load gameboards when component mounts
   useEffect(() => {
     loadGameboards();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   const loadGameboards = async () => {
     setIsLoadingBoards(true);
@@ -100,18 +101,22 @@ export default function HostGamePage() {
   };
 
   const handleStartGame = () => {
-    if (!selectedBoard || !inviteCode) {
-      alert('Please select a board and generate/enter an invite code');
+    if (!selectedBoard || !inviteCode || !gamemasterName.trim()) {
+      alert('Please enter your name, select a board, and generate/enter an invite code');
       return;
     }
     const selectedBoardData = boards.find(board => board.name === selectedBoard);
-    navigate(`/game/${inviteCode}`, {
-        state: { 
+    
+    // Navigate to Lobby
+    navigate(`/waiting/${inviteCode}`, {
+      state: { 
         boardConfig: selectedBoardData,
-        inviteCode: inviteCode 
-        }
-  });
-};
+        inviteCode: inviteCode,
+        isGamemaster: true,
+        gamemasterName: gamemasterName.trim()
+      }
+    });
+  };
 
   return (
     <div className="host-game-container">
@@ -128,6 +133,21 @@ export default function HostGamePage() {
         <h1 className="host-game-title">
           Host a Game
         </h1>
+
+        {/* Gamemaster Name */}
+        <div className="form-group">
+          <label className="form-label">
+            Your Name (Gamemaster)
+          </label>
+          <input
+            type="text"
+            value={gamemasterName}
+            onChange={(e) => setGamemasterName(e.target.value)}
+            placeholder="Enter your name..."
+            className="text-input"
+            maxLength={20}
+          />
+        </div>
 
         {/* Board Selection */}
         <div className="form-group">
@@ -193,9 +213,10 @@ export default function HostGamePage() {
         </div>
 
         {/* Game Info Display */}
-        {selectedBoard && inviteCode && (
+        {selectedBoard && inviteCode && gamemasterName && (
           <div className="game-details">
             <h3>Game Details:</h3>
+            <p>Gamemaster: <span>{gamemasterName}</span></p>
             <p>Board: <span>{selectedBoard}</span></p>
             <p>Code: <span>{inviteCode}</span></p>
           </div>
@@ -206,17 +227,18 @@ export default function HostGamePage() {
           onClick={handleStartGame}
           className="btn btn-start"
         >
-          Start Game
+          Create Lobby
         </button>
 
         {/* Instructions */}
         <div className="instructions">
           <h3>How to use:</h3>
           <ul>
-            <li>1. Select a board from the dropdown</li>
-            <li>2. Generate a code or enter your own</li>
-            <li>3. Share the code with other players</li>
-            <li>4. Click "Start Game" when ready</li>
+            <li>1. Enter your name (you'll be the gamemaster)</li>
+            <li>2. Select a board from the dropdown</li>
+            <li>3. Generate a code or enter your own</li>
+            <li>4. Click "Create Lobby"</li>
+            <li>5. Share the code with players to join</li>
           </ul>
         </div>
       </div>

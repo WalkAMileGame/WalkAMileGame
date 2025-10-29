@@ -4,6 +4,7 @@ import Login from './components/Login';
 import LandingPage from './components/LandingPage';
 import HostGamePage from './components/HostGame';
 import Game from './components/Game'
+import Lobby from './components/Lobby';
 
 import {BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
 import ConnectionStatus from './components/ui/ConnectionStatus';
@@ -18,7 +19,7 @@ function App() {
 
 function AppContent() {
   const location = useLocation();
-  const hideLinks = location.pathname.startsWith("/game/");
+  const hideLinks = location.pathname.startsWith("/game/") || location.pathname.startsWith("/waiting/");
 
 
   const padding = {
@@ -41,6 +42,7 @@ function AppContent() {
           <Route path="/login" element={<Login />} /> {/* if admin not logged in */}
           <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
           <Route path="/hostgame" element={<HostGamePage />} />
+          <Route path="/waiting/:gamecode" element={<Lobby />} />
           <Route path="/game/:gamecode" element={<Game />} />
         </Routes>
     </>
