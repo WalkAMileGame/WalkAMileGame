@@ -1,17 +1,21 @@
 import React from "react"
 import { Link } from "react-router-dom";
 import '../styles/LandingPage.css';
+import { useAuth } from "../context/AuthContext";
 
 
 
 const LandingPage = () => {
+
+  const { user } = useAuth();
+
     return (
       <div className="landing-page">
         <div className="header-area">
         <header>
           <h1>DASHBOARD</h1>
         </header>
-          <h2>You are logged in as username</h2>
+          <h2>You are logged in as {user.email}</h2>
         </div>
         <div className="content-area">
           <div className="cards">

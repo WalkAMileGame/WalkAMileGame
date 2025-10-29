@@ -171,3 +171,12 @@
 .settingsButton button:hover {
   background: transparent;
 }
+
+.clock {
+  font-size: 30px;
+  font-weight: bold;
+  font-family: "Montserrat", sans-serif;
+  position: absolute;
+  right: 5rem;
+  top: 3rem;
+}
