@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { API_BASE } from '../api';
+import '../styles/Lobby.css';
 
 export default function Lobby() {
   const { gamecode } = useParams();
@@ -147,95 +148,125 @@ export default function Lobby() {
 
   if (isGamemaster) {
     return (
-      <div style={{ padding: '20px' }}>
-        <h1>Lobby: {inviteCode}</h1>
-        <p><strong>You are the Gamemaster</strong></p>
-        
-        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
-          <label>Time Remaining (minutes): </label>
-          <input
-            type="number"
-            value={timeRemaining}
-            onChange={(e) => setTimeRemaining(parseInt(e.target.value) || 0)}
-            style={{ marginLeft: '10px', marginRight: '10px' }}
-          />
-          <button onClick={updateTime}>Update Time</button>
+      <div className="lobby-container">
+        <div className="lobby-card">
+          <div className="lobby-header">
+            <h1 className="lobby-title">Lobby: {inviteCode}</h1>
+            <div className="gamemaster-badge">Gamemaster</div>
+          </div>
+          
+          <div className="time-section">
+            <span className="time-label">Time Remaining (minutes):</span>
+            <input
+              type="number"
+              value={timeRemaining}
+              onChange={(e) => setTimeRemaining(parseInt(e.target.value) || 0)}
+              className="time-input"
+            />
+            <button onClick={updateTime} className="btn btn-primary">
+              Update Time
+            </button>
+          </div>
+
+          <div className="teams-section">
+            <h2 className="teams-header">
+              Teams <span className="teams-count">{roomData?.teams?.length || 0}</span>
+            </h2>
+            {roomData?.teams?.length > 0 ? (
+              <ul className="teams-list">
+                {roomData.teams.map((team, index) => (
+                  <li key={index} className="team-item">
+                    <div className="team-info">
+                      <div className="team-name">{team.team_name}</div>
+                      <div className="team-circumstance">{team.circumstance}</div>
+                    </div>
+                    <button 
+                      onClick={() => deleteTeam(team.team_name)}
+                      className="btn btn-danger"
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="no-teams">Waiting for teams to join...</div>
+            )}
+          </div>
+
+          <button 
+            onClick={startGame}
+            className="btn btn-start"
+          >
+            Start Game
+          </button>
         </div>
-
-        <h2>Teams ({roomData?.teams?.length || 0})</h2>
-        {roomData?.teams?.length > 0 ? (
-          <ul>
-            {roomData.teams.map((team, index) => (
-              <li key={index} style={{ marginBottom: '10px' }}>
-                <strong>{team.team_name}</strong> - {team.circumstance}
-                <button 
-                  onClick={() => deleteTeam(team.team_name)}
-                  style={{ marginLeft: '10px' }}
-                >
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No teams yet</p>
-        )}
-
-        <button 
-          onClick={startGame}
-          style={{ marginTop: '20px', padding: '10px 20px' }}
-        >
-          Start Game
-        </button>
       </div>
     );
   }
 
   // Player view
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Lobby: {inviteCode}</h1>
-      
-      {!hasJoined ? (
-        <div style={{ marginTop: '20px' }}>
-          <label>Team Name:</label>
-          <input
-            type="text"
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            placeholder="Enter team name"
-            style={{ display: 'block', marginTop: '5px', marginBottom: '15px' }}
-          />
-          
-          <label>Circumstance:</label>
-          <input
-            type="text"
-            value={circumstance}
-            onChange={(e) => setCircumstance(e.target.value)}
-            placeholder="Enter circumstance"
-            style={{ display: 'block', marginTop: '5px', marginBottom: '15px' }}
-          />
-          
-          <button onClick={handleTeamSubmit}>Create Team</button>
+    <div className="lobby-container">
+      <div className="lobby-card">
+        <div className="lobby-header">
+          <h1 className="lobby-title">Lobby: {inviteCode}</h1>
         </div>
-      ) : (
-        <div style={{ marginTop: '20px' }}>
-          <p><strong>Waiting for gamemaster to start the game...</strong></p>
-        </div>
-      )}
+        
+        {!hasJoined ? (
+          <div className="form-section">
+            <div className="form-group">
+              <label className="form-label">Team Name</label>
+              <input
+                type="text"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                placeholder="Enter team name"
+                className="form-input"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">Circumstance</label>
+              <input
+                type="text"
+                value={circumstance}
+                onChange={(e) => setCircumstance(e.target.value)}
+                placeholder="Enter circumstance"
+                className="form-input"
+              />
+            </div>
+            
+            <button onClick={handleTeamSubmit} className="btn btn-primary" style={{ width: '100%' }}>
+              Create Team
+            </button>
+          </div>
+        ) : (
+          <div className="waiting-message pulse">
+            <p>Waiting for gamemaster to start the game...</p>
+          </div>
+        )}
 
-      <h2 style={{ marginTop: '30px' }}>Teams ({roomData?.teams?.length || 0})</h2>
-      {roomData?.teams?.length > 0 ? (
-        <ul>
-          {roomData.teams.map((team, index) => (
-            <li key={index} style={{ marginBottom: '10px' }}>
-              <strong>{team.team_name}</strong> - {team.circumstance}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No teams yet</p>
-      )}
+        <div className="teams-section">
+          <h2 className="teams-header">
+            Teams <span className="teams-count">{roomData?.teams?.length || 0}</span>
+          </h2>
+          {roomData?.teams?.length > 0 ? (
+            <ul className="teams-list">
+              {roomData.teams.map((team, index) => (
+                <li key={index} className="team-item">
+                  <div className="team-info">
+                    <div className="team-name">{team.team_name}</div>
+                    <div className="team-circumstance">{team.circumstance}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="no-teams">No teams yet</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

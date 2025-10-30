@@ -1,0 +1,299 @@
+/* Lobby.css */
+
+.lobby-container {
+  min-height: 100vh;
+  background-color: #3F695D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+.lobby-card {
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  padding: 40px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.lobby-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.lobby-title {
+  color: #3F695D;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.invite-code-display {
+  color: #3F695D;
+  font-size: 1.8rem;
+  font-weight: bold;
+  padding: 15px 30px;
+  border-radius: 12px;
+  display: inline-block;
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+
+.gamemaster-badge {
+  color: #3F695D;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.time-section {
+  background-color: #86B18A;
+  background-color: rgba(134, 177, 138, 0.2);
+  border: 2px solid #86B18A;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.time-label {
+  color: #3F695D;
+  font-weight: 600;
+  margin-right: 10px;
+}
+
+.time-input {
+  padding: 8px 12px;
+  border: 2px solid #86B18A;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 80px;
+  margin: 0 10px;
+  text-align: center;
+}
+
+.time-input:focus {
+  outline: none;
+  border-color: #E9C46A;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  background-color: #86B18A;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #6fa073;
+}
+
+.btn-danger {
+  background-color: #E76F51;
+  color: white;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  margin-left: 10px;
+  flex-shrink: 100;
+  width: 80px;
+}
+
+.btn-danger:hover {
+  background-color: #d65d42;
+}
+
+.btn-start {
+  background-color: #E9C46A;
+  color: white;
+  width: 100%;
+  padding: 16px;
+  font-size: 1.2rem;
+  margin-top: 20px;
+}
+
+.btn-start:hover:not(:disabled) {
+  background-color: #ddb552;
+}
+
+.teams-section {
+  margin: 30px 0;
+}
+
+.teams-header {
+  color: #3F695D;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.teams-count {
+  background-color: #E9C46A;
+  color: #3F695D;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 1rem;
+}
+
+.teams-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.team-item {
+  background-color: #f8f9fa;
+  border: 2px solid #86B18A;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.team-item:hover {
+  background-color: rgba(134, 177, 138, 0.1);
+}
+
+.team-info {
+  flex: 1;
+  min-width: 1;
+}
+
+.team-name {
+  color: #3F695D;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.team-circumstance {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.no-teams {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: #f8f9fa;
+  border: 2px dashed #86B18A;
+  border-radius: 12px;
+  color: #86B18A;
+  font-style: italic;
+}
+
+.form-section {
+  margin: 20px 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  color: #3F695D;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #86B18A;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #E9C46A;
+}
+
+.form-input::placeholder {
+  color: #aaa;
+}
+
+.waiting-message {
+  text-align: center;
+  padding: 30px 20px;
+  background-color: rgba(134, 177, 138, 0.1);
+  border: 2px solid #86B18A;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.waiting-message p {
+  color: #3F695D;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .lobby-card {
+    padding: 25px;
+  }
+
+  .lobby-title {
+    font-size: 2rem;
+  }
+
+  .invite-code-display {
+    font-size: 1.5rem;
+    padding: 12px 24px;
+  }
+
+  .team-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .btn-danger {
+    margin-left: 0;
+    margin-top: 10px;
+  }
+}
