@@ -26,21 +26,6 @@ class LayerData(BaseModel):
 class Boards(BaseModel):
     name: str
     rings: list[LayerData]
-    
-
-class Groups(BaseModel):
-    id: int
-    name: str
-    current_energy: int
-    gameboard_state: LayerData
-    role: str
-    
-class Game(BaseModel):
-    code: str
-    time: datetime
-    gameboard: Boards
-    groups: list[Groups]
-    
 
 class Role(str, Enum):
     """all existing roles are defined here"""
@@ -64,15 +49,17 @@ class LoginRequest(BaseModel):
     password: str
 
 class Team(BaseModel):
+    id: int
     team_name: str
     circumstance: str
-    board_status: dict
+    current_energy: int
+    gameboard_state: LayerData
 
 class Room(BaseModel):
     room_code: str
     gamemaster_name: str
-    board_config: dict
-    time_remaining: int = 60  # default 60 minutes
+    board_config: Boards
+    time_remaining: int = 30
     teams: List[Team] = []
     game_started: bool = False
     created_at: Optional[str] = None
