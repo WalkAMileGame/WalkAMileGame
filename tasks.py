@@ -180,9 +180,17 @@ def test(c, backend=False, frontend=False):
             c.run('npm test')
 
 @task
-def coverage(c):
-    """tracks pytest tests"""
-    c.run("coverage run --branch -m pytest; coverage html", pty=True)
+def coverage(c, backend=False, frontend=False):
+    """Run coverage for frontend and/or backend pytest and vitest respectively"""
+    if not backend and not frontend:
+        backend = frontend = True
+    
+    if backend:
+        c.run("coverage run --branch -m pytest; coverage html", pty=True)
+    
+    if frontend:
+        with c.cd('frontend'):
+            c.run('npm run test:coverage')
 
 
 @task
