@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
       // We have a token. Set it in state.
       setToken(initialToken);
       
-      fetch("http://localhost:8000/users/me", {
+      fetch(`${API_BASE}/users/me`, {
         headers: {
           "Authorization": `Bearer ${initialToken}`
         }
@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
     setError(null);
 
     try {
-        const res = await fetch("http://localhost:8000/login", {
+        const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -105,7 +105,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-// hook
 export function useAuth() {
   return useContext(AuthContext);
 }
