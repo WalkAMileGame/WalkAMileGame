@@ -26,6 +26,15 @@ const ColorPicker = ({ onChange, colors = [] }) => {
   );
 };
 
+const LayerColors = [
+    ["#ffc072", "#ffb088"],
+    ["#a3d7ff", "#d3eafc"],
+    ["#a872d1", "#e4c1ff"],
+    ["#da6363", "#da8a8a"]
+  ]
+
+const TitleNames = ["MOVING", "MOVING", "ARRIVING", "THRIVING"]
+
 const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const [localConfig, setLocalConfig] = useState(gameConfig);
   const [templates, setTemplates] = useState([]);
@@ -346,7 +355,7 @@ const deleteGameboard = () => {
               <hr></hr>
               <div className="layerinfo-container">
                 <h4 className="layerinfo-title">
-                  {ring.name} ({ring.labels.length} slices)
+                  {TitleNames[ringIndex]} ({ring.labels.length} slices)
                 </h4>
                 <button
                   onClick={() => addSlice(ringIndex)}
@@ -384,6 +393,7 @@ const deleteGameboard = () => {
                   </div>
                   <ColorPicker
                     value={label.color}
+                    colors={LayerColors[ringIndex]}
                     onChange={(color) => handleSliceColorChange(ringIndex, labelIndex, color)}
                   />
                 </div>
