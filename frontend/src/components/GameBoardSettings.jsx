@@ -275,7 +275,7 @@ const deleteGameboard = () => {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
-      name: localConfig.name?.trim(), 
+      name: localConfig.name?.trim(),
     }),
   });
 };
