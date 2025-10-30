@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
 
+.links {
+  z-index: 1000;
+}
+
 .about-us-container {
   font-family: 'Lilita One', cursive;
   background-color: #3F695D;
@@ -7,6 +11,44 @@
   max-width: 800px;
   margin: 0 auto;
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.about-us-container .content {
+  position: relative;
+  z-index: 2;
+}
+
+.about-us-container .decoration-element {
+  position: absolute;
+  opacity: 0.3;
+  z-index: 1;
+  width: 150px;
+  height: auto;
+}
+
+.about-us-container .element1-top {
+  top: 25%;
+  left: 5%;
+}
+
+.about-us-container .element2-top {
+  top: 15%;
+  right: 15%;
+  width: 120px;
+}
+
+.about-us-container .element1-bottom {
+  bottom: 25%;
+  right: 10%;
+  width: 130px;
+}
+
+.about-us-container .element2-bottom {
+  bottom: 20%;
+  left: 15%;
+  width: 140px;
 }
 
 .about-us-container h1 {
@@ -23,4 +65,5 @@
 .about-us-container p {
   color: white;
   line-height: 1.6;
+  font-size: 20px;
 }
