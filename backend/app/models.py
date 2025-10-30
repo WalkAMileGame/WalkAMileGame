@@ -1,7 +1,7 @@
 """backend information such as variables"""
 from pydantic import BaseModel, EmailStr, field_validator, Field
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import datetime
 
 
@@ -13,12 +13,12 @@ class LabelData(BaseModel):
     id: int
     text: str
     color: str
-    energyvalue: str
-    energypoint: bool
+    energyvalue: Union[str, int]  # Allow both string and int
+    energypoint: Optional[bool] = False  # Make optional with default
 
 class LayerData(BaseModel):
     id: int
-    name: str
+    name: Optional[str] = None  # Make optional
     innerRadius: int
     outerRadius: int
     labels: list[LabelData]

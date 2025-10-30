@@ -44,7 +44,7 @@ class NewBoard(BaseModel):
 @router.put("/save")
 def save_board(data: NewBoard):
     db.boards.update_one({"name": data.name},
-                         {"$set": {"name": data.name, "ringData": data.ringData}},
+                         {"$set": {"name": data.name, "rings": data.rings}},
                          upsert=True)
 
 
@@ -60,6 +60,11 @@ def delete_board(data: DeleteBoard):
 @router.get("/load_all")
 def load_boards():
     boards = list(db.boards.find(projection={"_id": False}))
+    # Transform ringData to rings for backward compatibility
+    for board in boards:
+        if "ringData" in board and "rings" not in board:
+            board["rings"] = board["ringData"]
+            del board["ringData"]
     return boards
 
 
@@ -143,6 +148,15 @@ def get_time(site: str ="game"):
 def create_room(room: Room):
     """Create a new game room"""
     try:
+        print("=== CREATE ROOM REQUEST ===")
+        print(f"room_code: {room.room_code}")
+        print(f"gamemaster_name: {room.gamemaster_name}")
+        print(f"board_config type: {type(room.board_config)}")
+        print(f"board_config: {room.board_config}")
+        print(f"time_remaining: {room.time_remaining}")
+        print(f"teams: {room.teams}")
+        print(f"game_started: {room.game_started}")
+        
         # Check if room already exists
         existing_room = db.rooms.find_one({"room_code": room.room_code.upper()})
         if existing_room:
@@ -155,17 +169,24 @@ def create_room(room: Room):
         room_doc = {
             "room_code": room.room_code.upper(),
             "gamemaster_name": room.gamemaster_name,
-            "board_config": room.board_config,
+            "board_config": room.board_config.model_dump() if hasattr(room.board_config, 'model_dump') else room.board_config.dict(),
             "teams": [],
             "time_remaining": room.time_remaining,
             "game_started": False,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
+        print("=== ROOM DOCUMENT TO INSERT ===")
+        print(room_doc)
+        
         db.rooms.insert_one(room_doc)
         return {"message": "Room created successfully", "room_code": room.room_code.upper()}
     except Exception as e:
-        print(f"Error creating room: {str(e)}")
+        print(f"=== ERROR CREATING ROOM ===")
+        print(f"Error type: {type(e)}")
+        print(f"Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise
 
 
@@ -199,11 +220,13 @@ def add_team(room_code: str, team: Team):
             detail="Team name already exists"
         )
     
-    # Add team to room
+    # Add team to room - convert Pydantic model to dict for MongoDB
     team_doc = {
+        "id": team.id,
         "team_name": team.team_name,
         "circumstance": team.circumstance,
-        "board_status": team.board_status
+        "current_energy": team.current_energy,
+        "gameboard_state": team.gameboard_state.model_dump() if hasattr(team.gameboard_state, 'model_dump') else team.gameboard_state.dict()
     }
     
     db.rooms.update_one(
@@ -229,6 +252,27 @@ def delete_team(room_code: str, team_name: str):
         )
     
     return {"message": "Team deleted successfully"}
+
+
+class CircumstanceUpdate(BaseModel):
+    circumstance: str
+
+
+@router.put("/rooms/{room_code}/teams/{team_name}/circumstance")
+def update_team_circumstance(room_code: str, team_name: str, update: CircumstanceUpdate):
+    """Update a team's circumstance"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper(), "teams.team_name": team_name},
+        {"$set": {"teams.$.circumstance": update.circumstance}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room or team not found"
+        )
+    
+    return {"message": "Circumstance updated successfully"}
 
 
 class TimeUpdate(BaseModel):
