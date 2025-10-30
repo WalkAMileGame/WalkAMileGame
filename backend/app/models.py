@@ -21,6 +21,7 @@ class UserData(BaseModel):
     email: EmailStr
     password: str
     role: Role = Role.GAMEMASTER
+    pending: bool = True
 
     @field_validator('password')
     def password_must_be_strong(cls, v):
@@ -30,5 +31,9 @@ class UserData(BaseModel):
 
 class LoginRequest(BaseModel):
     """Model for the data expected in a login request."""
+    email: EmailStr
+    password: str
+
+class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
