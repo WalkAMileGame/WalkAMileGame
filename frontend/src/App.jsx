@@ -5,6 +5,7 @@ import Login from './components/Login';
 import LandingPage from './components/LandingPage';
 import HostGamePage from './components/HostGame';
 import Game from './components/Game'
+import AboutUs from './components/AboutUs';
 
 import { useNavigate, BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -60,6 +61,7 @@ function AppContent() {
         <Routes>
           <Route path="/gameboard" element={<GameBoard />} />
           <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutUs />} />
           <Route path="/login" element={<Login />} /> {/* if admin not logged in */}
           <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
           <Route path="/hostgame" element={<HostGamePage />} />
