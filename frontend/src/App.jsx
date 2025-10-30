@@ -28,20 +28,11 @@ function AppContent() {
   const [hover, setHover] = useState(false);
   const padding = {padding: 5}
   const location = useLocation();
-<<<<<<< HEAD
-  const hideLinks = location.pathname.startsWith("/game/") || location.pathname.startsWith("/waiting/");
-
-
-  const padding = {
-    padding: 5
-  }
-=======
   const hideLinks = location.pathname.startsWith("/game/");
   const handleLogout = () => {
     logout();        
-    navigate("/");   
+    navigate("/");
   };
->>>>>>> b62b1e682c8738f346f7a56f33a1634155179240
 
   return (
     <>

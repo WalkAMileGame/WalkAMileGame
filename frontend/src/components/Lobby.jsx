@@ -7,374 +7,235 @@ export default function Lobby() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const [screen, setScreen] = useState('initial');
-  const [playerName, setPlayerName] = useState('');
-  const [inputName, setInputName] = useState('');
-  const [currentPlayerId, setCurrentPlayerId] = useState(null);
-  const [isGamemaster, setIsGamemaster] = useState(false);
-  
-  const boardConfig = location.state?.boardConfig;
-  const inviteCode = location.state?.inviteCode || gamecode;
-  
+  const [teamName, setTeamName] = useState('');
+  const [circumstance, setCircumstance] = useState('');
   const [roomData, setRoomData] = useState(null);
-  const [players, setPlayers] = useState([]);
-  const [isReady, setIsReady] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [timeRemaining, setTimeRemaining] = useState(60);
+  const [hasJoined, setHasJoined] = useState(false);
   
-  const allReady = players.length > 0 && players.every(p => p.isReady);
-  const readyCount = players.filter(p => p.isReady).length;
-  
-  // Check if this is the gamemaster
-  useEffect(() => {
-    if (location.state?.isGamemaster) {
-      setIsGamemaster(true);
-      setPlayerName(location.state.gamemasterName || 'Gamemaster');
-      createRoom();
-    } else if (gamecode) {
-      setScreen('join');
-    }
-  }, [location.state, gamecode]);
+  const inviteCode = location.state?.inviteCode || gamecode;
+  const isGamemaster = location.state?.isGamemaster || false;
+  const boardConfig = location.state?.boardConfig;
 
-  // Poll for room updates every 2 seconds when in lobby
+  // Create room when gamemaster arrives
   useEffect(() => {
-    if (screen === 'waiting' && inviteCode) {
+    if (isGamemaster && boardConfig) {
+      createRoom();
+    }
+  }, []);
+
+  // Poll room data for everyone
+  useEffect(() => {
+    const timer = setTimeout(() => {
       loadRoomData();
       const interval = setInterval(loadRoomData, 2000);
       return () => clearInterval(interval);
-    }
-  }, [screen, inviteCode]);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Check if game has started
+  // Redirect players when game starts
   useEffect(() => {
-    if (roomData?.gameStarted && !isGamemaster) {
-      // Players get redirected to game automatically
+    if (roomData?.game_started && !isGamemaster) {
       navigate(`/game/${inviteCode}`, {
-        state: { 
-          boardConfig: roomData.boardConfig,
-          inviteCode: inviteCode,
-          players: roomData.players
-        }
+        state: { boardConfig: roomData.board_config }
       });
     }
-  }, [roomData?.gameStarted]);
+  }, [roomData?.game_started, isGamemaster]);
 
-  const generatePlayerId = () => {
-    return `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  };
-
-  // Create room (gamemaster only)
   const createRoom = async () => {
-    setLoading(true);
+    console.log('Creating room with:', { inviteCode, boardConfig, isGamemaster });
+    
+    if (!boardConfig) {
+      console.error('Cannot create room: boardConfig is missing');
+      return;
+    }
+    
+    const roomData = {
+      room_code: inviteCode,
+      gamemaster_name: 'Gamemaster',
+      board_config: boardConfig,
+      time_remaining: 60,
+      teams: [],
+      game_started: false
+    };
+    
+    console.log('Sending room data:', JSON.stringify(roomData, null, 2));
+    
     try {
       const response = await fetch(`${API_BASE}/rooms/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          roomCode: inviteCode,
-          boardConfig: location.state.boardConfig,
-          gamemaster: location.state.gamemasterName,
-          gamemasterName: location.state.gamemasterName
-        })
+        body: JSON.stringify(roomData)
       });
       
-      if (response.ok) {
-        setScreen('waiting');
-        loadRoomData();
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Failed to create room:', errorData);
       } else {
-        setError('Failed to create room');
+        console.log('Room created successfully');
       }
     } catch (err) {
-      setError('Error creating room: ' + err.message);
-    } finally {
-      setLoading(false);
+      console.error('Error creating room:', err);
     }
   };
 
-  // Load room data from database
   const loadRoomData = async () => {
     try {
       const response = await fetch(`${API_BASE}/rooms/${inviteCode}`);
       if (response.ok) {
         const data = await response.json();
         setRoomData(data);
-        setPlayers(data.players || []);
+        setTimeRemaining(data.time_remaining);
       }
     } catch (err) {
       console.error('Error loading room:', err);
     }
   };
 
-  // Join room (players)
-  const joinRoom = async () => {
-    if (!inputName.trim()) return;
-    
-    setLoading(true);
-    const newPlayerId = generatePlayerId();
-    
+  const updateTime = async () => {
     try {
-      const response = await fetch(`${API_BASE}/rooms/${inviteCode}/join`, {
+      await fetch(`${API_BASE}/rooms/${inviteCode}/time`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          playerId: newPlayerId,
-          playerName: inputName.trim()
-        })
+        body: JSON.stringify({ time_remaining: timeRemaining })
       });
-      
-      if (response.ok) {
-        setCurrentPlayerId(newPlayerId);
-        setPlayerName(inputName.trim());
-        setScreen('waiting');
-        loadRoomData();
-      } else {
-        const error = await response.json();
-        setError(error.message || 'Failed to join room');
-      }
     } catch (err) {
-      setError('Error joining room: ' + err.message);
-    } finally {
-      setLoading(false);
+      console.error('Error updating time:', err);
     }
   };
 
-  // Toggle ready status
-  const toggleReady = async () => {
-    const newReadyState = !isReady;
-    setIsReady(newReadyState);
-    
+  const deleteTeam = async (teamName) => {
     try {
-      await fetch(`${API_BASE}/rooms/${inviteCode}/ready`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          playerId: currentPlayerId,
-          isReady: newReadyState
-        })
+      await fetch(`${API_BASE}/rooms/${inviteCode}/teams/${teamName}`, {
+        method: 'DELETE'
       });
-      // Room data will update on next poll
+      loadRoomData();
     } catch (err) {
-      console.error('Error toggling ready:', err);
-      setIsReady(!newReadyState); // Revert on error
+      console.error('Error deleting team:', err);
     }
   };
 
-  // Start game (gamemaster only)
   const startGame = async () => {
     try {
-      const response = await fetch(`${API_BASE}/rooms/${inviteCode}/start`, {
-        method: 'POST'
+      await fetch(`${API_BASE}/rooms/${inviteCode}/start`, { method: 'POST' });
+      navigate(`/game/${inviteCode}`, {
+        state: { boardConfig: boardConfig, isGamemaster: true }
       });
-      
-      if (response.ok) {
-        navigate(`/game/${inviteCode}`, {
-          state: { 
-            boardConfig: roomData.boardConfig,
-            inviteCode: inviteCode,
-            players: roomData.players,
-            isGamemaster: true
-          }
-        });
-      }
     } catch (err) {
-      setError('Error starting game: ' + err.message);
+      console.error('Error starting game:', err);
     }
   };
 
-  // Join Screen
-  if (screen === 'join') {
+  const handleTeamSubmit = async () => {
+    try {
+      await fetch(`${API_BASE}/rooms/${inviteCode}/teams`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          team_name: teamName,
+          circumstance: circumstance,
+          board_status: {}
+        })
+      });
+      setHasJoined(true);
+      loadRoomData();
+    } catch (err) {
+      console.error('Error creating team:', err);
+    }
+  };
+
+  if (isGamemaster) {
     return (
-      <div className="min-h-screen bg-[#3F695D] flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-[#3F695D] mb-2">Join Game</h1>
-            <div className="bg-[#E9C46A] text-[#3F695D] font-bold text-2xl py-3 px-6 rounded-lg inline-block tracking-wider mb-2">
-              {inviteCode}
-            </div>
-            <p className="text-[#86B18A]">Enter your name to join</p>
-          </div>
-
-          {error && (
-            <div className="mb-4 p-3 bg-[#E76F51]/20 border-2 border-[#E76F51] rounded-lg text-[#E76F51] text-sm">
-              {error}
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-[#3F695D] font-medium mb-2">
-                Your Name
-              </label>
-              <input
-                type="text"
-                value={inputName}
-                onChange={(e) => setInputName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && joinRoom()}
-                placeholder="Enter your name..."
-                className="w-full px-4 py-3 rounded-lg border-2 border-[#86B18A] focus:outline-none focus:border-[#E9C46A] text-[#3F695D]"
-                maxLength={20}
-                autoFocus
-                disabled={loading}
-              />
-            </div>
-
-            <button
-              onClick={joinRoom}
-              disabled={!inputName.trim() || loading}
-              className="w-full py-4 rounded-lg font-semibold text-white transition-all"
-              style={{
-                backgroundColor: (inputName.trim() && !loading) ? '#86B18A' : '#d1d5db',
-                cursor: (inputName.trim() && !loading) ? 'pointer' : 'not-allowed'
-              }}
-            >
-              {loading ? 'Joining...' : 'Join Game'}
-            </button>
-          </div>
+      <div style={{ padding: '20px' }}>
+        <h1>Lobby: {inviteCode}</h1>
+        <p><strong>You are the Gamemaster</strong></p>
+        
+        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+          <label>Time Remaining (minutes): </label>
+          <input
+            type="number"
+            value={timeRemaining}
+            onChange={(e) => setTimeRemaining(parseInt(e.target.value) || 0)}
+            style={{ marginLeft: '10px', marginRight: '10px' }}
+          />
+          <button onClick={updateTime}>Update Time</button>
         </div>
+
+        <h2>Teams ({roomData?.teams?.length || 0})</h2>
+        {roomData?.teams?.length > 0 ? (
+          <ul>
+            {roomData.teams.map((team, index) => (
+              <li key={index} style={{ marginBottom: '10px' }}>
+                <strong>{team.team_name}</strong> - {team.circumstance}
+                <button 
+                  onClick={() => deleteTeam(team.team_name)}
+                  style={{ marginLeft: '10px' }}
+                >
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No teams yet</p>
+        )}
+
+        <button 
+          onClick={startGame}
+          style={{ marginTop: '20px', padding: '10px 20px' }}
+        >
+          Start Game
+        </button>
       </div>
     );
   }
 
-  // Lobby
+  // Player view
   return (
-    <div className="min-h-screen bg-[#3F695D] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-[#3F695D] mb-2">Lobby</h1>
-          <div className="bg-[#E9C46A] text-[#3F695D] font-bold text-2xl py-3 px-6 rounded-lg inline-block tracking-wider">
-            {inviteCode}
-          </div>
-          <p className="text-[#86B18A] mt-2">Share this code with players</p>
-          {roomData?.boardConfig && (
-            <p className="text-[#3F695D] mt-1 text-sm">
-              Board: <span className="font-semibold">{roomData.boardConfig.name}</span>
-            </p>
-          )}
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-[#E76F51]/20 border-2 border-[#E76F51] rounded-lg text-[#E76F51] text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Gamemaster Section */}
-        {isGamemaster && roomData && (
-          <div className="bg-[#E9C46A]/20 rounded-lg p-4 mb-6 border-2 border-[#E9C46A]">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg bg-[#E9C46A]">
-                {roomData.gamemasterName?.charAt(0).toUpperCase() || 'G'}
-              </div>
-              <div>
-                <div className="text-[#3F695D] font-semibold flex items-center gap-2">
-                  {roomData.gamemasterName || playerName}
-                  <span className="text-xs bg-[#E9C46A] text-[#3F695D] px-2 py-1 rounded-full font-medium">
-                    Gamemaster
-                  </span>
-                </div>
-                <div className="text-sm text-[#3F695D]">
-                  Controlling the game
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Status Bar */}
-        {players.length > 0 && (
-          <div className="bg-[#86B18A]/10 rounded-lg p-4 mb-6 border-2 border-[#86B18A]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[#3F695D] font-medium">Players Ready</span>
-              <span className="text-[#E76F51] font-bold text-lg">{readyCount} / {players.length}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
-                className="bg-[#86B18A] h-3 rounded-full transition-all duration-300"
-                style={{ width: `${(readyCount / players.length) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-
-        {/* Players List */}
-        {players.length === 0 ? (
-          <div className="text-center py-8 text-[#86B18A] bg-gray-50 rounded-lg border-2 border-dashed border-[#86B18A]">
-            Waiting for players to join...
-            {isGamemaster && (
-              <p className="text-sm mt-2 text-[#3F695D]">
-                Share the room code: <span className="font-bold">{inviteCode}</span>
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3 mb-6">
-            {players.map((player) => (
-              <div
-                key={player.id}
-                className={`rounded-lg p-4 border-2 flex items-center justify-between transition-colors ${
-                  player.id === currentPlayerId 
-                    ? 'bg-[#86B18A]/20 border-[#86B18A]' 
-                    : 'bg-gray-50 border-[#86B18A] hover:bg-gray-100'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg"
-                    style={{ backgroundColor: player.isReady ? '#86B18A' : '#F3A261' }}
-                  >
-                    {player.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="text-[#3F695D] font-semibold flex items-center gap-2">
-                      {player.name}
-                      {player.id === currentPlayerId && (
-                        <span className="text-xs bg-[#86B18A] text-white px-2 py-1 rounded-full font-medium">
-                          You
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-sm" style={{ color: player.isReady ? '#86B18A' : '#F3A261' }}>
-                      {player.isReady ? '✓ Ready' : '○ Not ready'}
-                    </div>
-                  </div>
-                </div>
-                <div className="text-2xl">
-                  {player.isReady ? '✓' : '○'}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          {!isGamemaster && (
-            <button
-              onClick={toggleReady}
-              className="w-full py-4 rounded-lg font-semibold text-white transition-all"
-              style={{ backgroundColor: isReady ? '#E76F51' : '#86B18A' }}
-            >
-              {isReady ? 'Not Ready' : 'Ready Up'}
-            </button>
-          )}
+    <div style={{ padding: '20px' }}>
+      <h1>Lobby: {inviteCode}</h1>
+      
+      {!hasJoined ? (
+        <div style={{ marginTop: '20px' }}>
+          <label>Team Name:</label>
+          <input
+            type="text"
+            value={teamName}
+            onChange={(e) => setTeamName(e.target.value)}
+            placeholder="Enter team name"
+            style={{ display: 'block', marginTop: '5px', marginBottom: '15px' }}
+          />
           
-          {isGamemaster && (
-            <button
-              onClick={startGame}
-              disabled={!allReady}
-              className="w-full py-4 rounded-lg font-semibold transition-all"
-              style={{
-                backgroundColor: allReady ? '#E9C46A' : '#d1d5db',
-                color: allReady ? '#3F695D' : '#9ca3af',
-                cursor: allReady ? 'pointer' : 'not-allowed'
-              }}
-            >
-              {allReady ? 'Start Game' : players.length === 0 ? 'Waiting for players to join...' : 'Waiting for players to be ready...'}
-            </button>
-          )}
+          <label>Circumstance:</label>
+          <input
+            type="text"
+            value={circumstance}
+            onChange={(e) => setCircumstance(e.target.value)}
+            placeholder="Enter circumstance"
+            style={{ display: 'block', marginTop: '5px', marginBottom: '15px' }}
+          />
+          
+          <button onClick={handleTeamSubmit}>Create Team</button>
         </div>
-      </div>
+      ) : (
+        <div style={{ marginTop: '20px' }}>
+          <p><strong>Waiting for gamemaster to start the game...</strong></p>
+        </div>
+      )}
+
+      <h2 style={{ marginTop: '30px' }}>Teams ({roomData?.teams?.length || 0})</h2>
+      {roomData?.teams?.length > 0 ? (
+        <ul>
+          {roomData.teams.map((team, index) => (
+            <li key={index} style={{ marginBottom: '10px' }}>
+              <strong>{team.team_name}</strong> - {team.circumstance}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No teams yet</p>
+      )}
     </div>
   );
 }

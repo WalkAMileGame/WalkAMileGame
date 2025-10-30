@@ -3,11 +3,11 @@ from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest
+from backend.app.models import Points, Boards, LoginRequest, Room, Team
 from .db import db
 from backend.app.security import verify_password, create_access_token, get_current_active_user
 from datetime import datetime, timedelta, timezone
-
+from typing import Dict
 
 router = APIRouter()
 
@@ -122,7 +122,6 @@ def read_current_user(current_user: dict = Depends(get_current_active_user)):
     return current_user
 
 
-
 @router.get("/timer")
 def get_time(site: str ="game"):
     durations = {"lobby": 5 * 60, "game": 30 * 60}
@@ -136,4 +135,135 @@ def get_time(site: str ="game"):
         "end": end.isoformat(),
         "duration": duration
     }
+
+
+# Room Management Endpoints
+
+@router.post("/rooms/create")
+def create_room(room: Room):
+    """Create a new game room"""
+    try:
+        # Check if room already exists
+        existing_room = db.rooms.find_one({"room_code": room.room_code.upper()})
+        if existing_room:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Room with this code already exists"
+            )
+        
+        # Create room document
+        room_doc = {
+            "room_code": room.room_code.upper(),
+            "gamemaster_name": room.gamemaster_name,
+            "board_config": room.board_config,
+            "teams": [],
+            "time_remaining": room.time_remaining,
+            "game_started": False,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        db.rooms.insert_one(room_doc)
+        return {"message": "Room created successfully", "room_code": room.room_code.upper()}
+    except Exception as e:
+        print(f"Error creating room: {str(e)}")
+        raise
+
+
+@router.get("/rooms/{room_code}")
+def get_room(room_code: str):
+    """Get room data by room code"""
+    room = db.rooms.find_one({"room_code": room_code.upper()}, {"_id": 0})
+    if not room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+    return room
+
+
+@router.post("/rooms/{room_code}/teams")
+def add_team(room_code: str, team: Team):
+    """Add a team to a room"""
+    room = db.rooms.find_one({"room_code": room_code.upper()})
+    if not room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
     
+    # Check if team name already exists
+    existing_teams = room.get("teams", [])
+    if any(t["team_name"] == team.team_name for t in existing_teams):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Team name already exists"
+        )
+    
+    # Add team to room
+    team_doc = {
+        "team_name": team.team_name,
+        "circumstance": team.circumstance,
+        "board_status": team.board_status
+    }
+    
+    db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$push": {"teams": team_doc}}
+    )
+    
+    return {"message": "Team added successfully"}
+
+
+@router.delete("/rooms/{room_code}/teams/{team_name}")
+def delete_team(room_code: str, team_name: str):
+    """Delete a team from a room"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$pull": {"teams": {"team_name": team_name}}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Team not found"
+        )
+    
+    return {"message": "Team deleted successfully"}
+
+
+class TimeUpdate(BaseModel):
+    time_remaining: int
+
+
+@router.post("/rooms/{room_code}/time")
+def update_time(room_code: str, time_update: TimeUpdate):
+    """Update time remaining for a room"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$set": {"time_remaining": time_update.time_remaining}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+    
+    return {"message": "Time updated successfully"}
+
+
+@router.post("/rooms/{room_code}/start")
+def start_game(room_code: str):
+    """Start the game for a room"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$set": {"game_started": True}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+    
+    return {"message": "Game started successfully"}
