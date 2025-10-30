@@ -1,22 +1,13 @@
 /* global global */
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import App from '../App';
 import { AuthProvider } from '../context/AuthContext';
+import { vi } from 'vitest';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
 const mockEnergy = {values: 32}
 
-// Helper to render the full app
-const renderApp = () => {
-  return render(
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  );
-};
-
 describe("GameBoardSettings", () => {
-
   beforeAll(() => {
     global.fetch = vi.fn(() =>
       Promise.resolve({
@@ -30,8 +21,8 @@ describe("GameBoardSettings", () => {
     global.fetch.mockRestore?.();
   });
 
-  test('renders content', () => {
-  
+  test('renders content', async () => {
+      const { default: App } = await import("../App");
       render(<App />)
   
       const _element1 = screen.getByText('Home')
@@ -39,8 +30,12 @@ describe("GameBoardSettings", () => {
   })
   
   test('clicking login button renders login page', async () => {
-  
-    renderApp()
+    const { default: App } = await import("../App");
+    render(
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+    )
   
     const user = userEvent.setup()
     const button = screen.getByText('Login')
@@ -53,8 +48,12 @@ describe("GameBoardSettings", () => {
   
   
   test('clicking login and then home button renders homepage', async () => {
-  
-    renderApp()
+    const { default: App } = await import("../App");
+    render(
+      <AuthProvider>
+      <App />
+    </AuthProvider>
+    )
   
     const user = userEvent.setup()
     const button1 = screen.getByRole('button', { name: 'Login' });
@@ -66,3 +65,33 @@ describe("GameBoardSettings", () => {
     const _element = screen.getByText('WALK A MILE:')
   })
 });
+
+
+test('logged in user sees their email and logout button', async () => {
+  vi.resetModules();
+
+  vi.doMock("../context/AuthContext", async () => {
+  const actual = await vi.importActual("../context/AuthContext");
+  return {
+    ...actual,
+    useAuth: () => ({
+      user: { email: "test@example.com" },
+      logout: vi.fn(),
+    }),
+    AuthProvider: ({ children }) => <>{children}</>,
+  };
+});
+
+   const { default: App } = await import("../App");
+
+  render(
+      <App />
+  )
+  
+  expect(screen.getByText("test@example.com")).toBeInTheDocument();
+
+  expect(screen.getByRole("button", { name: "Logout" })).toBeInTheDocument();
+
+  vi.resetModules(); 
+
+})
