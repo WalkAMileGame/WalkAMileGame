@@ -37,3 +37,10 @@ class LoginRequest(BaseModel):
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
+
+class AcceptUser(BaseModel):
+    email: EmailStr
+    role: str
+
+class DenyUser(BaseModel):
+    email: EmailStr

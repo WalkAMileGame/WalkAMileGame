@@ -3,11 +3,10 @@ from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest, RegisterRequest
+from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser
 from .db import db
 from backend.app.security import verify_password, create_access_token, get_current_active_user, get_password_hash
 from datetime import datetime, timedelta, timezone
-
 
 router = APIRouter()
 
@@ -95,7 +94,7 @@ def login(form_data: LoginRequest):
     user_in_db = db.users.find_one({"email": form_data.email})
     #print("form data:", form_data)
     #print("db output:", user_in_db)
-    #pw = get_password_hash(form_data.password)
+    pw = get_password_hash(form_data.password)
     #print("hashed:", pw)
     #db.users.update_one({"email": form_data.email}, {"$set": {"email": form_data.email, "password": pw, "role": "admin", "pending": True}}, upsert=True)
     #print(list(db.users.find()))
@@ -162,16 +161,16 @@ def get_time(site: str ="game"):
         "end": end.isoformat(),
         "duration": duration
     }
-    
-class NewUser(BaseModel):
-    email: str
-    role: str
 
-@router.put("/add_user")
-def add_user(data: NewUser):
+@router.put("/accept_user")
+def add_user(data: AcceptUser):
     db.users.update_one({"email": data.email},
-                        {"$set": {"email": data.email, "role": data.role, "status": "existing"}},
+                        {"$set": {"role": data.role, "pending": False}},
                         upsert=True)
+    
+@router.delete("/deny_user")
+def delete_board(data: DenyUser):
+    db.users.delete_one({"email": data.email})
     
 @router.get("/load_users")
 def load_users():

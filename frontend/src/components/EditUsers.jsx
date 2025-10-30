@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import '../styles/EditUsers.css';
 import Snackbar from "./ui/snackbar"
+import { API_BASE } from "../api";
 
 const placeHolderUsers = [
     { email: "pertti@testi.fi", role: "gamemaster" },
@@ -14,11 +15,12 @@ const placeHolderUsers = [
 
 const EditUsers = () => {
     const [showPopup, setShowPopup] = useState(false);
-    const [inputValue, setInputValue] = useState("");
+    const [selectedUser, setSelectedUser] = useState("");
     const [selectedOption, setSelectedOption] = useState("gamemaster");
     const [showSnackbar, setShowSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false)
     const [pendingUsers, setPendingUsers] = useState([])
     const [existingUsers, setExistingUsers] = useState([])
 
@@ -29,31 +31,27 @@ const EditUsers = () => {
     const loadUsers = async () => {
         try {
             console.log("loading users");
-            const res = await fetch("http://localhost:8000/load_users");
+            const res = await fetch(`${API_BASE}/load_users`);
             const data = await res.json();
-            setPendingUsers(data.filter(user => user.status === "pending"));
-            setExistingUsers(data.filter(user => user.status === "existing"));
+            setPendingUsers(data.filter(user => user.pending));
+            setExistingUsers(data.filter(user => !user.pending));
         } finally {
             console.log("loading complete");
         }
     };
 
-    const handleAdd = async () => {
-        if (!inputValue.trim()) {
-            setSnackbarMessage("Please enter an email.");
-            setShowSnackbar(true);
-            return;
-        };
-
+    const handleAccept = async () => {
         setIsSaving(true);
         try {
-            const response = await addUser();
+            const response = await acceptUser();
             if (response.ok) {
-                setPendingUsers([...pendingUsers, {email: inputValue, role: selectedOption}]);
+                setExistingUsers([...existingUsers, {email: selectedUser, role: selectedOption}]);
+                const updatedUsers = pendingUsers.filter(u => u.email !== selectedUser);
+                setPendingUsers(updatedUsers);
             }
 
             if (!response.ok) {
-                let errorMsg = "Failed to add user.";
+                let errorMsg = "Failed to accept user.";
                 try {
                     const data = await response.json();
                     if (data?.error) {
@@ -67,30 +65,85 @@ const EditUsers = () => {
                 return;
             }
 
-            setSnackbarMessage("User added successfully!");
+            setSnackbarMessage("User accepted successfully!");
             setShowSnackbar(true);
         } catch (err) {
-            console.error("Save failed:", err);
-            setSnackbarMessage("Failed to save gameboard (network error).");
+            console.error("Accept failed:", err);
+            setSnackbarMessage("Failed to accept user (network error).");
             setShowSnackbar(true);
         } finally {
             setIsSaving(false)
         }
 
-        console.log("Input:", inputValue);
+        console.log("Email:", selectedUser);
         console.log("Checkbox:", selectedOption);
         
         setShowPopup(false);
-        setInputValue("");
+        setSelectedUser("");
     };
 
-    const addUser = () => {
-        return fetch("http://localhost:8000/add_user", {
+    const handleDeny = async (email) => {
+        const confirmBox = window.confirm(
+            `Are you sure you want to deny ${email}?`
+        )
+        if (!confirmBox) {
+            setSelectedUser("")
+            setSnackbarMessage("Deny canceled");
+            setShowSnackbar(true);
+            return;
+        }
+        setIsDeleting(true)
+        try {
+            const response = await denyUser(email);
+            if (response.ok) {
+                const updatedUsers = pendingUsers.filter(u => u.email !== email);
+                setPendingUsers(updatedUsers);
+            }
+
+            if (!response.ok) {
+                let errorMsg = "Failed to deny user.";
+                try {
+                    const data = await response.json();
+                    if (data?.error) {
+                        errorMsg = ` ${data.error}`;
+                    }
+                } catch {
+                    // ignore JSON parse errors
+                }
+                setSnackbarMessage(errorMsg);
+                setShowSnackbar(true);
+                return;
+            }
+
+            setSnackbarMessage("User denied successfully!");
+            setShowSnackbar(true);
+        } catch (err) {
+            console.error("Deny failed:", err);
+            setSnackbarMessage("Failed to deny user (network error).");
+            setShowSnackbar(true);
+        } finally {
+            setIsDeleting(false)
+        }
+    }
+
+    const denyUser = (userEmail) => {
+        return fetch(`${API_BASE}/deny_user`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: userEmail,
+            }),
+        });
+    };
+
+    const acceptUser = () => {
+        return fetch(`${API_BASE}/accept_user`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                email: inputValue.trim(),
-                role: selectedOption
+                email: selectedUser,
+                role: selectedOption,
+                pending: false
             })
         });
     };
@@ -108,22 +161,25 @@ const EditUsers = () => {
           <h1>Existing users</h1>
           <div className="user-boxes">
             {existingUsers.map((user, index) => (
-            <button className="user-box" key={index}>
-              {user.email}, {user.role}
-            </button>
+              <div className="user-box" key={index}>
+                <p>{user.email}, {user.role}</p>
+              </div>
             ))}
           </div>
         </div>
         <div className="pending-users">
           <h1>Pending users</h1>
-          <button className="add-button" onClick={() => setShowPopup(true)}>
-            Add user
-          </button>
           <div className="user-boxes">
             {pendingUsers.map((user, index) => (
-            <button className="user-box" key={index}>
-              {user.email}, {user.role}
-            </button>
+            <div className="user-box" key={index}>
+              <p>{user.email}</p>
+              <button className="deny-button" onClick={() => {handleDeny(user.email)}}>
+                Deny
+              </button>
+              <button className="accept-button" onClick={() => {setSelectedUser(user.email), setShowPopup(true)}}>
+                Accept
+              </button>
+            </div>
             ))}
           </div>
         </div>
@@ -132,19 +188,10 @@ const EditUsers = () => {
         {showPopup && (
         <div className="popup-overlay">
           <div className="popup">
-            <h2>Enter Email</h2>
-            
-            <label>
-              Email:
-              <input
-                type="email"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-              />
-            </label>
+            <h2>Accept User</h2>
 
             <div className="options">
-              <p>Select a role:</p>
+              <p>Select a role for {selectedUser}:</p>
 
               <label>
                 <input
@@ -170,8 +217,8 @@ const EditUsers = () => {
             </div>
 
             <div className="buttons">
-              <button onClick={handleAdd}>Add</button>
-              <button onClick={() => {setShowPopup(false), setInputValue("")}}>Cancel</button>
+              <button onClick={() => {setShowPopup(false), setSelectedUser("")}}>Cancel</button>
+              <button onClick={handleAccept}>Accept</button>
             </div>
           </div>
         </div>
