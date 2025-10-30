@@ -5,6 +5,7 @@ import Login from './components/Login';
 import LandingPage from './components/LandingPage';
 import HostGamePage from './components/HostGame';
 import Game from './components/Game'
+import Lobby from './components/Lobby';
 
 import { useNavigate, BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -30,7 +31,7 @@ function AppContent() {
   const hideLinks = location.pathname.startsWith("/game/");
   const handleLogout = () => {
     logout();        
-    navigate("/");   
+    navigate("/");
   };
 
   return (
@@ -63,6 +64,7 @@ function AppContent() {
           <Route path="/login" element={<Login />} /> {/* if admin not logged in */}
           <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
           <Route path="/hostgame" element={<HostGamePage />} />
+          <Route path="/waiting/:gamecode" element={<Lobby />} />
           <Route path="/game/:gamecode" element={<Game />} />
         </Routes>
     </>

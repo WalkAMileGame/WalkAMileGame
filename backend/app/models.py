@@ -1,7 +1,9 @@
 """backend information such as variables"""
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, Field
 from enum import Enum
+from typing import List, Optional
 from datetime import datetime
+
 
 class Points(BaseModel):
     id: str
@@ -60,3 +62,23 @@ class LoginRequest(BaseModel):
     """Model for the data expected in a login request."""
     email: EmailStr
     password: str
+
+class Team(BaseModel):
+    team_name: str
+    circumstance: str
+    board_status: dict
+
+class Room(BaseModel):
+    room_code: str
+    gamemaster_name: str
+    board_config: dict
+    time_remaining: int = 60  # default 60 minutes
+    teams: List[Team] = []
+    game_started: bool = False
+    created_at: Optional[str] = None
+
+    @field_validator('room_code')
+    def code_must_be_valid(cls, v):
+        if not v or len(v) < 4:
+            raise ValueError('Room code must be at least 4 characters')
+        return v.upper()
