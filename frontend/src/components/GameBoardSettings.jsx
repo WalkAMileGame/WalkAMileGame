@@ -346,7 +346,7 @@ const deleteGameboard = () => {
               <hr></hr>
               <div className="layerinfo-container">
                 <h4 className="layerinfo-title">
-                  Layer {ring.id} ({ring.labels.length} slices)
+                  {ring.name} ({ring.labels.length} slices)
                 </h4>
                 <button
                   onClick={() => addSlice(ringIndex)}

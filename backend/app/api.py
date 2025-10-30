@@ -38,7 +38,7 @@ def update_points(data: ChangePoints):
 
 class NewBoard(BaseModel):
     name: str
-    ringData: list
+    rings: list
 
 
 @router.put("/save")
