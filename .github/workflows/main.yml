@@ -83,12 +83,6 @@ jobs:
           username: ${{ env.DOCKER_USER }}
           password: ${{ env.DOCKER_PASS }}
 
-      # Debug: show the tags we'll use (non-secret)
-      - name: Debug show tags
-        run: |
-          echo "Backend tags: ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-backend:staging, ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-backend:${GITHUB_SHA}"
-          echo "Frontend tags: ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-frontend:staging, ${DOCKER_REGISTRY}/${DOCKER_USER}/walkamile-frontend:${GITHUB_SHA}"
-
       - name: Build & push backend
         uses: docker/build-push-action@v6
         with:
