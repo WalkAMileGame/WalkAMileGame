@@ -1,12 +1,12 @@
 """fast api logic"""
-from fastapi import FastAPI, HTTPException, status, Depends
+from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest
+from backend.app.models import Points, Boards, LoginRequest, Room, Team, LayerData
 from .db import db
 from backend.app.security import verify_password, create_access_token, get_current_active_user
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from typing import Dict
 
 
 router = APIRouter()
@@ -137,3 +137,110 @@ def get_time(site: str ="game"):
         "duration": duration
     }
     
+rooms: Dict[str, Room] = {}
+
+@router.post("/rooms/create")
+def create_room(room: Room):
+    """Creates a new room"""
+    if room.room_code in rooms:
+        raise HTTPException(status_code=400, detail="Room already exists")
+    rooms[room.room_code] = room
+    return {"message": "Room created", "room": room}
+
+@router.get("/rooms/{code}")
+def get_room(code: str):
+    """Fetch room info"""
+    if code not in rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+    return rooms[code]
+
+@router.post("/rooms/{code}/teams")
+def add_team(code: str, team_data: dict = Body(...)):
+    """Adds a new team to a room"""
+    if code not in rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    room = rooms[code]
+    teams = room.teams or []
+
+    new_team = Team(
+        id=len(teams) + 1,
+        team_name=team_data.get("team_name"),
+        circumstance=team_data.get("circumstance", ""),
+        current_energy=32,
+        gameboard_state=LayerData(
+            id=0, name="Board", innerRadius=0, outerRadius=0, labels=[]
+        ),
+    )
+
+    teams.append(new_team)
+    room.teams = teams
+    rooms[code] = room
+    return {"message": "Team added", "team": new_team}
+
+@router.post("/rooms/{code}/start")
+def start_game(code: str):
+    if code not in rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    room = rooms[code]
+    room.game_started = True
+    rooms[code] = room
+    return {"message": "Game started"}
+
+@router.get("/rooms/{code}/teams/{team_name}/board")
+def get_team_board(code: str, team_name: str):
+    if code not in rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    room = rooms[code]
+    team = next((t for t in room.teams if t.team_name == team_name), None)
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+
+    return team.gameboard_state
+
+class UpdateTeamBoard(BaseModel):
+    board_state: dict
+
+@router.put("/rooms/{code}/teams/{team_name}/board")
+def update_team_board(code: str, team_name: str, data: UpdateTeamBoard):
+    if code not in rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    room = rooms[code]
+    team = next((t for t in room.teams if t.team_name == team_name), None)
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+
+    team.gameboard_state = data.gameboard_state
+    return {"message": "Board updated"}
+
+@router.get("/rooms/{code}/teams/{team_name}/energy")
+def get_team_energy(code:str, team_name: str):
+    if code not in rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    room = rooms[code]
+    team = next((t for t in room.teams if t.team_name == team_name), None)
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+
+    return {"current_energy": team.current_energy}
+
+class UpdateTeamEnergy(BaseModel):
+    change: int
+
+@router.put("/rooms/{code}/teams/{team_name}/energy")
+def update_team_energy(code: str, team_name: str, data: UpdateTeamEnergy):
+    if code not in rooms:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    room = rooms[code]
+    team = next((t for t in room.teams if t.team_name == team_name), None)
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+
+    new_energy = max(0, team.current_energy + data.change)
+    team.current_energy = new_energy
+    return {"current_energy": new_energy}

@@ -21,25 +21,24 @@ export default function Lobby() {
   // Create room when gamemaster arrives
   useEffect(() => {
     if (isGamemaster && boardConfig) {
+      console.log('Sending room data:', JSON.stringify(roomData, null, 2));
       createRoom();
     }
   }, []);
 
   // Poll room data for everyone
-  useEffect(() => {
-    const timer = setTimeout(() => {
+    useEffect(() => {
       loadRoomData();
       const interval = setInterval(loadRoomData, 2000);
       return () => clearInterval(interval);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+    }, []);
+
 
   // Redirect players when game starts
   useEffect(() => {
     if (roomData?.game_started && !isGamemaster) {
-      navigate(`/game/${inviteCode}`, {
-        state: { boardConfig: roomData.board_config }
+      navigate(`/game/${inviteCode}/${teamName}`, {
+        state: { boardConfig: roomData.board_config, teamName:teamName }
       });
     }
   }, [roomData?.game_started, isGamemaster]);
@@ -56,7 +55,7 @@ export default function Lobby() {
       room_code: inviteCode,
       gamemaster_name: 'Gamemaster',
       board_config: boardConfig,
-      time_remaining: 60,
+      time_remaining: timeRemaining,
       teams: [],
       game_started: false
     };
@@ -120,8 +119,8 @@ export default function Lobby() {
   const startGame = async () => {
     try {
       await fetch(`${API_BASE}/rooms/${inviteCode}/start`, { method: 'POST' });
-      navigate(`/game/${inviteCode}`, {
-        state: { boardConfig: boardConfig, isGamemaster: true }
+      navigate(`/game/${inviteCode}/${teamName || 'Gamemaster'}`, {
+        state: { boardConfig: boardConfig, isGamemaster: true, timeRemaining: timeRemaining, teamName: teamName || 'Gamemaster'}
       });
     } catch (err) {
       console.error('Error starting game:', err);
@@ -139,8 +138,9 @@ export default function Lobby() {
           board_status: {}
         })
       });
+      sessionStorage.setItem('teamName', teamName);
       setHasJoined(true);
-      loadRoomData();
+      await loadRoomData();
     } catch (err) {
       console.error('Error creating team:', err);
     }

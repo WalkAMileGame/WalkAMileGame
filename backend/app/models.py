@@ -13,19 +13,18 @@ class LabelData(BaseModel):
     id: int
     text: str
     color: str
-    energyvalue: str
-    energypoint: bool
+    energyvalue: int
+    energypoint: bool = False
 
 class LayerData(BaseModel):
     id: int
-    name: str
     innerRadius: int
     outerRadius: int
     labels: list[LabelData]
 
 class Boards(BaseModel):
     name: str
-    rings: list[LayerData]
+    ringData: list[LayerData]
 
 class Role(str, Enum):
     """all existing roles are defined here"""
@@ -52,15 +51,15 @@ class Team(BaseModel):
     id: int
     team_name: str
     circumstance: str
-    current_energy: int
-    gameboard_state: LayerData
+    current_energy: int =32
+    gameboard_state: Optional[LayerData] = None
 
 class Room(BaseModel):
     room_code: str
     gamemaster_name: str
     board_config: Boards
     time_remaining: int = 30
-    teams: List[Team] = []
+    teams: List[Team] = Field(default_factory=list)
     game_started: bool = False
     created_at: Optional[str] = None
 
