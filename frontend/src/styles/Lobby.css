@@ -114,11 +114,11 @@
 .btn-danger {
   background-color: #E76F51;
   color: white;
-  padding: 6px 12px;
+  padding: 12px 16px;
   font-size: 0.9rem;
   margin-left: 10px;
-  flex-shrink: 100;
-  width: 80px;
+  flex-shrink: 0;
+  min-width: 80px;
 }
 
 .btn-danger:hover {

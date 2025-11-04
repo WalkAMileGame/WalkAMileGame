@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { API_BASE } from '../api';
 import '../styles/Lobby.css';
@@ -11,6 +11,9 @@ export default function Lobby() {
   const [teamName, setTeamName] = useState('');
   const [roomData, setRoomData] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState(60);
+  const [timeInput, setTimeInput] = useState('60');
+  const [isEditingTime, setIsEditingTime] = useState(false);
+  const isEditingTimeRef = useRef(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [editingTeam, setEditingTeam] = useState(null);
   const [editCircumstance, setEditCircumstance] = useState('');
@@ -135,7 +138,11 @@ export default function Lobby() {
       if (response.ok) {
         const data = await response.json();
         setRoomData(data);
-        setTimeRemaining(data.time_remaining);
+        // Only update time if user is not currently editing it
+        if (!isEditingTimeRef.current) {
+          setTimeRemaining(data.time_remaining);
+          setTimeInput(String(data.time_remaining));
+        }
       } else if (response.status === 404) {
         // Room doesn't exist yet - this is normal for players arriving before gamemaster
         console.log('Room not found yet, will retry...');
@@ -146,12 +153,17 @@ export default function Lobby() {
   };
 
   const updateTime = async () => {
+    const newTime = parseInt(timeInput) || 0;
     try {
       await fetch(`${API_BASE}/rooms/${inviteCode}/time`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ time_remaining: timeRemaining })
+        body: JSON.stringify({ time_remaining: newTime })
       });
+      setTimeRemaining(newTime);
+      setIsEditingTime(false);
+      isEditingTimeRef.current = false;
+      loadRoomData();
     } catch (err) {
       console.error('Error updating time:', err);
     }
@@ -252,8 +264,25 @@ export default function Lobby() {
             <span className="time-label">Time Remaining (minutes):</span>
             <input
               type="number"
-              value={timeRemaining}
-              onChange={(e) => setTimeRemaining(parseInt(e.target.value) || 0)}
+              value={timeInput}
+              onChange={(e) => setTimeInput(e.target.value)}
+              onFocus={() => {
+                setIsEditingTime(true);
+                isEditingTimeRef.current = true;
+              }}
+              onBlur={() => {
+                // If empty, set to '0'
+                if (timeInput === '') {
+                  setTimeInput('0');
+                }
+                setIsEditingTime(false);
+                isEditingTimeRef.current = false;
+              }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  updateTime();
+                }
+              }}
               className="time-input"
             />
             <button onClick={updateTime} className="btn btn-primary">
