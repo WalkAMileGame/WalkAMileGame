@@ -13,67 +13,7 @@ const Game = () => {
   const location = useLocation();
   const initialConfig = location.state?.boardConfig
   const [gameConfig, setGameConfig] = useState(initialConfig);
-  const [timerData, setTimerData] = useState(null);
   const { gamecode, teamname } = useParams();
-
-  // timer
-  useEffect(() => {
-    const fetchTimerData = async () => {
-      try {
-        console.log('Fetching timer data for room:', gamecode);
-        const response = await fetch(`${API_BASE}/rooms/${gamecode}`);
-        if (response.ok) {
-          const roomData = await response.json();
-          console.log('Room data received:', roomData);
-          console.log('Time remaining (minutes):', roomData.time_remaining);
-          console.log('Game started at:', roomData.game_started_at);
-          
-          const now = new Date();
-          let start, end, duration;
-          
-          if (roomData.game_started_at) {
-            // Game has started - calculate based on elapsed time
-            const gameStartTime = new Date(roomData.game_started_at);
-            const totalDuration = roomData.time_remaining * 60; // Total duration in seconds
-            const elapsedSeconds = Math.floor((now - gameStartTime) / 1000);
-            const remainingSeconds = Math.max(0, totalDuration - elapsedSeconds);
-            
-            console.log('Game started:', gameStartTime.toISOString());
-            console.log('Elapsed seconds:', elapsedSeconds);
-            console.log('Remaining seconds:', remainingSeconds);
-            
-            start = gameStartTime.toISOString();
-            end = new Date(gameStartTime.getTime() + totalDuration * 1000).toISOString();
-            duration = totalDuration;
-          } else {
-            // Game hasn't started yet - use full duration
-            const totalDuration = roomData.time_remaining * 60;
-            end = new Date(now.getTime() + totalDuration * 1000);
-            
-            start = now.toISOString();
-            end = end.toISOString();
-            duration = totalDuration;
-          }
-          
-          const timerDataObj = {
-            server_time: now.toISOString(),
-            start: start,
-            end: end,
-            duration: duration
-          };
-          
-          console.log('Timer data set:', timerDataObj);
-          setTimerData(timerDataObj);
-        } else {
-          console.error('Failed to fetch room data:', response.status);
-        }
-      } catch (err) {
-        console.error('Error fetching timer data:', err);
-      }
-    };
-    
-    fetchTimerData();
-  }, [gamecode]);
 
 
   const [rotations, setRotations] = useState({
@@ -472,7 +412,7 @@ const Game = () => {
       <div className="game-layout">
 
     <div className="clock">
-      {timerData && ( <Timer start={timerData.start} end={timerData.end} /> )}
+      <Timer gamecode={gamecode} />
     </div>
 
         {/* Main Content Area */}
