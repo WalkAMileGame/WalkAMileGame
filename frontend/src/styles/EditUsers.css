@@ -64,7 +64,7 @@ body:has(.edit-page) #root { /* there is a #root in gameboard.css, this cancels 
   margin-right: 10px
 }
 
-.deny-button {
+.remove-button {
   border: none;
   background-color: rgb(204, 0, 0);
   color: white;
@@ -83,7 +83,7 @@ body:has(.edit-page) #root { /* there is a #root in gameboard.css, this cancels 
   background-color: rgb(0, 206, 0);
 }
 
-.deny-button:hover {
+.remove-button:hover {
   background-color: red;
 }
 

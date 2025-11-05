@@ -168,7 +168,7 @@ def add_user(data: AcceptUser):
                         {"$set": {"role": data.role, "pending": False}},
                         upsert=True)
     
-@router.delete("/deny_user")
+@router.delete("/remove_user")
 def delete_board(data: DenyUser):
     db.users.delete_one({"email": data.email})
     
