@@ -10,8 +10,8 @@ export default function Lobby() {
   
   const [teamName, setTeamName] = useState('');
   const [roomData, setRoomData] = useState(null);
-  const [timeRemaining, setTimeRemaining] = useState(60);
-  const [timeInput, setTimeInput] = useState('60');
+  const [timeRemaining, setTimeRemaining] = useState(30);
+  const [timeInput, setTimeInput] = useState('30');
   const [isEditingTime, setIsEditingTime] = useState(false);
   const isEditingTimeRef = useRef(false);
   const [hasJoined, setHasJoined] = useState(false);
@@ -26,6 +26,7 @@ export default function Lobby() {
   // Create room when gamemaster arrives
   useEffect(() => {
     if (isGamemaster && boardConfig) {
+      console.log('Sending room data:', JSON.stringify(roomData, null, 2));
       createRoom();
     } else if (!isGamemaster) {
       // Players don't create rooms, mark as ready to poll
@@ -33,7 +34,8 @@ export default function Lobby() {
     }
   }, []);
 
-  // Poll room data after room is created or for players
+  // RESOLVED: Keep HEAD version - Poll room data after room is created or for players
+  // This is better because it waits for room creation before polling
   useEffect(() => {
     if (!roomCreated) return;
     
@@ -48,9 +50,13 @@ export default function Lobby() {
   // Redirect players when game starts
   useEffect(() => {
     if (roomData?.game_started && !isGamemaster) {
-      navigate(`/game/${inviteCode}`, {
-        state: { boardConfig: roomData.board_config }
-      });
+      // Get team name from sessionStorage since state is cleared after join
+      const savedTeamName = sessionStorage.getItem('teamName');
+      if (savedTeamName) {
+        navigate(`/game/${inviteCode}/${savedTeamName}`, {
+          state: { boardConfig: roomData.board_config, teamName: savedTeamName }
+        });
+      }
     }
   }, [roomData?.game_started, isGamemaster]);
 
@@ -90,7 +96,7 @@ export default function Lobby() {
       room_code: inviteCode.trim(), // Remove any whitespace
       gamemaster_name: 'Gamemaster',
       board_config: boardConfig,
-      time_remaining: 60,
+      time_remaining: timeRemaining,
       teams: [],
       game_started: false
     };
@@ -208,14 +214,15 @@ export default function Lobby() {
   const startGame = async () => {
     try {
       await fetch(`${API_BASE}/rooms/${inviteCode}/start`, { method: 'POST' });
-      navigate(`/game/${inviteCode}`, {
-        state: { boardConfig: boardConfig, isGamemaster: true }
+      navigate(`/game/${inviteCode}/${teamName || 'Gamemaster'}`, {
+        state: { boardConfig: boardConfig, isGamemaster: true, timeRemaining: timeRemaining, teamName: teamName || 'Gamemaster'}
       });
     } catch (err) {
       console.error('Error starting game:', err);
     }
   };
 
+  // RESOLVED: Combined both versions - error handling from HEAD + sessionStorage from merge branch
   const handleTeamSubmit = async () => {
     if (!teamName.trim()) {
       alert('Please enter a team name');
@@ -230,11 +237,12 @@ export default function Lobby() {
           id: Date.now(), // Generate unique ID
           team_name: teamName,
           circumstance: '',
-          current_energy: 0,
+          current_energy: 32,
           gameboard_state: roomData?.board_config?.ringData?.[0] || {} // Use first ring as default
         })
       });
       
+      // Keep error handling from HEAD
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Failed to create team:', errorText);
@@ -242,9 +250,12 @@ export default function Lobby() {
         return;
       }
       
+      // Add sessionStorage from merge branch
+      sessionStorage.setItem('teamName', teamName);
+      
       setHasJoined(true);
       setTeamName('');
-      loadRoomData();
+      await loadRoomData(); // Use await from merge branch
     } catch (err) {
       console.error('Error creating team:', err);
       alert('Error creating team. Please try again.');
@@ -308,20 +319,17 @@ export default function Lobby() {
                             onChange={(e) => setEditCircumstance(e.target.value)}
                             placeholder="Enter circumstance"
                             className="form-input"
-                            style={{ marginBottom: '8px' }}
                           />
                           <div style={{ display: 'flex', gap: '8px' }}>
                             <button 
                               onClick={() => updateTeamCircumstance(team.team_name, editCircumstance)}
                               className="btn btn-primary"
-                              style={{ fontSize: '0.9em', padding: '6px 12px' }}
                             >
                               Save
                             </button>
                             <button 
                               onClick={cancelEditingCircumstance}
                               className="btn"
-                              style={{ fontSize: '0.9em', padding: '6px 12px' }}
                             >
                               Cancel
                             </button>
@@ -333,18 +341,18 @@ export default function Lobby() {
                         </div>
                       )}
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="team-actions">
                       {editingTeam !== team.team_name && (
                         <button 
                           onClick={() => startEditingCircumstance(team)}
                           className="btn btn-primary"
                         >
-                          Edit Circumstance
+                          Edit
                         </button>
                       )}
                       <button 
                         onClick={() => deleteTeam(team.team_name)}
-                        className="btn btn-danger"
+                        className="btn btn-delete"
                       >
                         Delete
                       </button>

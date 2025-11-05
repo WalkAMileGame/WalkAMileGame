@@ -107,7 +107,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
       id: newLabelId,
       text: `New Action ${newLabelId}`,
       color: '#6b7280',
-      energyvalue: 1
+      energyvalue: 1,
+      energypoint: false
     });
     
     setLocalConfig(updatedConfig);
@@ -137,6 +138,7 @@ const loadSavedGameboard = async (boardData) => {
       labels: ring.labels.map((label) => ({
         ...label, 
         energyvalue: label.energyvalue ?? 1, // add default if missing
+        energypoint: label.energypoint ?? false
       })),
     })),
   };

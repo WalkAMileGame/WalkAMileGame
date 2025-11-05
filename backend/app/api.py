@@ -1,11 +1,12 @@
 """fast api logic"""
-from fastapi import FastAPI, HTTPException, status, Depends
+from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import APIRouter
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest, Room, Team
+# RESOLVED: Keep HEAD imports + add LayerData from merge branch (may be needed)
+from backend.app.models import Points, Boards, LoginRequest, Room, Team, LayerData
 from .db import db
 from backend.app.security import verify_password, create_access_token, get_current_active_user
+# RESOLVED: Keep timezone from HEAD (needed for UTC timestamps)
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 
@@ -137,6 +138,7 @@ def get_time(site: str ="game"):
     }
 
 
+# RESOLVED: Keep HEAD - MongoDB-based Room Management (superior to in-memory)
 # Room Management Endpoints
 
 @router.post("/rooms/create")
@@ -307,6 +309,8 @@ def start_game(room_code: str):
     
     return {"message": "Game started successfully"}
 
+
+# Team Board and Energy Management Endpoints
 
 class UpdateTeamBoard(BaseModel):
     board_state: dict
