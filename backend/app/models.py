@@ -1,7 +1,7 @@
 """backend information such as variables"""
 from pydantic import BaseModel, EmailStr, field_validator, Field
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Optional
 from datetime import datetime
 
 
@@ -13,19 +13,18 @@ class LabelData(BaseModel):
     id: int
     text: str
     color: str
-    energyvalue: Union[str, int]  # Allow both string and int
-    energypoint: Optional[bool] = False  # Make optional with default
+    energyvalue: int
+    energypoint: bool = False
 
 class LayerData(BaseModel):
     id: int
-    name: Optional[str] = None  # Make optional
     innerRadius: int
     outerRadius: int
     labels: list[LabelData]
 
 class Boards(BaseModel):
     name: str
-    rings: list[LayerData]
+    ringData: list[LayerData]
 
 class Role(str, Enum):
     """all existing roles are defined here"""
@@ -52,15 +51,15 @@ class Team(BaseModel):
     id: int
     team_name: str
     circumstance: str
-    current_energy: int
-    gameboard_state: LayerData
+    current_energy: int =32
+    gameboard_state: Optional[LayerData] = None
 
 class Room(BaseModel):
     room_code: str
     gamemaster_name: str
     board_config: Boards
     time_remaining: int = 30
-    teams: List[Team] = []
+    teams: List[Team] = Field(default_factory=list)
     game_started: bool = False
     created_at: Optional[str] = None
 

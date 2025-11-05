@@ -38,13 +38,13 @@ def update_points(data: ChangePoints):
 
 class NewBoard(BaseModel):
     name: str
-    rings: list
+    ringData: list
 
 
 @router.put("/save")
 def save_board(data: NewBoard):
     db.boards.update_one({"name": data.name},
-                         {"$set": {"name": data.name, "rings": data.rings}},
+                         {"$set": {"name": data.name, "ringData": data.ringData}},
                          upsert=True)
 
 
@@ -60,11 +60,6 @@ def delete_board(data: DeleteBoard):
 @router.get("/load_all")
 def load_boards():
     boards = list(db.boards.find(projection={"_id": False}))
-    # Transform ringData to rings for backward compatibility
-    for board in boards:
-        if "ringData" in board and "rings" not in board:
-            board["rings"] = board["ringData"]
-            del board["ringData"]
     return boards
 
 
@@ -311,3 +306,107 @@ def start_game(room_code: str):
         )
     
     return {"message": "Game started successfully"}
+
+
+class UpdateTeamBoard(BaseModel):
+    board_state: dict
+
+
+@router.get("/rooms/{room_code}/teams/{team_name}/board")
+def get_team_board(room_code: str, team_name: str):
+    """Get a team's board state"""
+    room = db.rooms.find_one({"room_code": room_code.upper()}, {"_id": 0})
+    if not room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+    
+    # Find the team in the room
+    team = next((t for t in room.get("teams", []) if t["team_name"] == team_name), None)
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Team not found"
+        )
+    
+    return team.get("gameboard_state", {})
+
+
+@router.put("/rooms/{room_code}/teams/{team_name}/board")
+def update_team_board(room_code: str, team_name: str, data: UpdateTeamBoard):
+    """Update a team's board state"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper(), "teams.team_name": team_name},
+        {"$set": {"teams.$.gameboard_state": data.board_state}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room or team not found"
+        )
+    
+    return {"message": "Board updated successfully"}
+
+
+class UpdateTeamEnergy(BaseModel):
+    change: int
+
+
+@router.get("/rooms/{room_code}/teams/{team_name}/energy")
+def get_team_energy(room_code: str, team_name: str):
+    """Get a team's current energy"""
+    room = db.rooms.find_one({"room_code": room_code.upper()}, {"_id": 0})
+    if not room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+    
+    # Find the team in the room
+    team = next((t for t in room.get("teams", []) if t["team_name"] == team_name), None)
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Team not found"
+        )
+    
+    return {"current_energy": team.get("current_energy", 0)}
+
+
+@router.put("/rooms/{room_code}/teams/{team_name}/energy")
+def update_team_energy(room_code: str, team_name: str, data: UpdateTeamEnergy):
+    """Update a team's energy (increment/decrement)"""
+    room = db.rooms.find_one({"room_code": room_code.upper()})
+    if not room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+    
+    # Find the team in the room
+    team = next((t for t in room.get("teams", []) if t["team_name"] == team_name), None)
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Team not found"
+        )
+    
+    # Calculate new energy (ensure it doesn't go below 0)
+    current_energy = team.get("current_energy", 0)
+    new_energy = max(0, current_energy + data.change)
+    
+    # Update in database
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper(), "teams.team_name": team_name},
+        {"$set": {"teams.$.current_energy": new_energy}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room or team not found"
+        )
+    
+    return {"current_energy": new_energy}

@@ -69,20 +69,20 @@ export default function Lobby() {
     }
     
     console.log('boardConfig.name:', boardConfig.name);
-    console.log('boardConfig.rings:', boardConfig.rings);
-    console.log('boardConfig.rings type:', Array.isArray(boardConfig.rings) ? 'array' : typeof boardConfig.rings);
-    console.log('boardConfig.rings length:', boardConfig.rings?.length);
+    console.log('boardConfig.ringData:', boardConfig.ringData);
+    console.log('boardConfig.ringData type:', Array.isArray(boardConfig.ringData) ? 'array' : typeof boardConfig.ringData);
+    console.log('boardConfig.ringData length:', boardConfig.ringData?.length);
     
-    if (boardConfig.rings && boardConfig.rings.length > 0) {
-      console.log('First ring structure:', JSON.stringify(boardConfig.rings[0], null, 2));
-      console.log('First ring keys:', Object.keys(boardConfig.rings[0]));
+    if (boardConfig.ringData && boardConfig.ringData.length > 0) {
+      console.log('First ring structure:', JSON.stringify(boardConfig.ringData[0], null, 2));
+      console.log('First ring keys:', Object.keys(boardConfig.ringData[0]));
     }
     
     // Validate the boardConfig has required fields
-    if (!boardConfig.name || !boardConfig.rings) {
+    if (!boardConfig.name || !boardConfig.ringData) {
       console.error('Invalid boardConfig structure:', boardConfig);
       console.error('boardConfig keys:', Object.keys(boardConfig));
-      alert(`Invalid board configuration. Board must have 'name' and 'rings' fields.`);
+      alert(`Invalid board configuration. Board must have 'name' and 'ringData' fields.`);
       return;
     }
     
@@ -231,7 +231,7 @@ export default function Lobby() {
           team_name: teamName,
           circumstance: '',
           current_energy: 0,
-          gameboard_state: roomData?.board_config?.rings?.[0] || {} // Use first ring as default
+          gameboard_state: roomData?.board_config?.ringData?.[0] || {} // Use first ring as default
         })
       });
       
