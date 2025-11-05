@@ -169,8 +169,7 @@ def create_room(room: Room):
             "board_config": room.board_config.model_dump() if hasattr(room.board_config, 'model_dump') else room.board_config.dict(),
             "teams": [],
             "time_remaining": room.time_remaining,
-            "game_started": False,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "game_started": False
         }
         
         print("=== ROOM DOCUMENT TO INSERT ===")
@@ -298,7 +297,9 @@ def start_game(room_code: str):
     """Start the game for a room"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
-        {"$set": {"game_started": True}}
+        {"$set": {"game_started": True,
+                  "game_started_at": datetime.now(timezone.utc).isoformat()
+                  }}
     )
     
     if result.matched_count == 0:

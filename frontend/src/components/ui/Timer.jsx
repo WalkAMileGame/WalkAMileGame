@@ -27,11 +27,7 @@ function Timer({ start, end, onEnd }) {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  return (
-    <div className="clock">
-      {formatTime(timeLeft)}
-    </div>
-  );
+  return formatTime(timeLeft)
 }
 
 export default Timer;

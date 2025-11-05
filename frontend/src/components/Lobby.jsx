@@ -386,7 +386,7 @@ export default function Lobby() {
         
         {!roomData ? (
           <div className="waiting-message pulse">
-            <p>Waiting for gamemaster to create the room...</p>
+            <p>Room does not exist. Waiting for gamemaster to create the room...</p>
           </div>
         ) : !hasJoined ? (
           <div className="form-section">
