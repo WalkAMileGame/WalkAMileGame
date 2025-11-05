@@ -24,7 +24,7 @@ const EditUsers = () => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [pendingUsers, setPendingUsers] = useState([])
   const [existingUsers, setExistingUsers] = useState([])
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadUsers();
