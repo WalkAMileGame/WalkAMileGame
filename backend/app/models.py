@@ -35,6 +35,7 @@ class UserData(BaseModel):
     email: EmailStr
     password: str
     role: Role = Role.GAMEMASTER
+    pending: bool = True
 
     @field_validator('password')
     def password_must_be_strong(cls, v):
@@ -68,3 +69,14 @@ class Room(BaseModel):
         if not v or len(v) < 4:
             raise ValueError('Room code must be at least 4 characters')
         return v.upper()
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class AcceptUser(BaseModel):
+    email: EmailStr
+    role: str
+
+class DenyUser(BaseModel):
+    email: EmailStr

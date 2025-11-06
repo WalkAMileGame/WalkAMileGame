@@ -1,15 +1,15 @@
 import React from "react"
 import '../styles/HomePage.css';
 import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import Instructions from "./ui/Instructions";
 import dudeIcon from '../assets/WAM_Element_3.png';
 
 
 
-const HomePage = () => {
+const HomePage = () => {  
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -37,6 +37,11 @@ const HomePage = () => {
     }
   };
 
+  const openAboutUs = (e) => {
+    e.preventDefault(); // prevent default link behavior
+    navigate("/about");
+  };
+
 
     return (
       <div className="home-text">
@@ -56,7 +61,7 @@ const HomePage = () => {
           <path id="curve" fill="transparent" stroke="none" d="M73.2,115.6c4-6.1,65.5-96.8,178.6-95.6c111.3,1.2,170.8,90.3,175.1,97" />
             <text width="300" fontSize="15" fill="white" fontFamily="Lilita One, sans-serif">
               <textPath href="#curve" startOffset="50%" textAnchor="middle">
-                <a href="#" style={{ fill: "white", textDecoration: "none" }}>ABOUT US</a>
+                <a href="#" style={{ fill: "white", textDecoration: "none" }} onClick={openAboutUs}>ABOUT US</a>
               </textPath>
             </text>
         </svg>

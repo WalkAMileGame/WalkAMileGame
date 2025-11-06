@@ -112,10 +112,11 @@ describe('HostGamePage - Core Functionality', () => {
     const startButton = screen.getByText('Start Game');
     fireEvent.click(startButton);
     
-    expect(mockNavigate).toHaveBeenCalledWith(`/game/${generatedCode}`, {
+    expect(mockNavigate).toHaveBeenCalledWith(`/waiting/${generatedCode}`, {
       state: {
         boardConfig: mockBoards[0],
         inviteCode: generatedCode,
+        isGamemaster: true,
       },
     });
   });

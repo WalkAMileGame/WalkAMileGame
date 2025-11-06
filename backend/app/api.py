@@ -2,13 +2,11 @@
 from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-# RESOLVED: Keep HEAD imports + add LayerData from merge branch (may be needed)
-from backend.app.models import Points, Boards, LoginRequest, Room, Team, LayerData
+from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team
 from .db import db
-from backend.app.security import verify_password, create_access_token, get_current_active_user
-# RESOLVED: Keep timezone from HEAD (needed for UTC timestamps)
 from datetime import datetime, timedelta, timezone
 from typing import Dict
+from backend.app.security import verify_password, create_access_token, get_current_active_user, get_password_hash
 
 router = APIRouter()
 
@@ -90,13 +88,16 @@ def load_instructions():
         return instructions_doc
     return {"instructions": "No instructions found."}
 
+
 @router.post("/login")
 def login(form_data: LoginRequest):
     user_in_db = db.users.find_one({"email": form_data.email})
     #print("form data:", form_data)
     #print("db output:", user_in_db)
-    #pw = get_password_hash(form_data.password)
+    pw = get_password_hash(form_data.password)
     #print("hashed:", pw)
+    #db.users.update_one({"email": form_data.email}, {"$set": {"email": form_data.email, "password": pw, "role": "admin", "pending": True}}, upsert=True)
+    #print(list(db.users.find()))
 
     if not user_in_db:
         raise HTTPException(
@@ -110,6 +111,12 @@ def login(form_data: LoginRequest):
             detail="Incorrect email or password",
         )
     
+    if user_in_db["pending"]:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account still pending to be accepted"
+        )
+    
     access_token = create_access_token(
         data={"sub": user_in_db["email"], "role": user_in_db["role"]}
     )
@@ -117,6 +124,24 @@ def login(form_data: LoginRequest):
     user_info = {"email": user_in_db["email"], "role": user_in_db["role"]}
 
     return {"access_token": access_token, "user": user_info}
+
+
+@router.post("/register")
+def register(form_data: RegisterRequest):
+    user_in_db = db.users.find_one({"email": form_data.email})
+
+    if user_in_db:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Email already in use",
+        )
+
+    #print("register for data:", form_data)
+    hashed_password = get_password_hash(form_data.password)
+    db.users.update_one({"email": form_data.email},
+                        {"$set": {"email": form_data.email, "password": hashed_password,
+                        "role": "admin", "pending": True}}, upsert=True)
+
 
 @router.get("/users/me", tags=["auth"])
 def read_current_user(current_user: dict = Depends(get_current_active_user)):
@@ -137,8 +162,6 @@ def get_time(site: str ="game"):
         "duration": duration
     }
 
-
-# RESOLVED: Keep HEAD - MongoDB-based Room Management (superior to in-memory)
 # Room Management Endpoints
 
 @router.post("/rooms/create")
@@ -415,3 +438,19 @@ def update_team_energy(room_code: str, team_name: str, data: UpdateTeamEnergy):
         )
     
     return {"current_energy": new_energy}
+
+
+@router.put("/accept_user")
+def add_user(data: AcceptUser):
+    db.users.update_one({"email": data.email},
+                        {"$set": {"role": data.role, "pending": False}},
+                        upsert=True)
+    
+@router.delete("/remove_user")
+def delete_board(data: DenyUser):
+    db.users.delete_one({"email": data.email})
+    
+@router.get("/load_users")
+def load_users():
+    users = list(db.users.find(projection={"_id": False}))
+    return users
