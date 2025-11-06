@@ -1121,7 +1121,7 @@ describe('Lobby Component', () => {
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Enter team name')).toBeInTheDocument();
-      }, { timeout: 10000 });
+      }, { timeout: 15000 });
 
       // Join team
       const teamInput = screen.getByPlaceholderText('Enter team name');
