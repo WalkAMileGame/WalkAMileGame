@@ -25,8 +25,7 @@ export default function Lobby() {
 
   // Create room when gamemaster arrives
   useEffect(() => {
-    if (isGamemaster && boardConfig) {
-      console.log('Sending room data:', JSON.stringify(roomData, null, 2));
+    if (isGamemaster) {
       createRoom();
     } else if (!isGamemaster) {
       // Players don't create rooms, mark as ready to poll
@@ -257,8 +256,8 @@ export default function Lobby() {
       setTeamName('');
       await loadRoomData(); // Use await from merge branch
     } catch (err) {
-      console.error('Error creating team:', err);
-      alert('Error creating team. Please try again.');
+      console.error('Failed to create team:', err);
+      alert('Failed to create team. Please try again.');
     }
   };
 
