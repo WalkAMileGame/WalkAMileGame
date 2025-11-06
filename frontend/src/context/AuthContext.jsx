@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { API_BASE } from '../api';
 
 
@@ -9,9 +9,15 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);      // JWT or opaque token
   const [loading, setLoading] = useState(true);  // initial restore state
   const [error, setError] = useState(null);
+  
+  const hasRestored = useRef(false);
 
+  
   // Restore session on app load
   useEffect(() => {
+    if (hasRestored.current) return;
+    hasRestored.current = true;
+
     const stored = localStorage.getItem('wam_auth');
     let initialToken = null;
 

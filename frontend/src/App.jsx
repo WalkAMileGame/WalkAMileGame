@@ -17,11 +17,13 @@ import EditUsers from './components/EditUsers';
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
+    
+    <AuthProvider>
+      <Router>
         <AppContent />
-      </AuthProvider>
-    </Router>
+      </Router>
+    </AuthProvider>
+    
   );
 }
 
@@ -73,7 +75,10 @@ function AppContent() {
             <Route path="/gameboard" element={<GameBoard />} />
             <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
             <Route path="/hostgame" element={<HostGamePage />} />
-             <Route path="/edit_users" element={<EditUsers />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route path="/edit_users" element={<EditUsers />} />
           </Route>
         </Routes>
     </>

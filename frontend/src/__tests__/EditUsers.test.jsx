@@ -8,7 +8,7 @@ import EditUsers from '../components/EditUsers';
 
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
-    user: { email: 'admin@test.com' },
+    user: { email: 'admin@test.com', role: 'admin' },
     login: vi.fn(),
     logout: vi.fn(),
   }),
@@ -21,9 +21,9 @@ const mockUsers = [
     pending: false
   },
 	{
-		email: 'gamemaster@test.com',
-		role: 'gamemaster',
-		pending: false
+	  email: 'gamemaster@test.com',
+	  role: 'gamemaster',
+	  pending: false
 	},
 	{
 		email: 'new@test.com',

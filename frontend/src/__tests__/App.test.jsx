@@ -7,7 +7,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
 const mockEnergy = {values: 32}
 
-describe("GameBoardSettings", () => {
+describe("App", () => {
   beforeAll(() => {
     global.fetch = vi.fn(() =>
       Promise.resolve({
