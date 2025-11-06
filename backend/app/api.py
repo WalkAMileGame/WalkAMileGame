@@ -3,15 +3,10 @@ from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team
-# RESOLVED: Keep HEAD imports + add LayerData from merge branch (may be needed)
-from backend.app.models import Points, Boards, LoginRequest, Room, Team, LayerData
 from .db import db
-from backend.app.security import verify_password, create_access_token, get_current_active_user
-# RESOLVED: Keep timezone from HEAD (needed for UTC timestamps)
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 from backend.app.security import verify_password, create_access_token, get_current_active_user, get_password_hash
-from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
 
@@ -167,8 +162,6 @@ def get_time(site: str ="game"):
         "duration": duration
     }
 
-
-# RESOLVED: Keep HEAD - MongoDB-based Room Management (superior to in-memory)
 # Room Management Endpoints
 
 @router.post("/rooms/create")
