@@ -64,16 +64,17 @@ export default function HostGamePage() {
   const [isLoadingBoards, setIsLoadingBoards] = useState(false);
   const [isGamemaster] = useState(true);
 
-  // ADD THIS: Load gameboards when component mounts
+  // Load gameboards when component mounts
   useEffect(() => {
     loadGameboards();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   const loadGameboards = async () => {
     setIsLoadingBoards(true);
     try {
         const response = await fetch(`${API_BASE}/load_all`);
         const data = await response.json();
+        console.log('Loaded boards:', data);
         setBoards(data);
     } catch (error) {
         console.error("Failed to load gameboards:", error);
@@ -94,26 +95,41 @@ export default function HostGamePage() {
 
   const copyToClipboard = () => {
     if (inviteCode) {
-      navigator.clipboard.writeText(inviteCode);
+      navigator.clipboard.writeText(inviteCode.trim());
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   const handleStartGame = () => {
-    if (!selectedBoard || !inviteCode) {
+    const trimmedCode = inviteCode.trim();
+    
+    if (!selectedBoard || !trimmedCode) {
       alert('Please select a board and generate/enter an invite code');
       return;
     }
+    
     const selectedBoardData = boards.find(board => board.name === selectedBoard);
-    navigate(`/waiting/${inviteCode}`, {
-        state: { 
+    
+    if (!selectedBoardData) {
+      alert('Selected board not found');
+      return;
+    }
+    
+    console.log('Starting game with:', {
+      board: selectedBoardData,
+      code: trimmedCode,
+      isGamemaster
+    });
+    
+    navigate(`/waiting/${trimmedCode}`, {
+      state: { 
         boardConfig: selectedBoardData,
-        inviteCode: inviteCode,
+        inviteCode: trimmedCode,
         isGamemaster: isGamemaster
-        }
-  });
-};
+      }
+    });
+  };
 
   return (
     <div className="host-game-container">
@@ -164,7 +180,7 @@ export default function HostGamePage() {
               type="text"
               value={inviteCode}
               onChange={(e) => {
-              const allowedChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                const allowedChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
                 const filtered = e.target.value
                   .toUpperCase()
                   .split('')
@@ -199,7 +215,7 @@ export default function HostGamePage() {
           <div className="game-details">
             <h3>Game Details:</h3>
             <p>Board: <span>{selectedBoard}</span></p>
-            <p>Code: <span>{inviteCode}</span></p>
+            <p>Code: <span>{inviteCode.trim()}</span></p>
           </div>
         )}
 

@@ -62,7 +62,7 @@ class Room(BaseModel):
     time_remaining: int = 30
     teams: List[Team] = Field(default_factory=list)
     game_started: bool = False
-    created_at: Optional[str] = None
+    game_started_at: Optional[str] = None
 
     @field_validator('room_code')
     def code_must_be_valid(cls, v):

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { API_BASE } from '../api';
 import '../styles/Lobby.css';
@@ -9,12 +9,17 @@ export default function Lobby() {
   const navigate = useNavigate();
   
   const [teamName, setTeamName] = useState('');
-  const [circumstance, setCircumstance] = useState('');
   const [roomData, setRoomData] = useState(null);
-  const [timeRemaining, setTimeRemaining] = useState(60);
+  const [timeRemaining, setTimeRemaining] = useState(30);
+  const [timeInput, setTimeInput] = useState('30');
+  const [isEditingTime, setIsEditingTime] = useState(false);
+  const isEditingTimeRef = useRef(false);
   const [hasJoined, setHasJoined] = useState(false);
+  const [editingTeam, setEditingTeam] = useState(null);
+  const [editCircumstance, setEditCircumstance] = useState('');
+  const [roomCreated, setRoomCreated] = useState(false);
   
-  const inviteCode = location.state?.inviteCode || gamecode;
+  const inviteCode = (location.state?.inviteCode || gamecode || '').trim();
   const isGamemaster = location.state?.isGamemaster || false;
   const boardConfig = location.state?.boardConfig;
 
@@ -23,36 +28,72 @@ export default function Lobby() {
     if (isGamemaster && boardConfig) {
       console.log('Sending room data:', JSON.stringify(roomData, null, 2));
       createRoom();
+    } else if (!isGamemaster) {
+      // Players don't create rooms, mark as ready to poll
+      setRoomCreated(true);
     }
   }, []);
 
-  // Poll room data for everyone
-    useEffect(() => {
+  // RESOLVED: Keep HEAD version - Poll room data after room is created or for players
+  // This is better because it waits for room creation before polling
+  useEffect(() => {
+    if (!roomCreated) return;
+    
+    const timer = setTimeout(() => {
       loadRoomData();
       const interval = setInterval(loadRoomData, 2000);
       return () => clearInterval(interval);
-    }, []);
-
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [roomCreated]);
 
   // Redirect players when game starts
   useEffect(() => {
     if (roomData?.game_started && !isGamemaster) {
-      navigate(`/game/${inviteCode}/${teamName}`, {
-        state: { boardConfig: roomData.board_config, teamName:teamName }
-      });
+      // Get team name from sessionStorage since state is cleared after join
+      const savedTeamName = sessionStorage.getItem('teamName');
+      if (savedTeamName) {
+        navigate(`/game/${inviteCode}/${savedTeamName}`, {
+          state: { boardConfig: roomData.board_config, teamName: savedTeamName }
+        });
+      }
     }
   }, [roomData?.game_started, isGamemaster]);
 
   const createRoom = async () => {
-    console.log('Creating room with:', { inviteCode, boardConfig, isGamemaster });
+    console.log('=== CREATE ROOM DEBUG ===');
+    console.log('inviteCode:', `"${inviteCode}"`); // Quotes will show spaces
+    console.log('inviteCode length:', inviteCode.length);
+    console.log('boardConfig:', boardConfig);
+    console.log('boardConfig type:', typeof boardConfig);
+    console.log('boardConfig keys:', boardConfig ? Object.keys(boardConfig) : 'null');
     
     if (!boardConfig) {
       console.error('Cannot create room: boardConfig is missing');
+      alert('No board configuration found. Please create a board first.');
       return;
     }
     
-    const roomData = {
-      room_code: inviteCode,
+    console.log('boardConfig.name:', boardConfig.name);
+    console.log('boardConfig.ringData:', boardConfig.ringData);
+    console.log('boardConfig.ringData type:', Array.isArray(boardConfig.ringData) ? 'array' : typeof boardConfig.ringData);
+    console.log('boardConfig.ringData length:', boardConfig.ringData?.length);
+    
+    if (boardConfig.ringData && boardConfig.ringData.length > 0) {
+      console.log('First ring structure:', JSON.stringify(boardConfig.ringData[0], null, 2));
+      console.log('First ring keys:', Object.keys(boardConfig.ringData[0]));
+    }
+    
+    // Validate the boardConfig has required fields
+    if (!boardConfig.name || !boardConfig.ringData) {
+      console.error('Invalid boardConfig structure:', boardConfig);
+      console.error('boardConfig keys:', Object.keys(boardConfig));
+      alert(`Invalid board configuration. Board must have 'name' and 'ringData' fields.`);
+      return;
+    }
+    
+    const roomPayload = {
+      room_code: inviteCode.trim(), // Remove any whitespace
       gamemaster_name: 'Gamemaster',
       board_config: boardConfig,
       time_remaining: timeRemaining,
@@ -60,23 +101,40 @@ export default function Lobby() {
       game_started: false
     };
     
-    console.log('Sending room data:', JSON.stringify(roomData, null, 2));
+    console.log('=== FINAL PAYLOAD ===');
+    console.log(JSON.stringify(roomPayload, null, 2));
     
     try {
       const response = await fetch(`${API_BASE}/rooms/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(roomData)
+        body: JSON.stringify(roomPayload)
       });
       
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Failed to create room:', errorData);
+        const errorText = await response.text();
+        console.error('=== ERROR RESPONSE ===');
+        console.error('Status:', response.status);
+        console.error('Error text:', errorText);
+        try {
+          const errorData = JSON.parse(errorText);
+          console.error('Parsed error:', JSON.stringify(errorData, null, 2));
+        } catch (e) {
+          console.error('Could not parse error as JSON');
+        }
+        alert('Failed to create room. Check console for details.');
       } else {
-        console.log('Room created successfully');
+        const responseData = await response.json();
+        console.log('=== SUCCESS ===');
+        console.log('Room created:', responseData);
+        setRoomCreated(true);
       }
     } catch (err) {
+      console.error('=== EXCEPTION ===');
       console.error('Error creating room:', err);
+      alert('Error creating room. Please try again.');
     }
   };
 
@@ -86,7 +144,14 @@ export default function Lobby() {
       if (response.ok) {
         const data = await response.json();
         setRoomData(data);
-        setTimeRemaining(data.time_remaining);
+        // Only update time if user is not currently editing it
+        if (!isEditingTimeRef.current) {
+          setTimeRemaining(data.time_remaining);
+          setTimeInput(String(data.time_remaining));
+        }
+      } else if (response.status === 404) {
+        // Room doesn't exist yet - this is normal for players arriving before gamemaster
+        console.log('Room not found yet, will retry...');
       }
     } catch (err) {
       console.error('Error loading room:', err);
@@ -94,12 +159,17 @@ export default function Lobby() {
   };
 
   const updateTime = async () => {
+    const newTime = parseInt(timeInput) || 0;
     try {
       await fetch(`${API_BASE}/rooms/${inviteCode}/time`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ time_remaining: timeRemaining })
+        body: JSON.stringify({ time_remaining: newTime })
       });
+      setTimeRemaining(newTime);
+      setIsEditingTime(false);
+      isEditingTimeRef.current = false;
+      loadRoomData();
     } catch (err) {
       console.error('Error updating time:', err);
     }
@@ -116,6 +186,31 @@ export default function Lobby() {
     }
   };
 
+  const updateTeamCircumstance = async (teamName, circumstance) => {
+    try {
+      await fetch(`${API_BASE}/rooms/${inviteCode}/teams/${teamName}/circumstance`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ circumstance })
+      });
+      setEditingTeam(null);
+      setEditCircumstance('');
+      loadRoomData();
+    } catch (err) {
+      console.error('Error updating team circumstance:', err);
+    }
+  };
+
+  const startEditingCircumstance = (team) => {
+    setEditingTeam(team.team_name);
+    setEditCircumstance(team.circumstance || '');
+  };
+
+  const cancelEditingCircumstance = () => {
+    setEditingTeam(null);
+    setEditCircumstance('');
+  };
+
   const startGame = async () => {
     try {
       await fetch(`${API_BASE}/rooms/${inviteCode}/start`, { method: 'POST' });
@@ -127,22 +222,43 @@ export default function Lobby() {
     }
   };
 
+  // RESOLVED: Combined both versions - error handling from HEAD + sessionStorage from merge branch
   const handleTeamSubmit = async () => {
+    if (!teamName.trim()) {
+      alert('Please enter a team name');
+      return;
+    }
+    
     try {
-      await fetch(`${API_BASE}/rooms/${inviteCode}/teams`, {
+      const response = await fetch(`${API_BASE}/rooms/${inviteCode}/teams`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: Date.now(), // Generate unique ID
           team_name: teamName,
-          circumstance: circumstance,
-          board_status: {}
+          circumstance: '',
+          current_energy: 32,
+          gameboard_state: roomData?.board_config?.ringData?.[0] || {} // Use first ring as default
         })
       });
+      
+      // Keep error handling from HEAD
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to create team:', errorText);
+        alert('Failed to create team. Please try again.');
+        return;
+      }
+      
+      // Add sessionStorage from merge branch
       sessionStorage.setItem('teamName', teamName);
+      
       setHasJoined(true);
-      await loadRoomData();
+      setTeamName('');
+      await loadRoomData(); // Use await from merge branch
     } catch (err) {
       console.error('Error creating team:', err);
+      alert('Error creating team. Please try again.');
     }
   };
 
@@ -159,8 +275,25 @@ export default function Lobby() {
             <span className="time-label">Time Remaining (minutes):</span>
             <input
               type="number"
-              value={timeRemaining}
-              onChange={(e) => setTimeRemaining(parseInt(e.target.value) || 0)}
+              value={timeInput}
+              onChange={(e) => setTimeInput(e.target.value)}
+              onFocus={() => {
+                setIsEditingTime(true);
+                isEditingTimeRef.current = true;
+              }}
+              onBlur={() => {
+                // If empty, set to '0'
+                if (timeInput === '') {
+                  setTimeInput('0');
+                }
+                setIsEditingTime(false);
+                isEditingTimeRef.current = false;
+              }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  updateTime();
+                }
+              }}
               className="time-input"
             />
             <button onClick={updateTime} className="btn btn-primary">
@@ -178,14 +311,52 @@ export default function Lobby() {
                   <li key={index} className="team-item">
                     <div className="team-info">
                       <div className="team-name">{team.team_name}</div>
-                      <div className="team-circumstance">{team.circumstance}</div>
+                      {editingTeam === team.team_name ? (
+                        <div className="edit-circumstance-section">
+                          <input
+                            type="text"
+                            value={editCircumstance}
+                            onChange={(e) => setEditCircumstance(e.target.value)}
+                            placeholder="Enter circumstance"
+                            className="form-input"
+                          />
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button 
+                              onClick={() => updateTeamCircumstance(team.team_name, editCircumstance)}
+                              className="btn btn-primary"
+                            >
+                              Save
+                            </button>
+                            <button 
+                              onClick={cancelEditingCircumstance}
+                              className="btn"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="team-circumstance">
+                          {team.circumstance || <em style={{ color: '#999' }}>No circumstance set</em>}
+                        </div>
+                      )}
                     </div>
-                    <button 
-                      onClick={() => deleteTeam(team.team_name)}
-                      className="btn btn-danger"
-                    >
-                      Delete
-                    </button>
+                    <div className="team-actions">
+                      {editingTeam !== team.team_name && (
+                        <button 
+                          onClick={() => startEditingCircumstance(team)}
+                          className="btn btn-primary"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => deleteTeam(team.team_name)}
+                        className="btn btn-delete"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -213,7 +384,11 @@ export default function Lobby() {
           <h1 className="lobby-title">Lobby: {inviteCode}</h1>
         </div>
         
-        {!hasJoined ? (
+        {!roomData ? (
+          <div className="waiting-message pulse">
+            <p>Room does not exist. Waiting for gamemaster to create the room...</p>
+          </div>
+        ) : !hasJoined ? (
           <div className="form-section">
             <div className="form-group">
               <label className="form-label">Team Name</label>
@@ -222,17 +397,6 @@ export default function Lobby() {
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
                 placeholder="Enter team name"
-                className="form-input"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label className="form-label">Circumstance</label>
-              <input
-                type="text"
-                value={circumstance}
-                onChange={(e) => setCircumstance(e.target.value)}
-                placeholder="Enter circumstance"
                 className="form-input"
               />
             </div>
@@ -247,25 +411,27 @@ export default function Lobby() {
           </div>
         )}
 
-        <div className="teams-section">
-          <h2 className="teams-header">
-            Teams <span className="teams-count">{roomData?.teams?.length || 0}</span>
-          </h2>
-          {roomData?.teams?.length > 0 ? (
-            <ul className="teams-list">
-              {roomData.teams.map((team, index) => (
-                <li key={index} className="team-item">
-                  <div className="team-info">
-                    <div className="team-name">{team.team_name}</div>
-                    <div className="team-circumstance">{team.circumstance}</div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="no-teams">No teams yet</div>
-          )}
-        </div>
+        {roomData && (
+          <div className="teams-section">
+            <h2 className="teams-header">
+              Teams <span className="teams-count">{roomData?.teams?.length || 0}</span>
+            </h2>
+            {roomData?.teams?.length > 0 ? (
+              <ul className="teams-list">
+                {roomData.teams.map((team, index) => (
+                  <li key={index} className="team-item">
+                    <div className="team-info">
+                      <div className="team-name">{team.team_name}</div>
+                      <div className="team-circumstance">{team.circumstance || <em style={{ color: '#999' }}>No circumstance set</em>}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="no-teams">No teams yet</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

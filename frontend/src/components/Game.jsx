@@ -13,15 +13,7 @@ const Game = () => {
   const location = useLocation();
   const initialConfig = location.state?.boardConfig
   const [gameConfig, setGameConfig] = useState(initialConfig);
-  const [timerData, setTimerData] = useState(null);
   const { gamecode, teamname } = useParams();
-
-  // timer
-  //   useEffect(() => {
-  //   fetch(`${API_BASE}/timer?site=game`)
-  //     .then(res => res.json())
-  //     .then(data => setTimerData(data));
-  // }, []);
 
 
   const [rotations, setRotations] = useState({
@@ -420,7 +412,7 @@ const Game = () => {
       <div className="game-layout">
 
     <div className="clock">
-      {timerData && ( <Timer start={timerData.start} end={timerData.end} /> )}
+      <Timer gamecode={gamecode} />
     </div>
 
         {/* Main Content Area */}
