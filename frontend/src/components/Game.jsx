@@ -12,7 +12,7 @@ import Timer from "./ui/Timer";
 const Game = () => {
   const location = useLocation();
   const initialConfig = location.state?.boardConfig
-  const [gameConfig, setGameConfig] = useState(initialConfig);
+  const [gameConfig, setGameConfig] = useState(initialConfig || { ringData: [] })
   const { gamecode, teamname } = useParams();
 
 
@@ -28,15 +28,16 @@ const Game = () => {
 
   // fetch board
   useEffect(() => {
-    if (teamname !== "Gamemaster") {
+    if (!gameConfig && teamname !== "Gamemaster") {
       fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`)
         .then((res) => {
           if (!res.ok) throw new Error("No board found for team");
           return res.json();
         })
+        .then((data) => setGameConfig(data))
         .catch(err => console.warn("Board fetch skipped:", err.message));
     }
-  }, [gamecode, teamname]);
+  }, [gameConfig, gamecode, teamname]);
 
  // fetching points and updating poins
 
@@ -406,7 +407,7 @@ const Game = () => {
 
   return (
     <>
-      <div className="energypoints">
+      <div className="energypoints" data-testid="energypoints">
         Remaining energypoints: {points}
       </div>
       <div className="game-layout">
