@@ -62,6 +62,7 @@ export default function HostGamePage() {
   const [copied, setCopied] = useState(false);
   const [boards, setBoards] = useState([]);
   const [isLoadingBoards, setIsLoadingBoards] = useState(false);
+  const [isGamemaster] = useState(true);
 
   // ADD THIS: Load gameboards when component mounts
   useEffect(() => {
@@ -105,10 +106,11 @@ export default function HostGamePage() {
       return;
     }
     const selectedBoardData = boards.find(board => board.name === selectedBoard);
-    navigate(`/game/${inviteCode}`, {
+    navigate(`/waiting/${inviteCode}`, {
         state: { 
         boardConfig: selectedBoardData,
-        inviteCode: inviteCode 
+        inviteCode: inviteCode,
+        isGamemaster: isGamemaster
         }
   });
 };
