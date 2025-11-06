@@ -17,11 +17,13 @@ import EditUsers from './components/EditUsers';
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
+    
+    <AuthProvider>
+      <Router>
         <AppContent />
-      </AuthProvider>
-    </Router>
+      </Router>
+    </AuthProvider>
+    
   );
 }
 
