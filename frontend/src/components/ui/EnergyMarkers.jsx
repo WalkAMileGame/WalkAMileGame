@@ -61,10 +61,10 @@ const EnergyMarkers = ({
             <image
               data-testid={`energy-marker-${label.id}`}
               href={getEnergyIcon(label.energyvalue)}
-              x={x - 60}
-              y={y - 60}
-              width="120"
-              height="120"
+              x={x - 30}
+              y={y - 30}
+              width="60"
+              height="60"
             />
           </g>
           </g>

@@ -12,7 +12,7 @@ import Timer from "./ui/Timer";
 const Game = () => {
   const location = useLocation();
   const initialConfig = location.state?.boardConfig
-  const [gameConfig, setGameConfig] = useState(initialConfig);
+  const [gameConfig, setGameConfig] = useState(initialConfig || { ringData: [] })
   const { gamecode, teamname } = useParams();
 
 
@@ -26,17 +26,42 @@ const Game = () => {
   const [activeMarkers, setActiveMarkers] = useState(new Set());
   const [points, setPoints] = useState(0)
 
-  // fetch board
+  // fetch board && display energymarkers if energypoint true
   useEffect(() => {
-    if (teamname !== "Gamemaster") {
-      fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`)
-        .then((res) => {
-          if (!res.ok) throw new Error("No board found for team");
-          return res.json();
-        })
-        .catch(err => console.warn("Board fetch skipped:", err.message));
-    }
-  }, [gamecode, teamname]);
+    if (teamname === "Gamemaster") return;
+
+    const fetchBoard = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`);
+        if (!res.ok) throw new Error("No board found for team");
+        const data = await res.json();
+
+        // Restore energy markers from fetched board
+        const restored = restoreEnergyMarkers(data);
+        setActiveMarkers(restored);
+        setGameConfig(data);
+      } catch (err) {
+        console.warn("Board fetch skipped:", err.message);
+      }
+    };
+
+    fetchBoard();
+  }, [gamecode, teamname]); 
+
+
+const restoreEnergyMarkers = (boardData) => {
+  if (!boardData?.ringData) return new Set();
+
+  const restored = new Set();
+  boardData.ringData.forEach((ring) => {
+    ring.labels.forEach((label) => {
+      if (label.energypoint) {
+        restored.add(`${ring.id}-${label.id}`);
+      }
+    });
+  });
+  return restored;
+};
 
  // fetching points and updating poins
 
@@ -55,6 +80,76 @@ const Game = () => {
       .then((res) => res.json())
       .then((data) => setPoints(data.current_energy));
   };
+
+    // Handle slice click
+  const handleSliceClick = (e, label, ringId, energyvalue) => {
+    e.stopPropagation();
+    
+    if (dragState.current.isDragging || dragState.current.recentlyDragged) {
+      return;
+    }
+    const compositeKey = `${ringId}-${label.id}`;
+    const hasMarker = activeMarkers.has(compositeKey);
+    
+    if (hasMarker) {
+      updatingPoints(energyvalue); // Remove marker - refund energy
+      setGameConfig((prev) => ({
+      ...prev,
+      rings: prev.ringData.map((ring) =>
+        ring.id === ringId
+          ? {
+              ...ring,
+              labels: ring.labels.map((l) =>
+                l.id === label.id ? { ...l, energypoint: false } : l
+              ),
+            }
+          : ring),
+    }));
+      setActiveMarkers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(compositeKey);
+        return newSet;
+      });
+    } else if (points >= energyvalue) {
+      updatingPoints(- energyvalue); // Add marker - spend energy
+      setGameConfig((prev) => ({
+      ...prev,
+      rings: prev.ringData.map((ring) =>
+        ring.id === ringId
+          ? {
+              ...ring,
+              labels: ring.labels.map((l) =>
+                l.id === label.id ? { ...l, energypoint: true } : l
+              ),
+            }
+          : ring),
+    }));
+      setActiveMarkers(prev => new Set([...prev, compositeKey]));
+    }
+    setGameConfig(prev => {
+      const updated = {
+        ...prev,
+        ringData: prev.ringData.map(ring => 
+          ring.id == ringId
+          ? {
+            ...ring,
+            labels: ring.labels.map(l =>
+              l.id ==label.id 
+              ? { ...l, energypoint: !hasMarker }
+              : l
+            ),
+          }
+          : ring
+        ),
+      }
+    fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ board_state: updated }),
+  }).catch((err) => console.error("Failed to update board:", err));
+  return updated;
+})
+};
   
   const containerRef = useRef(null);
   
@@ -195,57 +290,6 @@ const Game = () => {
     setHoveredSlice(null);
   };
 
-  // Handle slice click
-  const handleSliceClick = (e, label, ringId, energyvalue) => {
-    e.stopPropagation();
-    
-    if (dragState.current.isDragging || dragState.current.recentlyDragged) {
-      return;
-    }
-    const compositeKey = `${ringId}-${label.id}`;
-    const hasMarker = activeMarkers.has(compositeKey);
-    
-    if (hasMarker) {
-      updatingPoints(energyvalue); // Remove marker - refund energy
-      setGameConfig((prev) => ({
-      ...prev,
-      rings: prev.ringData.map((ring) =>
-        ring.id === ringId
-          ? {
-              ...ring,
-              labels: ring.labels.map((l) =>
-                l.id === label.id ? { ...l, energypoint: false } : l
-              ),
-            }
-          : ring),
-    }));
-      setActiveMarkers(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(compositeKey);
-        return newSet;
-      });
-    } else if (points >= energyvalue) {
-      updatingPoints(- energyvalue); // Add marker - spend energy
-      setGameConfig((prev) => ({
-      ...prev,
-      rings: prev.ringData.map((ring) =>
-        ring.id === ringId
-          ? {
-              ...ring,
-              labels: ring.labels.map((l) =>
-                l.id === label.id ? { ...l, energypoint: true } : l
-              ),
-            }
-          : ring),
-    }));
-      setActiveMarkers(prev => new Set([...prev, compositeKey]));
-    }
-    fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(gameConfig),
-  }).catch((err) => console.error("Failed to update board:", err));
-};
 
   // Handle slice hover for tooltip
   const handleSliceMouseEnter = (e, label, ringId, energyvalue) => {
@@ -406,7 +450,7 @@ const Game = () => {
 
   return (
     <>
-      <div className="energypoints">
+      <div className="energypoints" data-testid="energypoints">
         Remaining energypoints: {points}
       </div>
       <div className="game-layout">
