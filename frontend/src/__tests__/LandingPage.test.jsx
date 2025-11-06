@@ -7,7 +7,7 @@ import { vi } from 'vitest';
 
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
-    user: { email: 'test@example.com' },
+    user: { email: 'test@example.com', role: "admin" },
     login: vi.fn(),
     logout: vi.fn(),
   }),
