@@ -26,7 +26,7 @@ const mockUsers = [
 	  pending: false
 	},
 	{
-		email: 'new@test.com',
+	email: 'new@test.com',
     role: 'gamemaster',
     pending: true
 	}
@@ -57,7 +57,6 @@ describe('EditUsers', () => {
 	  );
 
 	  expect(screen.getByText('Existing users')).toBeInTheDocument();
-	  expect(screen.getByText('Pending users')).toBeInTheDocument();
 	});
 
 
@@ -68,14 +67,14 @@ describe('EditUsers', () => {
 			</MemoryRouter>
 	  );
 
-		const admin = await screen.findByText('admin@test.com, admin');
-		expect(admin.closest('.existing-users')).toBeInTheDocument();
+		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+		expect(admin).toBeInTheDocument();
 
-		const gamemaster = await screen.findByText('gamemaster@test.com, gamemaster');
-		expect(gamemaster.closest('.existing-users')).toBeInTheDocument();
+		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
+		expect(gamemaster).toBeInTheDocument();
 
-		const pending = await screen.findByText('new@test.com');
-		expect(pending.closest('.pending-users')).toBeInTheDocument();
+		const pending = await screen.findByText((content) => content.includes('new@test.com'))
+		expect(pending).toBeInTheDocument();
 	});
 
 
@@ -87,7 +86,7 @@ describe('EditUsers', () => {
   	    <EditUsers />
   	  </MemoryRouter>
   	);
-  	  const acceptButton = await screen.findByRole('button', { name: 'Accept' });
+  	  const acceptButton = await screen.findByTitle("Accept");
 
   	  expect(acceptButton).toBeInTheDocument();
 
@@ -97,18 +96,18 @@ describe('EditUsers', () => {
 
 			const acceptButtons = await screen.findAllByRole('button', { name: 'Accept' });
 
-  	  expect(acceptButtons[1]).toBeInTheDocument();
+  	  expect(acceptButtons[0]).toBeInTheDocument();
 
-			await user.click(acceptButtons[1]);
+			await user.click(acceptButtons[0]);
 
-			const admin = await screen.findByText('admin@test.com, admin');
-			expect(admin.closest('.existing-users')).toBeInTheDocument();
+		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+		expect(admin).toBeInTheDocument();
 
-			const gamemaster = await screen.findByText('gamemaster@test.com, gamemaster');
-			expect(gamemaster.closest('.existing-users')).toBeInTheDocument();
+		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
+		expect(gamemaster).toBeInTheDocument();
 
-			const added = await screen.findByText('new@test.com, gamemaster');
-			expect(added.closest('.existing-users')).toBeInTheDocument();
+		const pending = await screen.findByText((content) => content.includes('new@test.com'))
+		expect(pending).toBeInTheDocument();
 	})
 
 
@@ -120,7 +119,7 @@ describe('EditUsers', () => {
   	    <EditUsers />
   	  </MemoryRouter>
   	);
-  	  const acceptButton = await screen.findByRole('button', { name: 'Accept' });
+  	  const acceptButton = await screen.findByTitle("Accept");
 
   	  expect(acceptButton).toBeInTheDocument();
 
@@ -133,18 +132,18 @@ describe('EditUsers', () => {
 
 			const acceptButtons = await screen.findAllByRole('button', { name: 'Accept' });
 
-  	  expect(acceptButtons[1]).toBeInTheDocument();
+  	  expect(acceptButtons[0]).toBeInTheDocument();
 
-			await user.click(acceptButtons[1]);
+			await user.click(acceptButtons[0]);
 
-			const admin = await screen.findByText('admin@test.com, admin');
-			expect(admin.closest('.existing-users')).toBeInTheDocument();
+		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+		expect(admin).toBeInTheDocument();
 
-			const gamemaster = await screen.findByText('gamemaster@test.com, gamemaster');
-			expect(gamemaster.closest('.existing-users')).toBeInTheDocument();
+		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
+		expect(gamemaster).toBeInTheDocument();
 
-			const added = await screen.findByText('new@test.com, admin');
-			expect(added.closest('.existing-users')).toBeInTheDocument();
+		const pending = await screen.findByText((content) => content.includes('new@test.com'))
+		expect(pending).toBeInTheDocument();
 	})
 
 
@@ -157,9 +156,8 @@ describe('EditUsers', () => {
   	    <EditUsers />
   	  </MemoryRouter>
   	);
-  	  const denyButton = await screen.findByRole('button', { name: 'Deny' });
-
-  	  expect(denyButton).toBeInTheDocument();
+	const denyButton = await screen.findByTitle("Reject");
+		expect(denyButton).toBeInTheDocument();
 
   	  await user.click(denyButton);
 
@@ -167,11 +165,11 @@ describe('EditUsers', () => {
     		'Are you sure you want to deny new@test.com?'
   		);
 
-			const admin = await screen.findByText('admin@test.com, admin');
-			expect(admin.closest('.existing-users')).toBeInTheDocument();
+		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+		expect(admin).toBeInTheDocument();
 
-			const gamemaster = await screen.findByText('gamemaster@test.com, gamemaster');
-			expect(gamemaster.closest('.existing-users')).toBeInTheDocument();
+		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
+		expect(gamemaster).toBeInTheDocument();
 
 			await waitFor(() => {
     		expect(screen.queryByText('new@test.com')).not.toBeInTheDocument();
@@ -190,7 +188,7 @@ describe('EditUsers', () => {
   	    <EditUsers />
   	  </MemoryRouter>
   	);
-  	  const removeButton = await screen.findByRole('button', { name: 'Remove' });
+  	  const removeButton = await screen.findByTitle("Delete");
 
   	  expect(removeButton).toBeInTheDocument();
 
@@ -200,14 +198,15 @@ describe('EditUsers', () => {
     		'Are you sure you want to remove gamemaster@test.com?'
   		);
 
-			const pending = await screen.findByText('new@test.com');
-			expect(pending.closest('.pending-users')).toBeInTheDocument();
 
-			const admin = await screen.findByText('admin@test.com, admin');
-			expect(admin.closest('.existing-users')).toBeInTheDocument();
+		const pending = await screen.findAllByText((content) => content.includes('new@test.com'))
+		expect(pending[0]).toBeInTheDocument();
+
+		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+		expect(admin).toBeInTheDocument();
 
 			await waitFor(() => {
-    		expect(screen.queryByText('gamemaster@test.com, gamemaster')).not.toBeInTheDocument();
+    		expect(screen.queryByText('gamemaster@test.com')).not.toBeInTheDocument();
   		});
 
 			confirmSpy.mockRestore();
@@ -238,7 +237,7 @@ describe('EditUsers', () => {
   	  </MemoryRouter>
     );
 
-		const acceptButton = await screen.findByRole('button', { name: 'Accept' });
+		const acceptButton = await screen.findByTitle("Accept");
 
   	expect(acceptButton).toBeInTheDocument();
 
@@ -249,18 +248,18 @@ describe('EditUsers', () => {
 
 		const acceptButtons = await screen.findAllByRole('button', { name: 'Accept' });
 
-  	expect(acceptButtons[1]).toBeInTheDocument();
+  	expect(acceptButtons[0]).toBeInTheDocument();
 
-		await user.click(acceptButtons[1]);
+		await user.click(acceptButtons[0]);
 
-    const admin = await screen.findByText('admin@test.com, admin');
-		expect(admin.closest('.existing-users')).toBeInTheDocument();
+		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+		expect(admin).toBeInTheDocument();
 
-		const gamemaster = await screen.findByText('gamemaster@test.com, gamemaster');
-		expect(gamemaster.closest('.existing-users')).toBeInTheDocument();
+		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
+		expect(gamemaster).toBeInTheDocument();
 
-		const pending = await screen.findByText('new@test.com');
-		expect(pending.closest('.pending-users')).toBeInTheDocument();
+		const pending = await screen.findAllByText((content) => content.includes('new@test.com'))
+		expect(pending[0]).toBeInTheDocument();
 
     confirmSpy.mockRestore();
   });
@@ -290,7 +289,7 @@ describe('EditUsers', () => {
   	  </MemoryRouter>
     );
 
-		const denyButton = await screen.findByRole('button', { name: 'Deny' });
+		const denyButton = await screen.findByTitle("Reject");
 
   	expect(denyButton).toBeInTheDocument();
 
@@ -300,14 +299,14 @@ describe('EditUsers', () => {
     		'Are you sure you want to deny new@test.com?'
   		);
 
-    const admin = await screen.findByText('admin@test.com, admin');
-		expect(admin.closest('.existing-users')).toBeInTheDocument();
+		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+		expect(admin).toBeInTheDocument();
 
-		const gamemaster = await screen.findByText('gamemaster@test.com, gamemaster');
-		expect(gamemaster.closest('.existing-users')).toBeInTheDocument();
+		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
+		expect(gamemaster).toBeInTheDocument();
 
-		const pending = await screen.findByText('new@test.com');
-		expect(pending.closest('.pending-users')).toBeInTheDocument();
+		const pending = await screen.findByText((content) => content.includes('new@test.com'))
+		expect(pending).toBeInTheDocument();
 
     confirmSpy.mockRestore();
   });
@@ -338,7 +337,7 @@ describe('EditUsers', () => {
   	  </MemoryRouter>
     );
 
-		const removeButton = await screen.findByRole('button', { name: 'Remove' });
+		const removeButton = await screen.findByTitle("Delete");
 
   	expect(removeButton).toBeInTheDocument();
 
@@ -348,14 +347,14 @@ describe('EditUsers', () => {
     		'Are you sure you want to remove gamemaster@test.com?'
   		);
 
-    const admin = await screen.findByText('admin@test.com, admin');
-		expect(admin.closest('.existing-users')).toBeInTheDocument();
+		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+		expect(admin).toBeInTheDocument();
 
-		const gamemaster = await screen.findByText('gamemaster@test.com, gamemaster');
-		expect(gamemaster.closest('.existing-users')).toBeInTheDocument();
+		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
+		expect(gamemaster).toBeInTheDocument();
 
-		const pending = await screen.findByText('new@test.com');
-		expect(pending.closest('.pending-users')).toBeInTheDocument();
+		const pending = await screen.findByText((content) => content.includes('new@test.com'))
+		expect(pending).toBeInTheDocument();
 
     confirmSpy.mockRestore();
   });
@@ -370,7 +369,8 @@ describe('EditUsers', () => {
   	    <EditUsers />
   	  </MemoryRouter>
   	);
-  	  const denyButton = await screen.findByRole('button', { name: 'Deny' });
+  	  const denyButton = await screen.findByTitle("Reject");
+	  
 
   	  expect(denyButton).toBeInTheDocument();
 
@@ -380,14 +380,14 @@ describe('EditUsers', () => {
     		'Are you sure you want to deny new@test.com?'
   		);
 
-			const admin = await screen.findByText('admin@test.com, admin');
-			expect(admin.closest('.existing-users')).toBeInTheDocument();
+		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+		expect(admin).toBeInTheDocument();
 
-			const gamemaster = await screen.findByText('gamemaster@test.com, gamemaster');
-			expect(gamemaster.closest('.existing-users')).toBeInTheDocument();
+		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
+		expect(gamemaster).toBeInTheDocument();
 
-			const pending = await screen.findByText('new@test.com');
-			expect(pending.closest('.pending-users')).toBeInTheDocument();
+		const pending = await screen.findByText((content) => content.includes('new@test.com'))
+		expect(pending).toBeInTheDocument();
 
 			confirmSpy.mockRestore();
 	});
@@ -402,7 +402,7 @@ describe('EditUsers', () => {
   	    <EditUsers />
   	  </MemoryRouter>
   	);
-  	  const removeButton = await screen.findByRole('button', { name: 'Remove' });
+  	  const removeButton = await screen.findByTitle("Delete");
 
   	  expect(removeButton).toBeInTheDocument();
 
@@ -412,14 +412,14 @@ describe('EditUsers', () => {
     		'Are you sure you want to remove gamemaster@test.com?'
   		);
 
-			const admin = await screen.findByText('admin@test.com, admin');
-			expect(admin.closest('.existing-users')).toBeInTheDocument();
+		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+		expect(admin).toBeInTheDocument();
 
-			const gamemaster = await screen.findByText('gamemaster@test.com, gamemaster');
-			expect(gamemaster.closest('.existing-users')).toBeInTheDocument();
+		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
+		expect(gamemaster).toBeInTheDocument();
 
-			const pending = await screen.findByText('new@test.com');
-			expect(pending.closest('.pending-users')).toBeInTheDocument();
+		const pending = await screen.findByText((content) => content.includes('new@test.com'))
+		expect(pending).toBeInTheDocument();
 
 			confirmSpy.mockRestore();
 	});

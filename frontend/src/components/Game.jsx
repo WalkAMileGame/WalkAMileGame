@@ -36,7 +36,7 @@ const Game = () => {
         if (!res.ok) throw new Error("No board found for team");
         const data = await res.json();
 
-        // Restore energy markers from fetched board
+        // Restore energymarkers
         const restored = restoreEnergyMarkers(data);
         setActiveMarkers(restored);
         setGameConfig(data);

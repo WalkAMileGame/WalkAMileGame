@@ -450,6 +450,7 @@ const GameBoard = () => {
         <div className="settingsButton">
           <button 
             onClick={() => setShowSettings(!showSettings)}
+            title= "Open settings panel"
           > 
             ⚙️
           </button>
