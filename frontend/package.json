@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:coverage": "npx vitest run --coverage"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "react": "^19.1.1",
