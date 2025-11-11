@@ -327,14 +327,20 @@ const deleteGameboard = () => {
           <select 
           value={selectedTemplateName}
           onChange={(e) => {
+
+            const newValue = e.target.value;
+
             if (unsavedChanges) {
               const confirmBox = window.confirm(
                 `Unsaved changes will be discarded. Are you sure you want to proceed?`
               )
-              if (!confirmBox) {return}
+              if (!confirmBox) {
+                e.target.value = selectedTemplateName;
+                return;
+              }
             }
-            setSelectedTemplateName(e.target.value)
-            const selectedTemplate = templates.find(t => t.name === e.target.value)
+            setSelectedTemplateName(newValue)
+            const selectedTemplate = templates.find(t => t.name === newValue)
             if (selectedTemplate) {
               const clonedTemplate = structuredClone(selectedTemplate);
               loadSavedGameboard(clonedTemplate);

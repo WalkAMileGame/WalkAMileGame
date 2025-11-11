@@ -5,15 +5,6 @@ import Snackbar from "./ui/snackbar"
 import { API_BASE } from "../api";
 import { useAuth } from '../context/AuthContext';
 
-const placeHolderUsers = [
-  { email: "pertti@testi.fi", role: "gamemaster" },
-  { email: "jaska@testi.fi", role: "gamemaster" },
-  { email: "pekka@testi.fi", role: "gamemaster" },
-  { email: "kalle@testi.fi", role: "gamemaster" },
-  { email: "janne@testi.fi", role: "gamemaster" },
-  { email: "sanna@testi.fi", role: "gamemaster" }
-]
-
 const EditUsers = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedUser, setSelectedUser] = useState("");
