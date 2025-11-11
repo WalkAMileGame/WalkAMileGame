@@ -5,21 +5,25 @@ import Login from './components/Login';
 import LandingPage from './components/LandingPage';
 import HostGamePage from './components/HostGame';
 import Game from './components/Game'
+import Lobby from './components/Lobby';
 import AboutUs from './components/AboutUs';
 
 import { useNavigate, BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
 import { AuthProvider, useAuth } from './context/AuthContext';
+import ProtectedRoute from './context/ProtectedRoute'
 import ConnectionStatus from './components/ui/ConnectionStatus';
 import EditUsers from './components/EditUsers';
 
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
+    
+    <AuthProvider>
+      <Router>
         <AppContent />
-      </AuthProvider>
-    </Router>
+      </Router>
+    </AuthProvider>
+    
   );
 }
 
@@ -31,8 +35,8 @@ function AppContent() {
   const location = useLocation();
   const hideLinks = location.pathname.startsWith("/game/");
   const handleLogout = () => {
-    logout();        
-    navigate("/");   
+    logout();
+    setTimeout(() => navigate("/"), 0); {/* this allows navigate to home happen instead of ProtectedRoute redirecting to login */}
   };
 
   return (
@@ -60,14 +64,22 @@ function AppContent() {
         </div>
         )}
         <Routes>
-          <Route path="/gameboard" element={<GameBoard />} />
           <Route path="/" element={<HomePage />} />
+          <Route path="/game/:gamecode" element={<Game />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/login" element={<Login />} /> {/* if admin not logged in */}
-          <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
-          <Route path="/hostgame" element={<HostGamePage />} />
-          <Route path="/game/:gamecode" element={<Game />} />
-          <Route path="/edit_users" element={<EditUsers />} />
+          <Route path="/waiting/:gamecode" element={<Lobby />} />
+          <Route path="/game/:gamecode/:teamname" element={<Game />} />
+
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'gamemaster']} />}>
+            <Route path="/gameboard" element={<GameBoard />} />
+            <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
+            <Route path="/hostgame" element={<HostGamePage />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route path="/edit_users" element={<EditUsers />} />
+          </Route>
         </Routes>
     </>
   )

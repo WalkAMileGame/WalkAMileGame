@@ -178,7 +178,7 @@ describe("EnergyMarkers", () => {
   it("applies rotation transform to marker groups", () => {
     const mockActiveMarkers = new Set(["1-1"]);
     const mockRotations = { 1: 45 };
-    
+
     const { container } = render(
       <svg>
         <EnergyMarkers
@@ -193,5 +193,42 @@ describe("EnergyMarkers", () => {
 
     const markerGroup = container.querySelector('g[transform*="rotate(45"]');
     expect(markerGroup).toBeInTheDocument();
+  });
+
+  it("uses correct energy icons based on energyvalue", () => {
+    const testConfig = {
+      ringData: [{
+        id: 1,
+        innerRadius: 200,
+        outerRadius: 350,
+        labels: [
+          { id: 1, text: "Action 1", color: "#ffc072", energyvalue: 1 },
+          { id: 2, text: "Action 2", color: "#ffb088", energyvalue: 2 },
+          { id: 3, text: "Action 3", color: "#ffc072", energyvalue: 3 },
+          { id: 4, text: "Action 4", color: "#ffb088", energyvalue: 4 },
+          { id: 5, text: "Action 5", color: "#ffc072", energyvalue: 10 },
+        ]
+      }]
+    };
+
+    const mockActiveMarkers = new Set(["1-1", "1-2", "1-3", "1-4", "1-5"]);
+
+    render(
+      <svg>
+        <EnergyMarkers
+          gameConfig={testConfig}
+          rotations={mockRotations}
+          activeMarkers={mockActiveMarkers}
+          centerX={centerX}
+          centerY={centerY}
+        />
+      </svg>
+    );
+
+    expect(screen.getByTestId("energy-marker-1").getAttribute('href')).toContain('energy1.png');
+    expect(screen.getByTestId("energy-marker-2").getAttribute('href')).toContain('energy2.png');
+    expect(screen.getByTestId("energy-marker-3").getAttribute('href')).toContain('energy3.png');
+    expect(screen.getByTestId("energy-marker-4").getAttribute('href')).toContain('energy4.png');
+    expect(screen.getByTestId("energy-marker-5").getAttribute('href')).toContain('energy4.png');
   });
 });

@@ -7,7 +7,7 @@ import dudeIcon from '../assets/WAM_Element_3.png';
 
 
 
-const HomePage = () => {
+const HomePage = () => {  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,11 +16,25 @@ const HomePage = () => {
       document.body.style.overflow = "auto";
     };
   }, []);
+  
   const [showInstructions, setShowInstructions] = useState(false);
+  const [gameCode, setGameCode] = useState('');
 
   const openInstructions = (e) => {
     e.preventDefault(); // prevent default link behavior
     setShowInstructions(true);
+  };
+
+  const handleJoinGame = () => {
+    if (gameCode.trim()) {
+      navigate(`/waiting/${gameCode}`);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleJoinGame();
+    }
   };
 
   const openAboutUs = (e) => {
@@ -72,8 +86,14 @@ const HomePage = () => {
         </svg>
           <div className="start">
               <p>ENTER GAME CODE: </p>
-                <input type="text"  />
-                <button>JOIN</button>
+                <input 
+                  type="text" 
+                  value={gameCode}
+                  onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+                  onKeyPress={handleKeyPress}
+                  placeholder="ABC123"
+                />
+                <button onClick={handleJoinGame}>JOIN</button>
           </div>
           <Instructions
         show={showInstructions}

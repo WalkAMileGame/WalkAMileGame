@@ -7,7 +7,7 @@ import { vi } from 'vitest';
 
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
-    user: { email: 'test@example.com' },
+    user: { email: 'test@example.com', role: "admin" },
     login: vi.fn(),
     logout: vi.fn(),
   }),
@@ -26,7 +26,7 @@ test('renders content', () => {
     expect(screen.getByText('EDIT GAMEBOARDS')).toBeInTheDocument();
     expect(screen.getByText('HOST A GAME')).toBeInTheDocument();
     expect(screen.getByText('MANAGE USERS')).toBeInTheDocument();
-})
+});
 
 test('takes edit gameboard site', async () => {
     const user = userEvent.setup();
@@ -50,7 +50,7 @@ test('takes edit gameboard site', async () => {
 
     await user.click(editgamebtn);
     expect(screen.getByText('Remaining energypoints:')).toBeInTheDocument();
-})
+});
 
 
 test('takes hosting site', async () => {
@@ -71,4 +71,25 @@ test('takes hosting site', async () => {
     await user.click(hostgaembtn);
     expect(screen.getByText(/host a game/i)).toBeInTheDocument();
 
-})
+});
+
+
+test('takes edit users site', async () => {
+    const user = userEvent.setup();
+
+  render(
+    <MemoryRouter initialEntries={['/']}>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/edit_users" element={<div>Existing users</div>} />
+      </Routes>
+    </MemoryRouter>
+  );
+    const managebtn = screen.getByRole('button', { name: 'Manage' });
+
+    expect(managebtn).toBeInTheDocument();
+
+    await user.click(managebtn);
+    expect(screen.getByText(/existing users/i)).toBeInTheDocument();
+
+});
