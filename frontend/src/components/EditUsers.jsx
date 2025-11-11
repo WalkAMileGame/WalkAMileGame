@@ -168,6 +168,70 @@ const EditUsers = () => {
     }
     }
 
+  const handlePromote = async (email) => {
+    const confirmBox = window.confirm(`Promote ${email} to admin?`);
+    if (!confirmBox) return;
+
+    setIsSaving(true);
+
+    try {
+      const response = await changeUserRole(email, "admin");
+      if (response.ok) {
+        const updatedUsers = existingUsers.map(u => 
+          u.email === email ? { ...u, role: "admin" } : u
+        );
+        setExistingUsers(updatedUsers);
+        setSnackbarMessage("User promoted successfully");
+        setShowSnackbar(true);
+      } else {
+        let errorMsg = "Failed to promote user";
+        try {
+          const data = await response.json();
+          if (data?.error) errorMsg = data.error;
+        } catch (err) {
+          console.error(errorMsg);
+        }
+      }
+    } catch (err) {
+      console.error("Promotion error:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDemote = async (email) => {
+    const confirmBox = window.confirm(`Demote ${email} to gamemaster?`);
+    if (!confirmBox) return;
+
+    setIsSaving(true);
+
+    try {
+      const response = await changeUserRole(email, "gamemaster");
+      if (response.ok) {
+        const updatedUsers = existingUsers.map(u => 
+          u.email === email ? { ...u, role: "gamemaster" } : u
+        );
+        setExistingUsers(updatedUsers);
+        setSnackbarMessage("User demoted successfully");
+        setShowSnackbar(true);
+      } else {
+        let errorMsg = "Failed to demote user";
+        try {
+          const data = await response.json();
+          if (data?.error) errorMsg = data.error;
+        } catch (err) {
+          console.error(errorMsg);
+        }
+      }
+    } catch (err) {
+      console.error("Demotion error:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
+
   const removeUser = (userEmail) => {
     return fetch(`${API_BASE}/remove_user`, {
       method: "DELETE",
@@ -190,49 +254,135 @@ const EditUsers = () => {
     });
   };
 
-    return (
-      <>
-      <Snackbar
-        message={snackbarMessage}
-        show={showSnackbar}
-        onClose={() => setShowSnackbar(false)}
-      />
+    const changeUserRole = (email, newrole) => {
+    return fetch(`${API_BASE}/accept_user`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email,
+        role: newrole,
+        pending: false
+      })
+    });
+  };
 
-      <div className="edit-page">
-        <div className="existing-users">
-          <h1>Existing users</h1>
-          <div className="user-boxes">
+return (
+  <>
+    <Snackbar
+      message={snackbarMessage}
+      show={showSnackbar}
+      onClose={() => setShowSnackbar(false)}
+    />
+
+    <div className="edit-page">
+      <div className="header">
+        <h1>User management</h1>
+        <h3>Manage all users in one place. Control roles and pending user requests. Pending user request will appear on top of the existing user table.</h3>
+      </div>
+      <div className="table-area">
+      {/* Pending Users */}
+      {pendingUsers.length > 0 && (
+        <div className="table-wrapper">
+          <h2>Pending users</h2>
+          <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Accept / Deny</th>
+            </tr>
+          </thead>
+            <tbody>
+              {pendingUsers.map((u, index) => (
+                <tr key={index}>
+                  <td>👤 {u.email}</td>
+                  <td>
+                    <div className="requestbuttons">
+                    <button
+                      className="accept-button"
+                      title="Accept"
+                      onClick={() => {
+                        setSelectedUser(u.email);
+                        setShowPopup(true);
+    
+                      }}
+                    >
+                      ✅
+                    </button>
+                    <button
+                      className="remove-button"
+                      onClick={() => handleDeny(u.email)}
+                      title="Reject"
+                    >
+                      🗙
+                    </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Existing Users */}
+      <div className="table-wrapper">
+        <h2>Existing users</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
             {existingUsers.map((u, index) => (
-              <div className="user-box" key={index}>
-                <p>{u.email}, {u.role}</p>
-                {u.email !== user?.email && (
-                <button className="remove-button" onClick={() => {handleRemove(u.email)}}>
-                  Remove
-                </button>
-                )}
-              </div>
+              <tr key={index}>
+                <td>👤 {u.email}</td>
+                <td>{u.role}</td>
+                <td>
+                  {u.email !== user?.email && (
+                    <div className="editbuttons">
+                    <>
+                    {u.role == "gamemaster" && (
+                      <button
+                        className="promote-button"
+                        onClick={() => handlePromote(u.email)}
+                        title= "Promote"
+                      >
+                        ⬆️
+                      </button>
+                    )}
+                      {u.role == "admin" && (
+                      <button
+                        className="demote-button"
+                        onClick={() => handleDemote(u.email)}
+                        title="Demote"
+                      >
+                        ⬇️
+                      </button>
+                      )}
+                                         <button
+                        className="remove-button"
+                        onClick={() => handleRemove(u.email)}
+                        title= "Delete"
+                      >
+                        🗙
+                      </button>
+                    </>
+                    </div>
+                  )}
+                </td>
+              </tr>
             ))}
-          </div>
-        </div>
-        <div className="pending-users">
-          <h1>Pending users</h1>
-          <div className="user-boxes">
-            {pendingUsers.map((u, index) => (
-            <div className="user-box" key={index}>
-              <p>{u.email}</p>
-              <button className="remove-button" onClick={() => {handleDeny(u.email)}}>
-                Deny
-              </button>
-              <button className="accept-button" onClick={() => {setSelectedUser(u.email), setShowPopup(true)}}>
-                Accept
-              </button>
-            </div>
-            ))}
-          </div>
-        </div>
+          </tbody>
+        </table>
+      </div>
+      </div>
 
-        {/* Popup */}
-        {showPopup && (
+      {/* Popup */}
+      {showPopup && (
         <div className="popup-overlay">
           <div className="popup">
             <h2>Accept User</h2>
@@ -264,15 +414,22 @@ const EditUsers = () => {
             </div>
 
             <div className="buttons">
-              <button onClick={() => {setShowPopup(false), setSelectedUser("")}}>Cancel</button>
               <button onClick={handleAccept}>Accept</button>
+              <button
+                onClick={() => {
+                  setShowPopup(false);
+                  setSelectedUser("");
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
-        )}
-      </div>
-      </>
-    );
+      )}
+    </div>
+  </>
+);
 };
 
-export default EditUsers
+export default EditUsers;
