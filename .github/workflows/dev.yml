@@ -25,7 +25,7 @@ jobs:
         run: poetry install --no-root
 
       - name: Run tests
-        run: poetry run invoke coverage
+        run: poetry run invoke coverage --backend
 
       - name: Coverage report
         run: poetry run coverage xml
