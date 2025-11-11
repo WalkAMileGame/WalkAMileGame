@@ -21,10 +21,13 @@ jobs:
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install Poetry
         run: pip install poetry
+
+      - name: Poetry Lock
+        run: poetry lock
 
       - name: Install dependencies
         run: poetry install --no-root
@@ -51,7 +54,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20' 
+          node-version: "20"
 
       - name: Install frontend dependencies
         working-directory: frontend
