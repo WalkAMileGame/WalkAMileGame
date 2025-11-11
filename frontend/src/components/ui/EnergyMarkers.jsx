@@ -1,15 +1,26 @@
 // EnergyMarkers.jsx
 import React from 'react';
 import '../../styles/EnergyMarkers.css';
-import energyIcon from '../../assets/WAM_Element_4.png';
+import energy1 from '../../assets/energy1.png';
+import energy2 from '../../assets/energy2.png';
+import energy3 from '../../assets/energy3.png';
+import energy4 from '../../assets/energy4.png';
 
-const EnergyMarkers = ({ 
-  gameConfig, 
-  rotations, 
+const EnergyMarkers = ({
+  gameConfig,
+  rotations,
   activeMarkers,
-  centerX = 800, 
+  centerX = 800,
   centerY = 800
 }) => {
+  // Select the appropriate energy icon based on energy value
+  const getEnergyIcon = (energyValue) => {
+    if (energyValue == 1) return energy1;
+    if (energyValue == 2) return energy2;
+    if (energyValue == 3) return energy3;
+    return energy4; // For energyValue >= 4
+  };
+
   // Calculate where to place the marker on a tile (WITHOUT rotation)
   const getMarkerPosition = (ring, labelIndex) => {
     const numSlices = ring.labels.length;
@@ -49,11 +60,11 @@ const EnergyMarkers = ({
             <g transform={`rotate(${midAngleDeg} ${x} ${y})`}>
             <image
               data-testid={`energy-marker-${label.id}`}
-              href={energyIcon}
-              x={x - 60}
-              y={y - 60}
-              width="120"
-              height="120"
+              href={getEnergyIcon(label.energyvalue)}
+              x={x - 30}
+              y={y - 30}
+              width="60"
+              height="60"
             />
           </g>
           </g>

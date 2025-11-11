@@ -15,7 +15,7 @@ const LandingPage = () => {
         <header>
           <h1>DASHBOARD</h1>
         </header>
-          <h2>You are logged in as {user.email}</h2>
+          <h2>You are logged in as {user?.email}</h2>
         </div>
         <div className="content-area">
           <div className="cards">
@@ -35,14 +35,16 @@ const LandingPage = () => {
                 <button>Host</button>
               </Link>
             </div>
+            {user?.role === "admin" && (
             <div className="card">
               <div className="card-icon">👤</div>
               <h3>MANAGE USERS</h3>
               <p>Create users and manage their permissions </p>
-              <Link to="/landing/#">
+              <Link to="/edit_users">
                 <button>Manage</button>
               </Link>
-            </div>
+            </div>            
+            )}
           </div>
         </div>
       </div>

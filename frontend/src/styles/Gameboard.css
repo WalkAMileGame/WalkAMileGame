@@ -6,12 +6,6 @@
 }
 
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
 .links {
   position: absolute;
   top: 2rem;
@@ -179,4 +173,5 @@
   position: absolute;
   right: 5rem;
   top: 3rem;
+  z-index: 100;
 }

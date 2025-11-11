@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Login.css';
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from '../api';
+
 
 export default function Login() {
   const { user, login, logout, error: authError } = useAuth();
@@ -13,6 +15,7 @@ export default function Login() {
   const [userEmail, setUserEmail] = useState('');
   const [error, setError] = useState('');
   const [localError, setLocalError] = useState('');
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const isLoggedIn = !!user;
   const userEmailDisplay = user?.email || userEmail;
 
@@ -51,13 +54,25 @@ export default function Login() {
       return;
     }
 
-    // Mock registration for now
     try {
-      await login(email, password);
+      const res = await fetch(`${API_BASE}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        const message = errorData.detail?.[0]?.msg || errorData.detail || "Registration failed";
+        throw new Error(message);
+      }
+
+      setRegistrationSuccess(true);
+      setEmail('');
       setPassword('');
       setConfirmPassword('');
-    } catch (e) {
-      setLocalError(e.message || 'Registration failed.');
+
+    } catch (err) {
+      setLocalError(err.message || 'Registration failed.'); 
     }
   };
 
@@ -78,6 +93,7 @@ export default function Login() {
     setPassword('');
     setConfirmPassword('');
     setError && setError(null);
+    setRegistrationSuccess(false);
   };
 
  return (
@@ -98,53 +114,63 @@ export default function Login() {
           </div>
         ) : (
           <div className="login-card">
-            {isRegistering ? (
-              <>
-                <h2 className="title">Register</h2>
-                <p className="subtitle">Create an account to get started.</p>
-                {(error || localError || authError) && <p className="error-message">{localError || error || authError}</p>}
-                <form onSubmit={handleRegister} noValidate>
-                  <div className="form-group">
-                    <label htmlFor="email" className="form-label">Email Address</label>
-                    <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="form-input" placeholder="you@example.com" required />
+              {isRegistering ? (
+                registrationSuccess ? (
+                  <>
+                    <h2 className="title">Success!</h2>
+                    <p className="subtitle">Your account creation request is successful!</p>
+                    <button onClick={toggleForm} className="btn btn-primary" style={{width: '100%'}}>
+                      Proceed to Login
+                    </button>
+                  </>
+                ) : (
+                  <>
+                  <h2 className="title">Register</h2>
+                  <p className="subtitle">Create an account to get started.</p>
+                  {(error || localError || authError) && <p className="error-message">{localError || error || authError}</p>}
+                  <form onSubmit={handleRegister} noValidate>
+                    <div className="form-group">
+                      <label htmlFor="email" className="form-label">Email Address</label>
+                      <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="form-input" placeholder="you@example.com" required />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="password" className="form-label">Password</label>
+                      <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="form-input" placeholder="••••••••" required />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+                      <input type="password" id="confirmPassword" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="form-input" placeholder="••••••••" required />
+                    </div>
+                    <button type="submit" className="btn btn-primary">Register</button>
+                  </form>
+                  <div className="toggle-form">
+                    <span>Already have an account? </span>
+                    <button onClick={toggleForm} className="toggle-button">Login</button>
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="password" className="form-label">Password</label>
-                    <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="form-input" placeholder="••••••••" required />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
-                    <input type="password" id="confirmPassword" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="form-input" placeholder="••••••••" required />
-                  </div>
-                  <button type="submit" className="btn btn-primary">Register</button>
-                </form>
-                <div className="toggle-form">
-                  <span>Already have an account? </span>
-                  <button onClick={toggleForm} className="toggle-button">Login</button>
-                </div>
-              </>
+                </>
+              )
             ) : (
-              <>
-                <h2 className="title">Login</h2>
-                <p className="subtitle">Welcome back! Please enter your details.</p>
-                {(error || localError || authError) && <p className="error-message">{localError || error || authError}</p>}
-                <form onSubmit={handleLogin} noValidate>
-                  <div className="form-group">
-                    <label htmlFor="email" className="form-label">Email Address</label>
-                    <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="form-input" placeholder="you@example.com" required />
+                <>
+                  <h2 className="title">Login</h2>
+                  <p className="subtitle">Welcome back! Please enter your details.</p>
+                  {(error || localError || authError) && <p className="error-message">{localError || error || authError}</p>}
+                  <form onSubmit={handleLogin} noValidate>
+                    <div className="form-group">
+                      <label htmlFor="email" className="form-label">Email Address</label>
+                      <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="form-input" placeholder="you@example.com" required />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="password" className="form-label">Password</label>
+                      <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="form-input" placeholder="••••••••" required />
+                    </div>
+                    <button type="submit" className="btn btn-primary">Login</button>
+                  </form>
+                  <div className="toggle-form">
+                    <span>Don't have an account? </span>
+                    <button onClick={toggleForm} className="toggle-button">Register</button>
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="password" className="form-label">Password</label>
-                    <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="form-input" placeholder="••••••••" required />
-                  </div>
-                  <button type="submit" className="btn btn-primary">Login</button>
-                </form>
-                <div className="toggle-form">
-                  <span>Don't have an account? </span>
-                  <button onClick={toggleForm} className="toggle-button">Register</button>
-                </div>
-              </>
-            )}
+                </>
+              )}
           </div>
         )}
       </div>

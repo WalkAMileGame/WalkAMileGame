@@ -26,6 +26,15 @@ const ColorPicker = ({ onChange, colors = [] }) => {
   );
 };
 
+const LayerColors = [
+    ["#ffc072", "#ffb088"],
+    ["#a3d7ff", "#d3eafc"],
+    ["#a872d1", "#e4c1ff"],
+    ["#da6363", "#da8a8a"]
+  ]
+
+const TitleNames = ["MOVING", "MOVING", "ARRIVING", "THRIVING"]
+
 const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const [localConfig, setLocalConfig] = useState(gameConfig);
   const [templates, setTemplates] = useState([]);
@@ -98,7 +107,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
       id: newLabelId,
       text: `New Action ${newLabelId}`,
       color: '#6b7280',
-      energyvalue: 1
+      energyvalue: 1,
+      energypoint: false
     });
     
     setLocalConfig(updatedConfig);
@@ -128,6 +138,7 @@ const loadSavedGameboard = async (boardData) => {
       labels: ring.labels.map((label) => ({
         ...label, 
         energyvalue: label.energyvalue ?? 1, // add default if missing
+        energypoint: label.energypoint ?? false
       })),
     })),
   };
@@ -275,7 +286,7 @@ const deleteGameboard = () => {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
-      name: localConfig.name?.trim(), 
+      name: localConfig.name?.trim(),
     }),
   });
 };
@@ -346,7 +357,7 @@ const deleteGameboard = () => {
               <hr></hr>
               <div className="layerinfo-container">
                 <h4 className="layerinfo-title">
-                  Layer {ring.id} ({ring.labels.length} slices)
+                  {TitleNames[ringIndex]} ({ring.labels.length} slices)
                 </h4>
                 <button
                   onClick={() => addSlice(ringIndex)}
@@ -384,6 +395,7 @@ const deleteGameboard = () => {
                   </div>
                   <ColorPicker
                     value={label.color}
+                    colors={LayerColors[ringIndex]}
                     onChange={(color) => handleSliceColorChange(ringIndex, labelIndex, color)}
                   />
                 </div>
