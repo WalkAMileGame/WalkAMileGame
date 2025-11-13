@@ -4,7 +4,7 @@ metadata:
   annotations:
     alpha.image.policy.openshift.io/resolve-names: "*"
     image.openshift.io/triggers: >-
-      [{"from":{"kind":"ImageStreamTag","name":"walkamile:staging","namespace":"ohtuprojekti-staging"},"fieldPath":"spec.template.spec.containers[?(@.name==\"walkamile\")].image","pause":"false"}]
+      [{"from":{"kind":"ImageStreamTag","name":"walkamile:staging","namespace":"ohtuprojekti-staging"},"fieldPath":"spec.template.spec.containers[?(@.name==\"walkamile-backend\")].image","pause":"false"}]
   name: walkamile-backend
 spec:
   replicas: 1
