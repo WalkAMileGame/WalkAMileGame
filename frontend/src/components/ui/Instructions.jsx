@@ -36,19 +36,18 @@ const Instructions = ({ show, onClose, apiUrl = `${API_BASE}/instructions` }) =>
         .instructions-box {
           background: #FAF9F6;
           color: black;
-          border-radius: 12px;
-          padding: 30px;
-
-          max-width: 50vw;
-          max-height: 90vh;
+          border-radius: 10px;
+          padding: 2%;
+          max-width: 40vw;
+          max-height: 80vh;
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
           font-family: "Montserrat", sans-serif;
-          text-align: center;
           position: relative;
           font-size: 20px;
           white-space: pre-line;
           font-style: bold;
           overflow-y: auto; 
+          margin:20px;
         }
 
 
@@ -59,6 +58,7 @@ const Instructions = ({ show, onClose, apiUrl = `${API_BASE}/instructions` }) =>
           font-family: "Lilita One", sans-serif;
           font-size: 40px;
           color: #E76F51;
+          text-align: center;
         }
         
 
@@ -72,6 +72,11 @@ const Instructions = ({ show, onClose, apiUrl = `${API_BASE}/instructions` }) =>
           cursor: pointer;
           color: #333;
         }
+
+        .text {
+          padding: 0 3%;
+          color: #525252ff
+        }
       `}</style>
 
       <div className="instructions-overlay" onClick={onClose}>
@@ -84,7 +89,9 @@ const Instructions = ({ show, onClose, apiUrl = `${API_BASE}/instructions` }) =>
           </button>
           <h2>INSTRUCTIONS</h2>
           <hr></hr>
-          <p dangerouslySetInnerHTML={{ __html: instructionsText }} />
+          <div className="text">
+            <p dangerouslySetInnerHTML={{ __html: instructionsText }} />
+          </div>
         </div>
       </div>
     </>

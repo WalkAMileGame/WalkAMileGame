@@ -1,19 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useLocation, useParams } from 'react-router-dom';
-import '../styles/Gameboard.css';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import '../styles/Game.css';
 import { API_BASE } from '../api';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
 import ColorGuide from './ui/ColorGuide';
 import Timer from "./ui/Timer";
+import Instructions from "./ui/Instructions";
 
 
 
 const Game = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isGamemasterViewing = location.state?.isGamemaster || false;
   const [gameConfig, setGameConfig] = useState({ ringData: [] })
   const { gamecode, teamname } = useParams();
+  const [showInstructions, setShowInstructions] = useState(false);
+  
 
   const [rotations, setRotations] = useState({
     ring0: 0,
@@ -134,6 +138,11 @@ useEffect(() => {
 
       return updated;
     });
+  };
+  
+  const openInstructions = (e) => {
+    e.preventDefault(); // prevent default link behavior
+    setShowInstructions(true);
   };
 // ------------------------------------- GAMEBOARD CONSTRUCTION -------------------------------------//
   const containerRef = useRef(null);
@@ -459,6 +468,13 @@ useEffect(() => {
       <div className="energypoints" data-testid="energypoints">
         Remaining energypoints: {points}
       </div>
+      <div className="instructions">
+        <button 
+        onClick={openInstructions}
+        >
+          Instructions
+        </button>
+      </div>
       <div className="game-layout">
 
     <div className="clock">
@@ -491,7 +507,7 @@ useEffect(() => {
                         dx="0" // horizontal offset
                         dy="0" // vertical offset
                         stdDeviation="10" // blur amount
-                        floodColor="#111010ff" // shadow color (white)
+                        floodColor="#555555ff" // shadow color (white)
                       />
                     </filter>
                   </defs>
@@ -548,7 +564,7 @@ useEffect(() => {
                       cy={CENTER_Y}
                       r={ring.innerRadius}
                       fill="none"
-                      stroke="black"
+                      stroke="#464646ff"
                       strokeWidth={blackLineThickness}
                       style={{ pointerEvents: 'none' }}
                     />
@@ -560,7 +576,7 @@ useEffect(() => {
                       cy={CENTER_Y}
                       r={gameConfig?.ringData[gameConfig.ringData.length - 1].outerRadius}
                       fill="none"
-                      stroke="black"
+                      stroke="#464646ff"
                       strokeWidth={blackLineThickness}
                       style={{ pointerEvents: 'none' }}
                     />
@@ -625,6 +641,10 @@ useEffect(() => {
         }}>
           <ColorGuide />
         </div>
+        <Instructions
+        show={showInstructions}
+        onClose={() => setShowInstructions(false)}
+      />
       </div>
     </>
   );
