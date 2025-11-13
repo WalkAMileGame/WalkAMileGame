@@ -163,7 +163,7 @@ def register(form_data: RegisterRequest):
     
     activated_code = activate_code(unactivated_code)
 
-    db.users.update_one({"code": activated_code.code},
+    db.codes.update_one({"code": activated_code.code},
                         {"$set": {"code": activated_code.code,
                                   "creationTime": activated_code.creationTime,
                                   "expirationTime": activated_code.expirationTime,
