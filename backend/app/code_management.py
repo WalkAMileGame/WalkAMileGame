@@ -22,6 +22,9 @@ def generate_new_access_code(valid_for):
 def is_code_expired(expiration_time):
     now = datetime.now(timezone.utc)
 
+    if expiration_time.tzinfo is None:
+        expiration_time = expiration_time.replace(tzinfo=timezone.utc)
+    
     if now > expiration_time:
         return True
     return False

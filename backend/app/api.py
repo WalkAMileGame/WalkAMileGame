@@ -98,7 +98,7 @@ def load_instructions():
 @router.post("/login")
 def login(form_data: LoginRequest):
     user_in_db = db.users.find_one({"email": form_data.email})
-    user_access_code = db.codes.find_one({"email": form_data.email})
+    user_access_code = db.codes.find_one({"usedByUser": form_data.email})
 
     if not user_in_db:
         raise HTTPException(
@@ -112,7 +112,7 @@ def login(form_data: LoginRequest):
             detail="Account hasn't been activated"
         )
 
-    if is_code_expired(user_access_code["code"]):
+    if is_code_expired(user_access_code["expirationTime"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Account has expired"
