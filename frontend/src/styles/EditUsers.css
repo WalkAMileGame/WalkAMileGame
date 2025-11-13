@@ -239,16 +239,15 @@ tr:hover {background-color: #E9C46A}
 }
 
 #myInput {
-  background-image: url('/icons/searchicon.png');
-  background-position: 6px center; /* horizontally 10px from left, vertically centered */
+  background-position: 6px center; 
   background-repeat: no-repeat;
-  background-size: 20px 20px; /* make the image smaller */
+  background-size: 20px 20px; 
   
-  width: 25%;
+  width: 30%;
   font-size: 18px;
-  padding: 12px 20px 12px 40px; /* left padding makes room for icon */
+  padding: 12px 20px 12px 40px; 
   border: 1px solid #ddd;
-  border-radius:20px;
+  border-radius:5px;
   margin-bottom: 12px;
   box-sizing: border-box;
 }

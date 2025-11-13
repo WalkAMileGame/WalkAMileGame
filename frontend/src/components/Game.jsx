@@ -10,7 +10,9 @@ import Timer from "./ui/Timer";
 
 
 const Game = () => {
-  const [gameConfig, setGameConfig] = useState({ ringData: [] }); // Don't initialize with initialConfig
+  const location = useLocation();
+  const isGamemasterViewing = location.state?.isGamemaster || false;
+  const [gameConfig, setGameConfig] = useState({ ringData: [] })
   const { gamecode, teamname } = useParams();
 
   const [rotations, setRotations] = useState({
@@ -49,7 +51,7 @@ useEffect(() => {
       if (!res.ok) throw new Error("No board found for team");
       const data = await res.json();
       console.log("Fetched board data:", data);
-      setGameConfig(data);                      
+      setGameConfig(data); 
       setActiveMarkers(restoreEnergyMarkers(data)); 
       setIsInitialized(true);
     } catch (err) {
@@ -433,6 +435,27 @@ useEffect(() => {
 
   return (
     <>
+      {isGamemasterViewing && (
+        <button
+          onClick={() => navigate(`/gamemaster/progress/${gamecode}`)}
+          style={{
+            position: 'fixed',
+            top: '1rem',
+            left: '1rem',
+            zIndex: 1000,
+            padding: '0.5rem 1rem',
+            backgroundColor: '#3F695D',
+            color: 'white',
+            border: '2px solid #86B18A',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '0.95rem'
+          }}
+        >
+          ← Back to Dashboard
+        </button>
+      )}
       <div className="energypoints" data-testid="energypoints">
         Remaining energypoints: {points}
       </div>

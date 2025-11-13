@@ -11,7 +11,6 @@ const GamemasterProgress = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeAdjustment, setTimeAdjustment] = useState('');
-  const [customTime, setCustomTime] = useState('');
 
   useEffect(() => {
     const fetchRoomData = async () => {
@@ -70,66 +69,27 @@ const GamemasterProgress = () => {
     }
   };
 
-  const handleAddTime = async () => {
+  const handleAdjustTime = async () => {
     const minutes = parseInt(timeAdjustment);
-    if (isNaN(minutes) || minutes <= 0) {
-      alert('Please enter a valid number of minutes to add');
+    if (isNaN(minutes)) {
+      alert('Please enter a valid number of minutes (can be negative)');
+      return;
+    }
+    if (minutes === 0) {
+      setTimeAdjustment('');
       return;
     }
     try {
-      const newTimeRemaining = roomData.time_remaining + minutes;
+      const newTimeRemaining = Math.max(0, roomData.time_remaining + minutes);
       const response = await fetch(`${API_BASE}/rooms/${gamecode}/time`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ time_remaining: newTimeRemaining }),
       });
       if (!response.ok) {
-        throw new Error('Failed to add time');
+        throw new Error('Failed to adjust time');
       }
       setTimeAdjustment('');
-    } catch (err) {
-      alert(`Error: ${err.message}`);
-    }
-  };
-
-  const handleRemoveTime = async () => {
-    const minutes = parseInt(timeAdjustment);
-    if (isNaN(minutes) || minutes <= 0) {
-      alert('Please enter a valid number of minutes to remove');
-      return;
-    }
-    try {
-      const newTimeRemaining = Math.max(0, roomData.time_remaining - minutes);
-      const response = await fetch(`${API_BASE}/rooms/${gamecode}/time`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ time_remaining: newTimeRemaining }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to remove time');
-      }
-      setTimeAdjustment('');
-    } catch (err) {
-      alert(`Error: ${err.message}`);
-    }
-  };
-
-  const handleSetCustomTime = async () => {
-    const minutes = parseInt(customTime);
-    if (isNaN(minutes) || minutes < 0) {
-      alert('Please enter a valid number of minutes');
-      return;
-    }
-    try {
-      const response = await fetch(`${API_BASE}/rooms/${gamecode}/time`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ time_remaining: minutes, reset_timer: true }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to set custom time');
-      }
-      setCustomTime('');
     } catch (err) {
       alert(`Error: ${err.message}`);
     }
@@ -170,40 +130,22 @@ const GamemasterProgress = () => {
             className={`btn ${roomData?.game_paused ? 'btn-resume' : 'btn-pause'}`}
             onClick={handlePauseResume}
           >
-            {roomData?.game_paused ? '▶ Resume' : '⏸ Pause'}
+            {roomData?.game_paused ? 'Resume' : 'Pause'}
           </button>
 
           <button className="btn btn-end-game" onClick={handleEndGame}>
-            ⏹ End Game
+            End Game
           </button>
 
           <div className="time-control-group">
             <input
               type="number"
               className="time-input-compact"
-              placeholder="Min"
+              placeholder="± Min"
               value={timeAdjustment}
               onChange={(e) => setTimeAdjustment(e.target.value)}
-              min="1"
             />
-            <button className="btn-icon btn-add-time" onClick={handleAddTime} title="Add time">
-              +
-            </button>
-            <button className="btn-icon btn-remove-time" onClick={handleRemoveTime} title="Remove time">
-              −
-            </button>
-          </div>
-
-          <div className="time-control-group">
-            <input
-              type="number"
-              className="time-input-compact"
-              placeholder="Set min"
-              value={customTime}
-              onChange={(e) => setCustomTime(e.target.value)}
-              min="0"
-            />
-            <button className="btn-icon btn-set-time" onClick={handleSetCustomTime} title="Set custom time">
+            <button className="btn-icon btn-adjust-time" onClick={handleAdjustTime} title="Adjust time">
               ⏱
             </button>
           </div>
@@ -216,8 +158,22 @@ const GamemasterProgress = () => {
           <div className="teams-list">
             {roomData.teams.map((team, index) => (
               <div key={index} className="team-item">
-                <div className="team-name">{team.team_name}</div>
-                <div className="team-circumstance">{team.circumstance}</div>
+                <div className="team-info">
+                  <div className="team-name">{team.team_name}</div>
+                  <div className="team-circumstance">{team.circumstance}</div>
+                </div>
+                <button
+                  className="btn-view-board"
+                  onClick={() => navigate(`/game/${gamecode}/${team.team_name}`, {
+                    state: {
+                      boardConfig: roomData.board_config,
+                      isGamemaster: true,
+                      gamecode: gamecode
+                    }
+                  })}
+                >
+                  View Board
+                </button>
               </div>
             ))}
           </div>
