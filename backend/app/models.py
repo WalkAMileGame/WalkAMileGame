@@ -30,22 +30,23 @@ class UserData(BaseModel):
     email: EmailStr
     password: str
     role: str = "gamemaster"
-    pending: bool = True
 
-    @field_validator('password')
-    def password_must_be_strong(cls, v):
-        if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
-        return v
+class AccessCode(BaseModel):
+    code: str
+    creationTime: datetime
+    expirationTime: datetime
+    activationTime: datetime = None
+    isUsed: bool = False
+    usedByUser: EmailStr = None
 
 class LoginRequest(BaseModel):
-    """Model for the data expected in a login request."""
     email: EmailStr
     password: str
 
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
+    code: str
 
 class AcceptUser(BaseModel):
     email: EmailStr

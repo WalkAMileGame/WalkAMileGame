@@ -7,6 +7,7 @@ from .db import db
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 from backend.app.security import verify_password, create_access_token, get_current_active_user, get_password_hash
+from backend.app.code_management import generate_new_access_code, is_code_expired, activate_code
 
 router = APIRouter()
 
@@ -89,9 +90,15 @@ def load_instructions():
     return {"instructions": "No instructions found."}
 
 
+# --------------------------------------------------------------------------------------------
+#                               User management endpoints
+# --------------------------------------------------------------------------------------------
+
+
 @router.post("/login")
 def login(form_data: LoginRequest):
     user_in_db = db.users.find_one({"email": form_data.email})
+    user_access_code = db.codes.find_one({"email": form_data.email})
 
     if not user_in_db:
         raise HTTPException(
@@ -99,19 +106,25 @@ def login(form_data: LoginRequest):
             detail="Incorrect email or password",
         )
     
+    if not user_access_code:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account hasn't been activated"
+        )
+
+    if is_code_expired(user_access_code["code"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account has expired"
+        )
+
     user = UserData(email=user_in_db["email"], password=user_in_db["password"],
-                    role=user_in_db["role"], pending=user_in_db["pending"])
+                    role=user_in_db["role"])
     
     if not verify_password(form_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
-        )
-    
-    if user_in_db["pending"]:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account still pending to be accepted"
         )
     
     access_token = create_access_token(
@@ -133,17 +146,61 @@ def register(form_data: RegisterRequest):
             detail="Email already in use",
         )
 
+    unactivated_code = db.codes.find_one({"code": form_data.code})
+
+    if not unactivated_code:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect activation code",
+        )
+
     hashed_password = get_password_hash(form_data.password)
     user = UserData(email=form_data.email, password=hashed_password)
 
     db.users.update_one({"email": user.email},
                         {"$set": {"email": user.email, "password": hashed_password,
-                        "role": user.role, "pending": user.pending}}, upsert=True)
+                        "role": user.role}}, upsert=True)
+    
+    activated_code = activate_code(unactivated_code)
+
+    db.users.update_one({"code": activated_code.code},
+                        {"$set": {"code": activated_code.code,
+                                  "creationTime": activated_code.creationTime,
+                                  "expirationTime": activated_code.expirationTime,
+                                  "activationTime": activated_code.activationTime,
+                                  "isUsed": activated_code.isUsed,
+                                  "usedByUser": activated_code.usedByUser}})
+
+
+@router.post("/generate_access_code")
+def generate_access_code(valid_for=6):
+
+    # Generate a new code until a unique one is generated
+    while True:
+        new_code = generate_new_access_code(valid_for)
+
+        code_in_db = db.codes.find_one({"code": new_code.code})
+
+        if not code_in_db:
+            break
+    
+    db.codes.update_one({"code": new_code.code},
+                        {"$set": {"code": new_code.code,
+                                  "creationTime": new_code.creationTime,
+                                  "expirationTime": new_code.expirationTime,
+                                  "activationTime": new_code.activationTime,
+                                  "isUsed": new_code.isUsed,
+                                  "usedByUser": new_code.usedByUser}})
 
 
 @router.get("/users/me", tags=["auth"])
 def read_current_user(current_user: dict = Depends(get_current_active_user)):
     return current_user
+
+
+# --------------------------------------------------------------------------------------------
+#                               User management endpoints over
+# --------------------------------------------------------------------------------------------
 
 
 @router.get("/timer")
