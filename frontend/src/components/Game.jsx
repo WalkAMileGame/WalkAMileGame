@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import '../styles/Gameboard.css';
 import { API_BASE } from '../api';
 import EnergyMarkers from "./ui/EnergyMarkers";
@@ -11,7 +11,9 @@ import Timer from "./ui/Timer";
 
 const Game = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const initialConfig = location.state?.boardConfig
+  const isGamemasterViewing = location.state?.isGamemaster || false;
   const [gameConfig, setGameConfig] = useState(initialConfig || { ringData: [] })
   const { gamecode, teamname } = useParams();
 
@@ -43,7 +45,7 @@ const Game = () => {
         console.warn("Board fetch skipped:", err.message);
       }
     };
-    if (teamname !== "Gamemaster" && !initialConfig) {
+    if (!initialConfig) {
     fetchBoard();
     restoreEnergyMarkers();
     }
@@ -452,6 +454,27 @@ const restoreEnergyMarkers = (boardData) => {
 
   return (
     <>
+      {isGamemasterViewing && (
+        <button
+          onClick={() => navigate(`/gamemaster/progress/${gamecode}`)}
+          style={{
+            position: 'fixed',
+            top: '1rem',
+            left: '1rem',
+            zIndex: 1000,
+            padding: '0.5rem 1rem',
+            backgroundColor: '#3F695D',
+            color: 'white',
+            border: '2px solid #86B18A',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '0.95rem'
+          }}
+        >
+          ← Back to Dashboard
+        </button>
+      )}
       <div className="energypoints" data-testid="energypoints">
         Remaining energypoints: {points}
       </div>

@@ -274,26 +274,10 @@
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
-.btn-add-time {
-  background-color: #86B18A;
-}
-
-.btn-add-time:hover {
-  background-color: #6fa073;
-}
-
-.btn-remove-time {
-  background-color: #F3A261;
-}
-
-.btn-remove-time:hover {
-  background-color: #e59150;
-}
-
-.btn-set-time {
+.btn-adjust-time {
   background-color: #3F695D;
 }
 
-.btn-set-time:hover {
+.btn-adjust-time:hover {
   background-color: #2d4d43;
 }
