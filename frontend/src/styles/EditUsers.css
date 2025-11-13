@@ -47,21 +47,20 @@ body:has(.edit-page) #root {
 
 
 .table-wrapper {
-  width: 40%;            /* same as your table */
-  margin: 0 auto;        /* center it */
-  text-align: left;      /* headings align with table cells */
-  margin-bottom: 2rem;   /* spacing between sections */
+  width: 50%;
+  margin: 0 auto;      
+  text-align: left;      
+  margin-bottom: 2rem;   
   margin-top: 1rem;
 }
 .table-wrapper h2 {
-  margin: 0 0 18px 0;    /* spacing above/below heading */
+  margin: 0 0 20px 0; 
   color: white;
-  padding-left: 25px;    /* align with table cell padding */
 }
 
 /* Table styles */
 .table-wrapper table {
-  width: 95%;
+  width: 100%;
   border-collapse: collapse;
   margin: 1rem auto;
   text-align: left;
@@ -237,5 +236,20 @@ tr:hover {background-color: #E9C46A}
   margin: 10px;
   margin-top: 20px;
 
+}
+
+#myInput {
+  background-image: url('/icons/searchicon.png');
+  background-position: 6px center; /* horizontally 10px from left, vertically centered */
+  background-repeat: no-repeat;
+  background-size: 20px 20px; /* make the image smaller */
+  
+  width: 25%;
+  font-size: 18px;
+  padding: 12px 20px 12px 40px; /* left padding makes room for icon */
+  border: 1px solid #ddd;
+  border-radius:20px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
 }
 
