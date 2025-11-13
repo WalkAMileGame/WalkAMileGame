@@ -152,30 +152,35 @@ test('clicking a slice twice calls the update funciton and returns the deducted 
 });
 
 
-test('splits long labeltexts into multiple lines', async () =>{
+test('splits long labeltexts into multiple lines', async () => {
+  renderWithRouter();
+
+  // Wait for one of the slices to be rendered
+  await screen.findByTestId('slice-1');
+
+  const svg = document.querySelector('svg.wheel-svg');
+  const allText = svg.textContent;
+
+  expect(allText).toContain("This is a very");
+  expect(allText).toContain("long string of");
+  expect(allText).toContain("text that must");
+  expect(allText).toContain("be split into");
+  expect(allText).toContain("several lines");
+  expect(allText).toContain("to fit");
+});
 
 
-    renderWithRouter();
-
-    expect(screen.getByText("This is a very")).toBeInTheDocument();
-    expect(screen.getByText("long string of")).toBeInTheDocument();
-    expect(screen.getByText("text that must")).toBeInTheDocument();
-    expect(screen.getByText("be split into")).toBeInTheDocument();
-    expect(screen.getByText("several lines")).toBeInTheDocument();
-    expect(screen.getByText("to fit")).toBeInTheDocument();
-  })
-
-test('should rotate a ring when dragged with the mouse', async () =>{
+test('should rotate a ring when dragged with the mouse', async () => {
   const user = userEvent.setup();
   renderWithRouter();
 
-  const ringToDrag = await screen.getByTestId('ring-group-1');
-  const sliceToGrab = await screen.getByTestId('slice-1');
+  const sliceToGrab = await screen.findByTestId('slice-1');
+  const ringToDrag = sliceToGrab.closest('[data-testid^="ring-group-"]');
 
   const initialTransform = ringToDrag.getAttribute('transform');
 
   await user.pointer([
-    { keys: '[MouseLeft>]', target: sliceToGrab }, 
+    { keys: '[MouseLeft>]', target: sliceToGrab },
     { coords: { x: 900, y: 800 } },
     { keys: '[/MouseLeft]' },
   ]);
@@ -184,7 +189,8 @@ test('should rotate a ring when dragged with the mouse', async () =>{
 
   expect(finalTransform).not.toBe(initialTransform);
   expect(finalTransform).toContain('rotate');
-})
+});
+
 
 test('should pan the board when right-click dragging', async () => {
   renderWithRouter();
