@@ -288,7 +288,11 @@ export default function Lobby() {
             <input
               type="number"
               value={timeInput}
-              onChange={(e) => setTimeInput(e.target.value)}
+              onChange={(e) => {
+                setTimeInput(e.target.value);
+                setIsEditingTime(true);
+                isEditingTimeRef.current = true;
+              }}
               onFocus={() => {
                 setIsEditingTime(true);
                 isEditingTimeRef.current = true;

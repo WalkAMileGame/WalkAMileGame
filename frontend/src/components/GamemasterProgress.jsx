@@ -216,8 +216,16 @@ const GamemasterProgress = () => {
           <div className="teams-list">
             {roomData.teams.map((team, index) => (
               <div key={index} className="team-item">
-                <div className="team-name">{team.team_name}</div>
-                <div className="team-circumstance">{team.circumstance}</div>
+                <div className="team-info">
+                  <div className="team-name">{team.team_name}</div>
+                  <div className="team-circumstance">{team.circumstance}</div>
+                </div>
+                <button
+                  className="btn-view-board"
+                  onClick={() => navigate(`/game/${gamecode}/${team.team_name}`)}
+                >
+                  View Board
+                </button>
               </div>
             ))}
           </div>

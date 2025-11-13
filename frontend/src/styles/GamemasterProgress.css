@@ -82,6 +82,7 @@
 .teams-list {
   display: grid;
   gap: 1rem;
+  grid-template-columns: 1fr;
 }
 
 .team-item {
@@ -91,6 +92,11 @@
   border: 2px solid #86B18A;
   border-left: 4px solid #86B18A;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
 .team-item:hover {
@@ -98,17 +104,48 @@
   transform: translateX(4px);
 }
 
+.team-info {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
 .team-name {
   font-size: 1.2rem;
   font-weight: bold;
   color: #3F695D;
   margin-bottom: 0.5rem;
+  word-break: break-word;
 }
 
 .team-circumstance {
   color: #666;
   font-size: 0.95rem;
   font-style: italic;
+  word-break: break-word;
+}
+
+.btn-view-board {
+  background-color: #3F695D;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  flex-grow: 0;
+  flex-basis: auto;
+  width: auto;
+}
+
+.btn-view-board:hover {
+  background-color: #2d4d43;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
 .no-teams {
