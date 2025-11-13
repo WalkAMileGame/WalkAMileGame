@@ -27,12 +27,12 @@ export default function Lobby() {
   // --- Restore team join state on reload ---
   useEffect(() => {
     if (process.env.NODE_ENV === 'test') return; // don't auto-restore in test env
-    const savedTeamName = sessionStorage.getItem('teamName');
+    const savedTeamName = sessionStorage.getItem(`teamName_${inviteCode}`);
     if (savedTeamName) {
       setTeamName(savedTeamName);
       setHasJoined(true);
     }
-  }, []);
+  }, [inviteCode]);
 
   // --- Gamemaster: create room or resume existing one ---
   useEffect(() => {
@@ -95,14 +95,14 @@ export default function Lobby() {
   // --- Redirect players when game starts ---
   useEffect(() => {
     if (roomData?.game_started && !isGamemaster) {
-      const savedTeamName = sessionStorage.getItem('teamName');
+      const savedTeamName = sessionStorage.getItem(`teamName_${inviteCode}`);
       if (savedTeamName) {
         navigate(`/game/${inviteCode}/${savedTeamName}`, {
           state: { boardConfig: roomData.board_config, teamName: savedTeamName },
         });
       }
     }
-  }, [roomData?.game_started, isGamemaster]);
+  }, [roomData?.game_started, isGamemaster, inviteCode, navigate, roomData?.board_config]);
 
   // --- Create room ---
   const createRoom = async () => {
@@ -263,7 +263,7 @@ export default function Lobby() {
         return;
       }
 
-      sessionStorage.setItem('teamName', teamName);
+      sessionStorage.setItem(`teamName_${inviteCode}`, teamName);
       setHasJoined(true);
       setTeamName('');
       await loadRoomData();

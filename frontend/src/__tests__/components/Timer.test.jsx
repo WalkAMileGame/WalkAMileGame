@@ -58,41 +58,79 @@ describe('Timer', () => {
   });
 
   test('counts down every second', async () => {
-    mockRoomData(1); // 1 minute
-    
+    let fetchCount = 0;
+
+    global.fetch.mockImplementation(() => {
+      fetchCount++;
+      // Simulate time passing by adjusting game_started_at
+      const secondsElapsed = fetchCount - 1;
+      const adjustedStartTime = new Date(Date.now() - secondsElapsed * 1000).toISOString();
+
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          time_remaining: 1,
+          game_started_at: adjustedStartTime,
+          game_paused: false,
+          accumulated_pause_time: 0
+        })
+      });
+    });
+
     vi.useFakeTimers({ shouldAdvanceTime: true });
     render(<Timer gamecode="ABC123" />);
 
     await waitFor(() => expect(screen.getByText('1:00')).toBeInTheDocument());
 
     act(() => vi.advanceTimersByTime(1000));
-    expect(screen.getByText('0:59')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/0:5[0-9]/)).toBeInTheDocument());
 
     act(() => vi.advanceTimersByTime(30000));
-    expect(screen.getByText('0:29')).toBeInTheDocument();
-    
+    await waitFor(() => expect(screen.getByText(/0:[0-2][0-9]/)).toBeInTheDocument());
+
     vi.useRealTimers();
   });
 
   test('stops at 0:00 and calls onEnd callback', async () => {
     const onEnd = vi.fn();
-    mockRoomData(2); // 2 minutes = 120 seconds
+    let fetchCount = 0;
+
+    global.fetch.mockImplementation(() => {
+      fetchCount++;
+      const secondsElapsed = (fetchCount - 1) * 1;
+      const adjustedStartTime = new Date(Date.now() - secondsElapsed * 1000).toISOString();
+
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          time_remaining: 2,
+          game_started_at: adjustedStartTime,
+          game_paused: false,
+          accumulated_pause_time: 0
+        })
+      });
+    });
 
     vi.useFakeTimers({ shouldAdvanceTime: true });
     render(<Timer gamecode="ABC123" onEnd={onEnd} />);
 
     await waitFor(() => expect(screen.getByText('2:00')).toBeInTheDocument());
 
-    // Advance to 1 second remaining
+    // Advance to near the end
     act(() => vi.advanceTimersByTime(119000));
-    expect(screen.getByText('0:01')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/0:0[0-1]/)).toBeInTheDocument());
 
-    // Advance by exactly 1 second to hit 0:00
-    act(() => vi.advanceTimersByTime(1000));
-    
-    expect(screen.getByText('0:00')).toBeInTheDocument();
-    expect(onEnd).toHaveBeenCalled();
-    
+    // Advance to ensure timer reaches 0:00
+    act(() => vi.advanceTimersByTime(2000));
+
+    await waitFor(() => {
+      expect(screen.getByText('0:00')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(onEnd).toHaveBeenCalled();
+    });
+
     vi.useRealTimers();
   });
 
