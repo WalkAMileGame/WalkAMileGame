@@ -78,7 +78,7 @@
   position: absolute;
   top: 1rem;
   left: 1rem;
-  background-color: transparent;
+  background-color: rgba(134, 177, 138, 0.2);
   color: #3F695D;
   padding: 0.5rem;
   display: flex;
@@ -86,8 +86,8 @@
   justify-content: center;
   font-size: 0.875rem;
   border: 2px solid #86B18A;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 3rem;
+  height: 3rem;
 }
 
 .btn-back:hover {
