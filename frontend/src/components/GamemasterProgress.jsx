@@ -11,6 +11,7 @@ const GamemasterProgress = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeAdjustment, setTimeAdjustment] = useState('');
+  const [customTime, setCustomTime] = useState('');
 
   useEffect(() => {
     const fetchRoomData = async () => {
@@ -113,6 +114,27 @@ const GamemasterProgress = () => {
     }
   };
 
+  const handleSetCustomTime = async () => {
+    const minutes = parseInt(customTime);
+    if (isNaN(minutes) || minutes < 0) {
+      alert('Please enter a valid number of minutes');
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE}/rooms/${gamecode}/time`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ time_remaining: minutes, reset_timer: true }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to set custom time');
+      }
+      setCustomTime('');
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="gamemaster-progress">
@@ -143,43 +165,48 @@ const GamemasterProgress = () => {
       </div>
 
       <div className="controls-container">
-        <h2>Game Controls</h2>
-
-        <div className="control-group">
-          <h3>Timer Control</h3>
+        <div className="controls-grid">
           <button
             className={`btn ${roomData?.game_paused ? 'btn-resume' : 'btn-pause'}`}
             onClick={handlePauseResume}
           >
-            {roomData?.game_paused ? 'Resume Game' : 'Pause Game'}
+            {roomData?.game_paused ? '▶ Resume' : '⏸ Pause'}
           </button>
-        </div>
 
-        <div className="control-group">
-          <h3>Adjust Time</h3>
-          <div className="time-adjustment">
+          <button className="btn btn-end-game" onClick={handleEndGame}>
+            ⏹ End Game
+          </button>
+
+          <div className="time-control-group">
             <input
               type="number"
-              className="time-input"
-              placeholder="Minutes"
+              className="time-input-compact"
+              placeholder="Min"
               value={timeAdjustment}
               onChange={(e) => setTimeAdjustment(e.target.value)}
               min="1"
             />
-            <button className="btn btn-add-time" onClick={handleAddTime}>
-              Add Time
+            <button className="btn-icon btn-add-time" onClick={handleAddTime} title="Add time">
+              +
             </button>
-            <button className="btn btn-remove-time" onClick={handleRemoveTime}>
-              Remove Time
+            <button className="btn-icon btn-remove-time" onClick={handleRemoveTime} title="Remove time">
+              −
             </button>
           </div>
-        </div>
 
-        <div className="control-group">
-          <h3>End Game</h3>
-          <button className="btn btn-end-game" onClick={handleEndGame}>
-            End Game Now
-          </button>
+          <div className="time-control-group">
+            <input
+              type="number"
+              className="time-input-compact"
+              placeholder="Set min"
+              value={customTime}
+              onChange={(e) => setCustomTime(e.target.value)}
+              min="0"
+            />
+            <button className="btn-icon btn-set-time" onClick={handleSetCustomTime} title="Set custom time">
+              ⏱
+            </button>
+          </div>
         </div>
       </div>
 

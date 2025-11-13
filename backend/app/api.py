@@ -296,22 +296,33 @@ def update_team_circumstance(room_code: str, team_name: str, update: Circumstanc
 
 class TimeUpdate(BaseModel):
     time_remaining: int
+    reset_timer: bool = False
 
 
 @router.post("/rooms/{room_code}/time")
 def update_time(room_code: str, time_update: TimeUpdate):
     """Update time remaining for a room"""
+    update_fields = {"time_remaining": time_update.time_remaining}
+
+    # If reset_timer is True, reset the game_started_at timestamp and accumulated_pause_time
+    # This ensures the timer starts at exactly the specified minutes with :00 seconds
+    if time_update.reset_timer:
+        update_fields["game_started_at"] = datetime.now(timezone.utc).isoformat()
+        update_fields["accumulated_pause_time"] = 0
+        update_fields["paused_at"] = None
+        update_fields["game_paused"] = False
+
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
-        {"$set": {"time_remaining": time_update.time_remaining}}
+        {"$set": update_fields}
     )
-    
+
     if result.matched_count == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Room not found"
         )
-    
+
     return {"message": "Time updated successfully"}
 
 

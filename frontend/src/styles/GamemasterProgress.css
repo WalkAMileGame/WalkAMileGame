@@ -142,52 +142,34 @@
 /* Controls Section */
 .controls-container {
   background-color: white;
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 12px;
   border: 3px solid #86B18A;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   margin-bottom: 2rem;
 }
 
-.controls-container h2 {
-  margin: 0 0 1.5rem 0;
-  color: #3F695D;
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-.control-group {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 2px solid #86B18A;
-}
-
-.control-group:last-child {
-  margin-bottom: 0;
-}
-
-.control-group h3 {
-  margin: 0 0 1rem 0;
-  color: #3F695D;
-  font-size: 1.1rem;
-  font-weight: 600;
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .btn {
-  padding: 10px 20px;
+  padding: 0.6rem 1rem;
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
 .btn-pause {
@@ -211,36 +193,52 @@
 .btn-end-game {
   background-color: #E76F51;
   color: white;
-  width: 100%;
 }
 
 .btn-end-game:hover {
   background-color: #d65d42;
 }
 
-.time-adjustment {
+.time-control-group {
   display: flex;
-  gap: 10px;
+  gap: 0.4rem;
   align-items: center;
-  flex-wrap: wrap;
 }
 
-.time-input {
-  padding: 10px 12px;
+.time-input-compact {
+  padding: 0.6rem 0.5rem;
   border: 2px solid #86B18A;
   border-radius: 8px;
-  font-size: 1rem;
-  width: 120px;
+  font-size: 0.9rem;
+  width: 70px;
+  text-align: center;
 }
 
-.time-input:focus {
+.time-input-compact:focus {
   outline: none;
   border-color: #3F695D;
 }
 
+.btn-icon {
+  padding: 0.6rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 36px;
+  text-align: center;
+  color: white;
+}
+
+.btn-icon:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
 .btn-add-time {
   background-color: #86B18A;
-  color: white;
 }
 
 .btn-add-time:hover {
@@ -249,9 +247,16 @@
 
 .btn-remove-time {
   background-color: #F3A261;
-  color: white;
 }
 
 .btn-remove-time:hover {
   background-color: #e59150;
+}
+
+.btn-set-time {
+  background-color: #3F695D;
+}
+
+.btn-set-time:hover {
+  background-color: #2d4d43;
 }
