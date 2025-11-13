@@ -1,0 +1,125 @@
+.gamemaster-progress {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #3F695D;
+  min-height: 100vh;
+}
+
+.progress-header {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 3px solid #86B18A;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.progress-header h1 {
+  margin: 0 0 1rem 0;
+  color: #3F695D;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.game-info {
+  display: flex;
+  gap: 2rem;
+  font-size: 1.1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.game-code {
+  color: #3F695D;
+  font-weight: bold;
+  background-color: rgba(134, 177, 138, 0.2);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid #86B18A;
+}
+
+.timer {
+  color: #3F695D;
+  font-weight: bold;
+  background-color: rgba(233, 196, 106, 0.2);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid #E9C46A;
+}
+
+.teams-container {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 3px solid #86B18A;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.teams-container h2 {
+  margin: 0 0 1.5rem 0;
+  color: #3F695D;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.teams-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.team-item {
+  background-color: #f8f9fa;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 2px solid #86B18A;
+  border-left: 4px solid #86B18A;
+  transition: all 0.2s ease;
+}
+
+.team-item:hover {
+  background-color: rgba(134, 177, 138, 0.1);
+  transform: translateX(4px);
+}
+
+.team-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #3F695D;
+  margin-bottom: 0.5rem;
+}
+
+.team-circumstance {
+  color: #666;
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+.no-teams {
+  text-align: center;
+  padding: 2rem;
+  color: #86B18A;
+  font-size: 1.1rem;
+  background-color: #f8f9fa;
+  border: 2px dashed #86B18A;
+  border-radius: 12px;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+}
+
+.loading {
+  color: white;
+}
+
+.error {
+  color: #E76F51;
+  background-color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  border: 3px solid #E76F51;
+}

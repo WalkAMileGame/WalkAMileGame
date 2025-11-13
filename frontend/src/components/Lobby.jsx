@@ -216,12 +216,11 @@ export default function Lobby() {
   const startGame = async () => {
     try {
       await fetch(`${API_BASE}/rooms/${inviteCode}/start`, { method: 'POST' });
-      navigate(`/game/${inviteCode}/${teamName || 'Gamemaster'}`, {
+      navigate(`/gamemaster/progress/${inviteCode}`, {
         state: {
           boardConfig,
           isGamemaster: true,
           timeRemaining,
-          teamName: teamName || 'Gamemaster',
         },
       });
     } catch (err) {
