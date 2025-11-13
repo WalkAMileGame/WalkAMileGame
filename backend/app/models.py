@@ -8,6 +8,10 @@ from datetime import datetime
 class Points(BaseModel):
     id: str
     values: int
+
+class Circumstance(BaseModel):
+    name: str
+    description: str
     
 class LabelData(BaseModel):
     id: int
@@ -15,16 +19,18 @@ class LabelData(BaseModel):
     color: str
     energyvalue: int
     energypoint: bool = False
+    circumstances: List[Circumstance] = []
 
 class LayerData(BaseModel):
     id: int
     innerRadius: int
     outerRadius: int
-    labels: list[LabelData]
+    labels: List[LabelData]
 
 class Boards(BaseModel):
     name: str
-    ringData: list[LayerData]
+    circumstances: List[Circumstance] = []
+    ringData: List[LayerData]
 
 class UserData(BaseModel):
     email: EmailStr

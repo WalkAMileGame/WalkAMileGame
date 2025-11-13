@@ -35,18 +35,11 @@ def update_points(data: ChangePoints):
     updated_points = db.points.find_one({"id": "0"}, {"_id": 0})
     return updated_points
 
-
-class NewBoard(BaseModel):
-    name: str
-    ringData: list
-
-
 @router.put("/save")
-def save_board(data: NewBoard):
+def save_board(data: Boards):
     db.boards.update_one({"name": data.name},
-                         {"$set": {"name": data.name, "ringData": data.ringData}},
+                         {"$set": data.model_dump()},
                          upsert=True)
-
 
 class DeleteBoard(BaseModel):
     name: str
@@ -239,7 +232,7 @@ def create_room(room: Room):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Room with this code already exists"
             )
-        
+
         # Create room document
         room_doc = {
             "room_code": room.room_code.upper(),
