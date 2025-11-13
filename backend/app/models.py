@@ -63,6 +63,9 @@ class Room(BaseModel):
     teams: List[Team] = Field(default_factory=list)
     game_started: bool = False
     game_started_at: Optional[str] = None
+    game_paused: bool = False
+    paused_at: Optional[str] = None
+    accumulated_pause_time: int = 0
 
     @field_validator('room_code')
     def code_must_be_valid(cls, v):

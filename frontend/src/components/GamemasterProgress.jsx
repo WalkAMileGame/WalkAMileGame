@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/GamemasterProgress.css';
+import Timer from './ui/Timer';
+import { API_BASE } from '../api';
 
 const GamemasterProgress = () => {
   const { gamecode } = useParams();
+  const navigate = useNavigate();
   const [roomData, setRoomData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [timeAdjustment, setTimeAdjustment] = useState('');
 
   useEffect(() => {
     const fetchRoomData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/rooms/${gamecode}`);
+        const response = await fetch(`${API_BASE}/rooms/${gamecode}`);
         if (!response.ok) {
           throw new Error('Failed to fetch room data');
         }
@@ -33,6 +37,81 @@ const GamemasterProgress = () => {
 
     return () => clearInterval(interval);
   }, [gamecode]);
+
+  const handlePauseResume = async () => {
+    try {
+      const endpoint = roomData.game_paused ? 'resume' : 'pause';
+      const response = await fetch(`${API_BASE}/rooms/${gamecode}/${endpoint}`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to ${endpoint} game`);
+      }
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleEndGame = async () => {
+    if (!window.confirm('Are you sure you want to end the game? This cannot be undone.')) {
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE}/rooms/${gamecode}/end`, {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to end game');
+      }
+      alert('Game ended successfully');
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleAddTime = async () => {
+    const minutes = parseInt(timeAdjustment);
+    if (isNaN(minutes) || minutes <= 0) {
+      alert('Please enter a valid number of minutes to add');
+      return;
+    }
+    try {
+      const newTimeRemaining = roomData.time_remaining + minutes;
+      const response = await fetch(`${API_BASE}/rooms/${gamecode}/time`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ time_remaining: newTimeRemaining }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add time');
+      }
+      setTimeAdjustment('');
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleRemoveTime = async () => {
+    const minutes = parseInt(timeAdjustment);
+    if (isNaN(minutes) || minutes <= 0) {
+      alert('Please enter a valid number of minutes to remove');
+      return;
+    }
+    try {
+      const newTimeRemaining = Math.max(0, roomData.time_remaining - minutes);
+      const response = await fetch(`${API_BASE}/rooms/${gamecode}/time`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ time_remaining: newTimeRemaining }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to remove time');
+      }
+      setTimeAdjustment('');
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
 
   if (loading) {
     return (
@@ -56,7 +135,51 @@ const GamemasterProgress = () => {
         <h1>Gamemaster Dashboard</h1>
         <div className="game-info">
           <span className="game-code">Game Code: {gamecode}</span>
-          <span className="timer">Time Remaining: {roomData?.time_remaining || 0} minutes</span>
+          <span className={`timer ${roomData?.game_paused ? 'paused' : ''}`}>
+            Time Remaining: <Timer gamecode={gamecode} />
+            {roomData?.game_paused && ' (PAUSED)'}
+          </span>
+        </div>
+      </div>
+
+      <div className="controls-container">
+        <h2>Game Controls</h2>
+
+        <div className="control-group">
+          <h3>Timer Control</h3>
+          <button
+            className={`btn ${roomData?.game_paused ? 'btn-resume' : 'btn-pause'}`}
+            onClick={handlePauseResume}
+          >
+            {roomData?.game_paused ? 'Resume Game' : 'Pause Game'}
+          </button>
+        </div>
+
+        <div className="control-group">
+          <h3>Adjust Time</h3>
+          <div className="time-adjustment">
+            <input
+              type="number"
+              className="time-input"
+              placeholder="Minutes"
+              value={timeAdjustment}
+              onChange={(e) => setTimeAdjustment(e.target.value)}
+              min="1"
+            />
+            <button className="btn btn-add-time" onClick={handleAddTime}>
+              Add Time
+            </button>
+            <button className="btn btn-remove-time" onClick={handleRemoveTime}>
+              Remove Time
+            </button>
+          </div>
+        </div>
+
+        <div className="control-group">
+          <h3>End Game</h3>
+          <button className="btn btn-end-game" onClick={handleEndGame}>
+            End Game Now
+          </button>
         </div>
       </div>
 

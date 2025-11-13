@@ -18,6 +18,7 @@ export default function Lobby() {
   const [editingTeam, setEditingTeam] = useState(null);
   const [editCircumstance, setEditCircumstance] = useState('');
   const [roomCreated, setRoomCreated] = useState(false);
+  const initializingRef = useRef(false);
 
   const inviteCode = (location.state?.inviteCode || gamecode || '').trim();
   const isGamemaster = location.state?.isGamemaster || false;
@@ -35,6 +36,12 @@ export default function Lobby() {
 
   // --- Gamemaster: create room or resume existing one ---
   useEffect(() => {
+    // Skip if room was already created or initialization already started
+    if (roomCreated || initializingRef.current) return;
+
+    // Mark that initialization has started
+    initializingRef.current = true;
+
     // Skip existence check entirely during automated tests
     if (process.env.NODE_ENV === 'test') {
       if (isGamemaster) createRoom();
@@ -63,6 +70,7 @@ export default function Lobby() {
     };
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- Poll room data after creation ---

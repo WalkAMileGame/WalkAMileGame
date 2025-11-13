@@ -324,14 +324,85 @@ def start_game(room_code: str):
                   "game_started_at": datetime.now(timezone.utc).isoformat()
                   }}
     )
-    
+
     if result.matched_count == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Room not found"
         )
-    
+
     return {"message": "Game started successfully"}
+
+
+@router.post("/rooms/{room_code}/pause")
+def pause_game(room_code: str):
+    """Pause the game timer for a room"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$set": {
+            "game_paused": True,
+            "paused_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    return {"message": "Game paused successfully"}
+
+
+@router.post("/rooms/{room_code}/resume")
+def resume_game(room_code: str):
+    """Resume the game timer for a room"""
+    room = db.rooms.find_one({"room_code": room_code.upper()})
+
+    if not room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    # Calculate accumulated pause time
+    accumulated_pause_time = room.get("accumulated_pause_time", 0)
+    if room.get("game_paused") and room.get("paused_at"):
+        paused_at = datetime.fromisoformat(room["paused_at"])
+        pause_duration = (datetime.now(timezone.utc) - paused_at).total_seconds()
+        accumulated_pause_time += int(pause_duration)
+
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$set": {
+            "game_paused": False,
+            "paused_at": None,
+            "accumulated_pause_time": accumulated_pause_time
+        }}
+    )
+
+    return {"message": "Game resumed successfully"}
+
+
+@router.post("/rooms/{room_code}/end")
+def end_game(room_code: str):
+    """End the game for a room"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$set": {
+            "game_started": False,
+            "game_paused": False,
+            "time_remaining": 0
+        }}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    return {"message": "Game ended successfully"}
 
 
 # Team Board and Energy Management Endpoints

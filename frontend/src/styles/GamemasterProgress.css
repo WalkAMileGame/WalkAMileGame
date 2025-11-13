@@ -49,6 +49,21 @@
   border: 2px solid #E9C46A;
 }
 
+.timer.paused {
+  background-color: rgba(231, 111, 81, 0.2);
+  border-color: #E76F51;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 .teams-container {
   background-color: white;
   padding: 2rem;
@@ -122,4 +137,121 @@
   border-radius: 12px;
   padding: 2rem;
   border: 3px solid #E76F51;
+}
+
+/* Controls Section */
+.controls-container {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 3px solid #86B18A;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  margin-bottom: 2rem;
+}
+
+.controls-container h2 {
+  margin: 0 0 1.5rem 0;
+  color: #3F695D;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.control-group {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #86B18A;
+}
+
+.control-group:last-child {
+  margin-bottom: 0;
+}
+
+.control-group h3 {
+  margin: 0 0 1rem 0;
+  color: #3F695D;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-pause {
+  background-color: #E9C46A;
+  color: white;
+}
+
+.btn-pause:hover {
+  background-color: #ddb552;
+}
+
+.btn-resume {
+  background-color: #86B18A;
+  color: white;
+}
+
+.btn-resume:hover {
+  background-color: #6fa073;
+}
+
+.btn-end-game {
+  background-color: #E76F51;
+  color: white;
+  width: 100%;
+}
+
+.btn-end-game:hover {
+  background-color: #d65d42;
+}
+
+.time-adjustment {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.time-input {
+  padding: 10px 12px;
+  border: 2px solid #86B18A;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 120px;
+}
+
+.time-input:focus {
+  outline: none;
+  border-color: #3F695D;
+}
+
+.btn-add-time {
+  background-color: #86B18A;
+  color: white;
+}
+
+.btn-add-time:hover {
+  background-color: #6fa073;
+}
+
+.btn-remove-time {
+  background-color: #F3A261;
+  color: white;
+}
+
+.btn-remove-time:hover {
+  background-color: #e59150;
 }

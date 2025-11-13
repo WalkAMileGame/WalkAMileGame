@@ -12,28 +12,43 @@ function Timer({ gamecode, onEnd }) {
       try {
         console.log('Fetching timer data for room:', gamecode);
         const response = await fetch(`${API_BASE}/rooms/${gamecode}`);
-        
+
         if (response.ok) {
           const roomData = await response.json();
           console.log('Room data received:', roomData);
           console.log('Time remaining (minutes):', roomData.time_remaining);
           console.log('Game started at:', roomData.game_started_at);
-          
+          console.log('Game paused:', roomData.game_paused);
+
           const now = new Date();
           let endTime;
-          
+
           if (roomData.game_started_at) {
             // Game has started - calculate based on elapsed time
             const gameStartTime = new Date(roomData.game_started_at);
             const totalDuration = roomData.time_remaining * 60; // Total duration in seconds
-            const elapsedSeconds = Math.floor((now - gameStartTime) / 1000);
+            const accumulatedPauseTime = roomData.accumulated_pause_time || 0;
+
+            let elapsedSeconds = Math.floor((now - gameStartTime) / 1000);
+
+            // If game is currently paused, calculate pause time
+            if (roomData.game_paused && roomData.paused_at) {
+              const pausedAt = new Date(roomData.paused_at);
+              const currentPauseDuration = Math.floor((now - pausedAt) / 1000);
+              elapsedSeconds -= (accumulatedPauseTime + currentPauseDuration);
+            } else {
+              // Subtract accumulated pause time from elapsed time
+              elapsedSeconds -= accumulatedPauseTime;
+            }
+
             const remainingSeconds = Math.max(0, totalDuration - elapsedSeconds);
-            
+
             console.log('Game started:', gameStartTime.toISOString());
             console.log('Elapsed seconds:', elapsedSeconds);
+            console.log('Accumulated pause time:', accumulatedPauseTime);
             console.log('Remaining seconds:', remainingSeconds);
-            
-            endTime = new Date(gameStartTime.getTime() + totalDuration * 1000);
+
+            endTime = new Date(gameStartTime.getTime() + (totalDuration + accumulatedPauseTime) * 1000);
             setTimeLeft(remainingSeconds);
           } else {
             // Game hasn't started yet - use full duration
@@ -41,16 +56,30 @@ function Timer({ gamecode, onEnd }) {
             endTime = new Date(now.getTime() + totalDuration * 1000);
             setTimeLeft(totalDuration);
           }
-          
+
           setIsLoading(false);
-          
-          // Start countdown
+
+          // Start countdown - only tick if not paused
           const update = () => {
-            const now = new Date();
-            const remaining = Math.floor((endTime - now) / 1000);
-            const newTimeLeft = remaining > 0 ? remaining : 0;
-            setTimeLeft(newTimeLeft);
-            if (newTimeLeft <= 0 && onEnd) onEnd();
+            // Fetch fresh data to check pause state
+            fetch(`${API_BASE}/rooms/${gamecode}`)
+              .then(res => res.json())
+              .then(roomData => {
+                if (roomData.game_paused) {
+                  // Don't update time if paused - keep the fetch to detect resume
+                  return;
+                }
+
+                const now = new Date();
+                const gameStartTime = new Date(roomData.game_started_at);
+                const totalDuration = roomData.time_remaining * 60;
+                const accumulatedPauseTime = roomData.accumulated_pause_time || 0;
+                let elapsedSeconds = Math.floor((now - gameStartTime) / 1000) - accumulatedPauseTime;
+                const remainingSeconds = Math.max(0, totalDuration - elapsedSeconds);
+
+                setTimeLeft(remainingSeconds);
+                if (remainingSeconds <= 0 && onEnd) onEnd();
+              });
           };
 
           const interval = setInterval(update, 1000);
