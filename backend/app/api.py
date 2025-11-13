@@ -440,7 +440,7 @@ def get_team_board(room_code: str, team_name: str):
             detail="Team not found"
         )
     
-    return team.get("gameboard_state", {})
+    return {"ringData": team.get("gameboard_state", {}).get("ringData", [])}
 
 
 @router.put("/rooms/{room_code}/teams/{team_name}/board")

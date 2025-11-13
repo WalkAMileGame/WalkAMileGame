@@ -10,11 +10,8 @@ import Timer from "./ui/Timer";
 
 
 const Game = () => {
-  const location = useLocation();
-  const initialConfig = location.state?.boardConfig
-  const [gameConfig, setGameConfig] = useState(initialConfig || { ringData: [] })
+  const [gameConfig, setGameConfig] = useState({ ringData: [] }); // Don't initialize with initialConfig
   const { gamecode, teamname } = useParams();
-
 
   const [rotations, setRotations] = useState({
     ring0: 0,
@@ -24,135 +21,119 @@ const Game = () => {
   });
 
   const [activeMarkers, setActiveMarkers] = useState(new Set());
-  const [points, setPoints] = useState(0)
+  const [points, setPoints] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
 
-  // fetch board && display energymarkers if energypoint true
-  useEffect(() => {
+  const restoreEnergyMarkers = (boardData) => {
+    if (!boardData?.ringData) return new Set();
 
-    const fetchBoard = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`);
-        if (!res.ok) throw new Error("No board found for team");
-        const data = await res.json();
-
-        // Restore energymarkers
-        const restored = restoreEnergyMarkers(data);
-        setActiveMarkers(restored);
-        setGameConfig(data);
-      } catch (err) {
-        console.warn("Board fetch skipped:", err.message);
-      }
-    };
-    if (teamname !== "Gamemaster" && !initialConfig) {
-    fetchBoard();
-    restoreEnergyMarkers();
-    }
-
-  }, [gamecode, teamname, initialConfig]); 
-
-
-const restoreEnergyMarkers = (boardData) => {
-  if (!boardData?.ringData) return new Set();
-
-  const restored = new Set();
-  boardData.ringData.forEach((ring) => {
-    ring.labels.forEach((label) => {
-      if (label.energypoint) {
-        restored.add(`${ring.id}-${label.id}`);
-      }
+    const restored = new Set();
+    boardData.ringData.forEach((ring) => {
+      ring.labels.forEach((label) => {
+        if (label.energypoint) {
+          restored.add(`${ring.id}-${label.id}`);
+        }
+      });
     });
-  });
-  return restored;
-};
+    return restored;
+  };
 
- // fetching points and updating poins
+  // Fetch board && display energymarkers if energypoint true
+useEffect(() => {
+  if (teamname === "Gamemaster") return;
 
- useEffect(() => {
-  fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`)
-    .then((res) => res.json())
-    .then((data) => setPoints(data.current_energy));
-}, []);
+  const initializeBoard = async () => {
+    try {
+      console.log("Fetching board from backend...");
+      const res = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`);
+      if (!res.ok) throw new Error("No board found for team");
+      const data = await res.json();
+      console.log("Fetched board data:", data);
+      setGameConfig(data);                      
+      setActiveMarkers(restoreEnergyMarkers(data)); 
+      setIsInitialized(true);
+    } catch (err) {
+      console.error("Board fetch failed:", err);
+    }
+  };
 
-  const updatingPoints = (change = -1) => { // takes input number now
+  initializeBoard();
+}, [gamecode, teamname]);
+
+  // Fetching points
+  useEffect(() => {
+    if (teamname === "Gamemaster") return;
+
+    fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`)
+      .then((res) => res.json())
+      .then((data) => setPoints(data.current_energy))
+      .catch((err) => console.error("Failed to fetch energy:", err));
+  }, [gamecode, teamname]);
+
+  const updatingPoints = (change = -1) => {
     fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ change }), 
+      body: JSON.stringify({ change }),
     })
       .then((res) => res.json())
-      .then((data) => setPoints(data.current_energy));
+      .then((data) => setPoints(data.current_energy))
+      .catch((err) => console.error("Failed to update energy:", err));
   };
 
-    // Handle slice click
+  // Handle slice click
   const handleSliceClick = (e, label, ringId, energyvalue) => {
     e.stopPropagation();
-    
+
     if (dragState.current.isDragging || dragState.current.recentlyDragged) {
       return;
     }
+
     const compositeKey = `${ringId}-${label.id}`;
     const hasMarker = activeMarkers.has(compositeKey);
-    
+
     if (hasMarker) {
-      updatingPoints(energyvalue); // Remove marker - refund energy
-      setGameConfig((prev) => ({
-      ...prev,
-      rings: prev.ringData.map((ring) =>
-        ring.id === ringId
-          ? {
-              ...ring,
-              labels: ring.labels.map((l) =>
-                l.id === label.id ? { ...l, energypoint: false } : l
-              ),
-            }
-          : ring),
-    }));
-      setActiveMarkers(prev => {
+      // Remove marker - refund energy
+      updatingPoints(energyvalue);
+      setActiveMarkers((prev) => {
         const newSet = new Set(prev);
         newSet.delete(compositeKey);
         return newSet;
       });
     } else if (points >= energyvalue) {
-      updatingPoints(- energyvalue); // Add marker - spend energy
-      setGameConfig((prev) => ({
-      ...prev,
-      rings: prev.ringData.map((ring) =>
-        ring.id === ringId
-          ? {
-              ...ring,
-              labels: ring.labels.map((l) =>
-                l.id === label.id ? { ...l, energypoint: true } : l
-              ),
-            }
-          : ring),
-    }));
-      setActiveMarkers(prev => new Set([...prev, compositeKey]));
+      // Add marker - spend energy
+      updatingPoints(-energyvalue);
+      setActiveMarkers((prev) => new Set([...prev, compositeKey]));
+    } else {
+      return; // Not enough energy
     }
-    setGameConfig(prev => {
+
+    // Update gameConfig and persist to backend
+    setGameConfig((prev) => {
       const updated = {
         ...prev,
-        ringData: prev.ringData.map(ring => 
-          ring.id == ringId
-          ? {
-            ...ring,
-            labels: ring.labels.map(l =>
-              l.id ==label.id 
-              ? { ...l, energypoint: !hasMarker }
-              : l
-            ),
-          }
-          : ring
+        ringData: (prev.ringData || []).map((ring) =>
+          ring.id === ringId
+            ? {
+                ...ring,
+                labels: ring.labels.map((l) =>
+                  l.id === label.id ? { ...l, energypoint: !hasMarker } : l
+                ),
+              }
+            : ring
         ),
-      }
-    fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ board_state: updated }),
-  }).catch((err) => console.error("Failed to update board:", err));
-  return updated;
-})
-};
-  
+      };
+
+      fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ board_state: updated }),
+      }).catch((err) => console.error("Failed to update board:", err));
+
+      return updated;
+    });
+  };
+// ------------------------------------- GAMEBOARD CONSTRUCTION -------------------------------------//
   const containerRef = useRef(null);
   
   const whiteLineThickness = 14; // Stroke width for slice borders

@@ -42,7 +42,7 @@ const EnergyMarkers = ({
 
   return (
     <>
-      {gameConfig.ringData.map((ring) => {
+      {gameConfig?.ringData?.map((ring) => {
         const rotation = rotations[ring.id] || 0;
         
         return ring.labels.map((label, index) => {

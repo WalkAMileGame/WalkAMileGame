@@ -97,6 +97,11 @@ export default function Lobby() {
     if (roomData?.game_started && !isGamemaster) {
       const savedTeamName = sessionStorage.getItem(`teamName_${inviteCode}`);
       if (savedTeamName) {
+        fetch(`${API_BASE}/rooms/${inviteCode}/teams/${savedTeamName}/board`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ board_state: roomData.board_config }),
+      }).catch((err) => console.error("Failed to save board:", err));
         navigate(`/game/${inviteCode}/${savedTeamName}`, {
           state: { boardConfig: roomData.board_config, teamName: savedTeamName },
         });
