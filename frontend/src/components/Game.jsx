@@ -28,7 +28,6 @@ const Game = () => {
 
   // fetch board && display energymarkers if energypoint true
   useEffect(() => {
-    if (teamname === "Gamemaster") return;
 
     const fetchBoard = async () => {
       try {
@@ -44,9 +43,12 @@ const Game = () => {
         console.warn("Board fetch skipped:", err.message);
       }
     };
-
+    if (teamname !== "Gamemaster" && !initialConfig) {
     fetchBoard();
-  }, [gamecode, teamname]); 
+    restoreEnergyMarkers();
+    }
+
+  }, [gamecode, teamname, initialConfig]); 
 
 
 const restoreEnergyMarkers = (boardData) => {
@@ -490,7 +492,7 @@ const restoreEnergyMarkers = (boardData) => {
                     </filter>
                   </defs>
                   {/* Render rings from innermost to outermost */}     
-                  {gameConfig.ringData.map((ring) => {
+                  {gameConfig?.ringData?.map((ring) => {
                     const numSlices = ring.labels.length;
                     const rotation = rotations[ring.id] || 0;
                     const anglePerSlice = 360 / numSlices;
@@ -535,7 +537,7 @@ const restoreEnergyMarkers = (boardData) => {
                     );
                   })}
                 {/* Separator Circles */}
-                  {gameConfig.ringData.map((ring) => (
+                  {gameConfig?.ringData?.map((ring) => (
                     <circle
                       key={`separator-inner-${ring.id}`}
                       cx={CENTER_X}
@@ -547,12 +549,12 @@ const restoreEnergyMarkers = (boardData) => {
                       style={{ pointerEvents: 'none' }}
                     />
                   ))}
-                  {gameConfig.ringData.length > 0 && (
+                  {gameConfig?.ringData?.length > 0 && (
                     <circle
                       key="separator-outer"
                       cx={CENTER_X}
                       cy={CENTER_Y}
-                      r={gameConfig.ringData[gameConfig.ringData.length - 1].outerRadius}
+                      r={gameConfig?.ringData[gameConfig.ringData.length - 1].outerRadius}
                       fill="none"
                       stroke="black"
                       strokeWidth={blackLineThickness}

@@ -7,6 +7,7 @@ import HostGamePage from './components/HostGame';
 import Game from './components/Game'
 import Lobby from './components/Lobby';
 import AboutUs from './components/AboutUs';
+import GamemasterProgress from './components/GamemasterProgress';
 
 import { useNavigate, BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -75,6 +76,7 @@ function AppContent() {
             <Route path="/gameboard" element={<GameBoard />} />
             <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
             <Route path="/hostgame" element={<HostGamePage />} />
+            <Route path="/gamemaster/progress/:gamecode" element={<GamemasterProgress />} />
           </Route>
           
           <Route element={<ProtectedRoute allowedRoles={['admin']} />}>

@@ -459,7 +459,7 @@ describe('Lobby Component', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          '/game/TEST123/Gamemaster',
+          '/gamemaster/progress/TEST123',
           expect.objectContaining({
             state: expect.objectContaining({
               boardConfig: mockBoardConfig,
@@ -619,8 +619,8 @@ describe('Lobby Component', () => {
       expect(body.current_energy).toBe(32);
       expect(body.circumstance).toBe('');
 
-      // Verify sessionStorage
-      expect(sessionStorage.getItem('teamName')).toBe('Team Gamma');
+      // Verify sessionStorage (now scoped to game code)
+      expect(sessionStorage.getItem('teamName_TEST123')).toBe('Team Gamma');
     });
 
     test('shows waiting message after joining team', async () => {
@@ -711,8 +711,8 @@ describe('Lobby Component', () => {
 
     test('redirects to game when game starts', async () => {
       const startedRoomData = { ...mockRoomData, game_started: true };
-      
-      sessionStorage.setItem('teamName', 'Team Gamma');
+
+      sessionStorage.setItem('teamName_TEST123', 'Team Gamma');
       
       setupFetchMock({
         '/rooms/TEST123': { ok: true, json: async () => startedRoomData }
@@ -1073,7 +1073,7 @@ describe('Lobby Component', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          '/game/TEST123/Gamemaster',
+          '/gamemaster/progress/TEST123',
           expect.objectContaining({
             state: expect.objectContaining({
               isGamemaster: true
@@ -1108,7 +1108,7 @@ describe('Lobby Component', () => {
         });
       });
 
-      sessionStorage.setItem('teamName', 'My Team');
+      sessionStorage.setItem('teamName_TEST123', 'My Team');
 
       await act(async () => {
         renderWithRouter(<Lobby />, {

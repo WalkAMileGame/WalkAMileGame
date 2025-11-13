@@ -18,6 +18,7 @@ export default function Lobby() {
   const [editingTeam, setEditingTeam] = useState(null);
   const [editCircumstance, setEditCircumstance] = useState('');
   const [roomCreated, setRoomCreated] = useState(false);
+  const initializingRef = useRef(false);
 
   const inviteCode = (location.state?.inviteCode || gamecode || '').trim();
   const isGamemaster = location.state?.isGamemaster || false;
@@ -26,15 +27,21 @@ export default function Lobby() {
   // --- Restore team join state on reload ---
   useEffect(() => {
     if (process.env.NODE_ENV === 'test') return; // don't auto-restore in test env
-    const savedTeamName = sessionStorage.getItem('teamName');
+    const savedTeamName = sessionStorage.getItem(`teamName_${inviteCode}`);
     if (savedTeamName) {
       setTeamName(savedTeamName);
       setHasJoined(true);
     }
-  }, []);
+  }, [inviteCode]);
 
   // --- Gamemaster: create room or resume existing one ---
   useEffect(() => {
+    // Skip if room was already created or initialization already started
+    if (roomCreated || initializingRef.current) return;
+
+    // Mark that initialization has started
+    initializingRef.current = true;
+
     // Skip existence check entirely during automated tests
     if (process.env.NODE_ENV === 'test') {
       if (isGamemaster) createRoom();
@@ -63,6 +70,7 @@ export default function Lobby() {
     };
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- Poll room data after creation ---
@@ -87,14 +95,14 @@ export default function Lobby() {
   // --- Redirect players when game starts ---
   useEffect(() => {
     if (roomData?.game_started && !isGamemaster) {
-      const savedTeamName = sessionStorage.getItem('teamName');
+      const savedTeamName = sessionStorage.getItem(`teamName_${inviteCode}`);
       if (savedTeamName) {
         navigate(`/game/${inviteCode}/${savedTeamName}`, {
           state: { boardConfig: roomData.board_config, teamName: savedTeamName },
         });
       }
     }
-  }, [roomData?.game_started, isGamemaster]);
+  }, [roomData?.game_started, isGamemaster, inviteCode, navigate, roomData?.board_config]);
 
   // --- Create room ---
   const createRoom = async () => {
@@ -216,12 +224,11 @@ export default function Lobby() {
   const startGame = async () => {
     try {
       await fetch(`${API_BASE}/rooms/${inviteCode}/start`, { method: 'POST' });
-      navigate(`/game/${inviteCode}/${teamName || 'Gamemaster'}`, {
+      navigate(`/gamemaster/progress/${inviteCode}`, {
         state: {
           boardConfig,
           isGamemaster: true,
           timeRemaining,
-          teamName: teamName || 'Gamemaster',
         },
       });
     } catch (err) {
@@ -256,7 +263,7 @@ export default function Lobby() {
         return;
       }
 
-      sessionStorage.setItem('teamName', teamName);
+      sessionStorage.setItem(`teamName_${inviteCode}`, teamName);
       setHasJoined(true);
       setTeamName('');
       await loadRoomData();
@@ -281,7 +288,11 @@ export default function Lobby() {
             <input
               type="number"
               value={timeInput}
-              onChange={(e) => setTimeInput(e.target.value)}
+              onChange={(e) => {
+                setTimeInput(e.target.value);
+                setIsEditingTime(true);
+                isEditingTimeRef.current = true;
+              }}
               onFocus={() => {
                 setIsEditingTime(true);
                 isEditingTimeRef.current = true;

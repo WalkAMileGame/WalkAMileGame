@@ -4,6 +4,7 @@ import '../styles/EditUsers.css';
 import Snackbar from "./ui/snackbar"
 import { API_BASE } from "../api";
 import { useAuth } from '../context/AuthContext';
+import searchIcon from '../styles/icons/searchicon.png';
 
 const EditUsers = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -15,6 +16,9 @@ const EditUsers = () => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [pendingUsers, setPendingUsers] = useState([])
   const [existingUsers, setExistingUsers] = useState([])
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' }); // change key to date created once it's finished
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -256,123 +260,187 @@ const EditUsers = () => {
       })
     });
   };
+//search bar
+  const filteredUsers = existingUsers.filter((u) =>
+    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.role.toLowerCase().includes(searchTerm.toLowerCase()) 
+  );
 
-return (
-  <>
-    <Snackbar
-      message={snackbarMessage}
-      show={showSnackbar}
-      onClose={() => setShowSnackbar(false)}
-    />
+// sort by 
+const sortedUsers = [...filteredUsers].sort((a, b) => {
+  if (!sortConfig.key) return 0; // no sorting yet
 
+  const aVal = a[sortConfig.key] ? new Date(a[sortConfig.key]) : 0;
+  const bVal = b[sortConfig.key] ? new Date(b[sortConfig.key]) : 0;
+
+  if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+  if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+  return 0;
+});
+
+const handleSort = (key) => {
+  let direction = 'asc';
+  if (sortConfig.key === key && sortConfig.direction === 'asc') {
+    direction = 'desc';
+  }
+  setSortConfig({ key, direction });
+};
+
+
+  return (
     <div className="edit-page">
       <div className="header">
         <h1>User management</h1>
-        <h3>Manage all users in one place. Control roles and pending user requests. Pending user request will appear on top of the existing user table.</h3>
+        <h3>
+          Manage all users in one place. Control roles and pending user requests.
+          Pending requests will appear on top of the existing user table.
+        </h3>
       </div>
+
       <div className="table-area">
-      {/* Pending Users */}
-      {pendingUsers.length > 0 && (
+        {/* Pending Users */}
+        {pendingUsers.length > 0 && (
+          <div className="table-wrapper">
+            <h2>Pending users</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Date created</th>
+                  <th>Expiration date</th>
+                  <th>Accept / Deny</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingUsers.map((u, index) => (
+                  <tr key={index}>
+                    <td>👤 {u.email}</td>
+                    <td>
+                      {u.date_created
+                        ? new Date(u.date_created).toLocaleDateString()
+                        : "-"}
+                    </td>
+                    <td>
+                      {u.expiration_date
+                        ? new Date(u.expiration_date).toLocaleDateString()
+                        : "-"}
+                    </td>
+                    <td>
+                      <div className="requestbuttons">
+                        <button
+                          className="accept-button"
+                          title="Accept"
+                          onClick={() => {
+                            setSelectedUser(u.email);
+                            setShowPopup(true);
+                          }}
+                        >
+                          ✅
+                        </button>
+                        <button
+                          className="remove-button"
+                          onClick={() => handleDeny(u.email)}
+                          title="Reject"
+                        >
+                          🗙
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Existing Users */}
         <div className="table-wrapper">
-          <h2>Pending users</h2>
-          <table>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Accept / Deny</th>
-            </tr>
-          </thead>
+          <h2>Existing users</h2>
+          <input
+            type="text"
+            id="myInput"
+            placeholder="Search for users..."
+            title="Type in an email"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              backgroundImage: `url(${searchIcon})`,
+              backgroundPosition: "15px 12px",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "18px 18px",
+              paddingLeft: "40px",
+              marginBottom: "12px",
+            }}
+          />
+
+          <table id="existing-users">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th onClick={() => handleSort('date_created')} style={{ cursor: 'pointer' }}>
+                  Date created{' '} {sortConfig.key === 'date_created' ? sortConfig.direction === 'asc' ? '▲' : '▼': '▼'}
+                </th>
+                <th onClick={() => handleSort('expiration_date')} style={{ cursor: 'pointer' }}>
+                  Expiration date{' '} {sortConfig.key === 'expiration_date' ? sortConfig.direction === 'asc' ? '▲' : '▼': '▼'}
+                </th>
+                <th>Actions</th>
+              </tr>
+            </thead>
             <tbody>
-              {pendingUsers.map((u, index) => (
+              {sortedUsers.map((u, index) => (
                 <tr key={index}>
                   <td>👤 {u.email}</td>
+                  <td>{u.role}</td>
                   <td>
-                    <div className="requestbuttons">
-                    <button
-                      className="accept-button"
-                      title="Accept"
-                      onClick={() => {
-                        setSelectedUser(u.email);
-                        setShowPopup(true);
-    
-                      }}
-                    >
-                      ✅
-                    </button>
-                    <button
-                      className="remove-button"
-                      onClick={() => handleDeny(u.email)}
-                      title="Reject"
-                    >
-                      🗙
-                    </button>
-                    </div>
+                    {u.date_created
+                      ? new Date(u.date_created).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td>
+                    {u.expiration_date
+                      ? new Date(u.expiration_date).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td>
+                    {u.email !== user?.email && (
+                      <div className="editbuttons">
+                        {u.role === "gamemaster" && (
+                          <button
+                            className="promote-button"
+                            onClick={() => handlePromote(u.email)}
+                            title="Promote"
+                          >
+                            ⬆️
+                          </button>
+                        )}
+                        {u.role === "admin" && (
+                          <button
+                            className="demote-button"
+                            onClick={() => handleDemote(u.email)}
+                            title="Demote"
+                          >
+                            ⬇️
+                          </button>
+                        )}
+                        <button
+                          className="remove-button"
+                          onClick={() => handleRemove(u.email)}
+                          title="Delete"
+                        >
+                          🗙
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      )}
-
-      {/* Existing Users */}
-      <div className="table-wrapper">
-        <h2>Existing users</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {existingUsers.map((u, index) => (
-              <tr key={index}>
-                <td>👤 {u.email}</td>
-                <td>{u.role}</td>
-                <td>
-                  {u.email !== user?.email && (
-                    <div className="editbuttons">
-                    <>
-                    {u.role == "gamemaster" && (
-                      <button
-                        className="promote-button"
-                        onClick={() => handlePromote(u.email)}
-                        title= "Promote"
-                      >
-                        ⬆️
-                      </button>
-                    )}
-                      {u.role == "admin" && (
-                      <button
-                        className="demote-button"
-                        onClick={() => handleDemote(u.email)}
-                        title="Demote"
-                      >
-                        ⬇️
-                      </button>
-                      )}
-                                         <button
-                        className="remove-button"
-                        onClick={() => handleRemove(u.email)}
-                        title= "Delete"
-                      >
-                        🗙
-                      </button>
-                    </>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
       </div>
 
-      {/* Popup */}
+   {/* Popup */}
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup">
@@ -419,7 +487,6 @@ return (
         </div>
       )}
     </div>
-  </>
 );
 };
 
