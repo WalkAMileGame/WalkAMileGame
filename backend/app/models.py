@@ -26,15 +26,10 @@ class Boards(BaseModel):
     name: str
     ringData: list[LayerData]
 
-class Role(str, Enum):
-    """all existing roles are defined here"""
-    ADMIN = "admin"
-    GAMEMASTER = "gamemaster"
-
 class UserData(BaseModel):
     email: EmailStr
     password: str
-    role: Role = Role.GAMEMASTER
+    role: str = "gamemaster"
     pending: bool = True
 
     @field_validator('password')
@@ -47,6 +42,17 @@ class LoginRequest(BaseModel):
     """Model for the data expected in a login request."""
     email: EmailStr
     password: str
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class AcceptUser(BaseModel):
+    email: EmailStr
+    role: str
+
+class DenyUser(BaseModel):
+    email: EmailStr
 
 class Team(BaseModel):
     id: int
@@ -70,13 +76,3 @@ class Room(BaseModel):
             raise ValueError('Room code must be at least 4 characters')
         return v.upper()
 
-class RegisterRequest(BaseModel):
-    email: EmailStr
-    password: str
-
-class AcceptUser(BaseModel):
-    email: EmailStr
-    role: str
-
-class DenyUser(BaseModel):
-    email: EmailStr

@@ -2,7 +2,7 @@
 from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team
+from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData
 from .db import db
 from datetime import datetime, timedelta, timezone
 from typing import Dict
@@ -92,12 +92,6 @@ def load_instructions():
 @router.post("/login")
 def login(form_data: LoginRequest):
     user_in_db = db.users.find_one({"email": form_data.email})
-    #print("form data:", form_data)
-    #print("db output:", user_in_db)
-    pw = get_password_hash(form_data.password)
-    #print("hashed:", pw)
-    #db.users.update_one({"email": form_data.email}, {"$set": {"email": form_data.email, "password": pw, "role": "admin", "pending": True}}, upsert=True)
-    #print(list(db.users.find()))
 
     if not user_in_db:
         raise HTTPException(
@@ -105,7 +99,10 @@ def login(form_data: LoginRequest):
             detail="Incorrect email or password",
         )
     
-    if not verify_password(form_data.password, user_in_db["password"]):
+    user = UserData(email=user_in_db["email"], password=user_in_db["password"],
+                    role=user_in_db["role"], pending=user_in_db["pending"])
+    
+    if not verify_password(form_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -118,10 +115,10 @@ def login(form_data: LoginRequest):
         )
     
     access_token = create_access_token(
-        data={"sub": user_in_db["email"], "role": user_in_db["role"]}
+        data={"sub": user.email, "role": user.role}
     )
 
-    user_info = {"email": user_in_db["email"], "role": user_in_db["role"]}
+    user_info = {"email": user.email, "role": user.role}
 
     return {"access_token": access_token, "user": user_info}
 
@@ -136,11 +133,12 @@ def register(form_data: RegisterRequest):
             detail="Email already in use",
         )
 
-    #print("register for data:", form_data)
     hashed_password = get_password_hash(form_data.password)
-    db.users.update_one({"email": form_data.email},
-                        {"$set": {"email": form_data.email, "password": hashed_password,
-                        "role": "admin", "pending": True}}, upsert=True)
+    user = UserData(email=form_data.email, password=hashed_password)
+
+    db.users.update_one({"email": user.email},
+                        {"$set": {"email": user.email, "password": hashed_password,
+                        "role": user.role, "pending": user.pending}}, upsert=True)
 
 
 @router.get("/users/me", tags=["auth"])
