@@ -35,6 +35,10 @@ describe('Lobby Component', () => {
   
   const mockBoardConfig = {
     name: 'Test Board',
+    circumstances: [
+      {name: 'Circumstance A'},
+      {name: 'Circumstance B'}
+    ],
     ringData: [
       { 
         id: 1, 
@@ -64,14 +68,14 @@ describe('Lobby Component', () => {
       {
         id: 1,
         team_name: 'Team Alpha',
-        circumstance: 'Test circumstance',
+        circumstance: 'Circumstance A',
         current_energy: 32,
         gameboard_state: mockBoardConfig.ringData[0]
       },
       {
         id: 2,
         team_name: 'Team Beta',
-        circumstance: 'Another circumstance',
+        circumstance: 'Circumstance B',
         current_energy: 28,
         gameboard_state: mockBoardConfig.ringData[0]
       }
@@ -86,8 +90,8 @@ describe('Lobby Component', () => {
     return render(
       <MemoryRouter initialEntries={[{ pathname: '/lobby/TEST123', state }]}>
         <Routes>
-          <Route path="/lobby/:gamecode" element={component} />
-          <Route path="/game/:gamecode/:teamname" element={<div>Game View</div>} />
+          <Route path='/lobby/:gamecode' element={component} />
+          <Route path='/game/:gamecode/:teamname' element={<div>Game View</div>} />
         </Routes>
       </MemoryRouter>
     );
@@ -242,8 +246,8 @@ describe('Lobby Component', () => {
         expect(screen.getByText('Team Beta')).toBeInTheDocument();
       }, { timeout: 10000 });
 
-      expect(screen.getByText('Test circumstance')).toBeInTheDocument();
-      expect(screen.getByText('Another circumstance')).toBeInTheDocument();
+      expect(screen.getByText('Circumstance A')).toBeInTheDocument();
+      expect(screen.getByText('Circumstance B')).toBeInTheDocument();
     });
 
     test('updates time remaining successfully', async () => {
@@ -322,11 +326,10 @@ describe('Lobby Component', () => {
         fireEvent.click(editButtons[0]);
       });
 
-      const input = screen.getByPlaceholderText('Enter circumstance');
-      expect(input).toHaveValue('Test circumstance');
+      const radio = await screen.findByRole('radio', { name: 'Circumstance B' });
 
       await act(async () => {
-        fireEvent.change(input, { target: { value: 'Updated circumstance' } });
+        fireEvent.click(radio);
       });
 
       const saveButton = screen.getByText('Save');
@@ -341,7 +344,7 @@ describe('Lobby Component', () => {
         );
         expect(updateCall).toBeDefined();
         const body = JSON.parse(updateCall[1].body);
-        expect(body.circumstance).toBe('Updated circumstance');
+        expect(body.circumstance).toBe('Circumstance B');
       }, { timeout: 10000 });
     });
 
@@ -378,7 +381,7 @@ describe('Lobby Component', () => {
       });
 
       await waitFor(() => {
-        expect(screen.queryByPlaceholderText('Enter circumstance')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Circumstance A')).not.toBeInTheDocument();
       }, { timeout: 10000 });
     });
 
@@ -832,7 +835,7 @@ describe('Lobby Component', () => {
 
       await waitFor(() => {
         expect(alertSpy).toHaveBeenCalledWith(
-          expect.stringContaining("Invalid board configuration")
+          expect.stringContaining('Invalid board configuration')
         );
       }, { timeout: 10000 });
 

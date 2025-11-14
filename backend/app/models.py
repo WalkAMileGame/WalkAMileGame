@@ -19,7 +19,7 @@ class LabelData(BaseModel):
     color: str
     energyvalue: int
     energypoint: bool = False
-    circumstances: List[Circumstance] = []
+    required_for: List[Circumstance] = []
 
 class LayerData(BaseModel):
     id: int
