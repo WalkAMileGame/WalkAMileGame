@@ -7,7 +7,6 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  font-family: 'Arial', sans-serif;
 }
 
 .lobby-card {
@@ -216,10 +215,13 @@
 
 .edit-circumstance-section {
   margin-top: 8px;
+  font-size: 1.rem;
 }
 
-.edit-circumstance-section .form-input {
-  width: 100%;
+.edit-circumstance-section label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 8px;
 }
 
