@@ -67,12 +67,12 @@ useEffect(() => {
   // Initial fetch
   fetchBoard();
 
-  // Poll every 2 seconds if spectator to see updates
-  if (isSpectator) {
+  // Poll every 2 seconds if spectator or gamemaster viewing to see updates
+  if (isSpectator || isGamemasterViewing) {
     const interval = setInterval(fetchBoard, 2000);
     return () => clearInterval(interval);
   }
-}, [gamecode, teamname, isSpectator]);
+}, [gamecode, teamname, isSpectator, isGamemasterViewing]);
 
   // Fetching points
   useEffect(() => {
@@ -88,12 +88,12 @@ useEffect(() => {
     // Initial fetch
     fetchEnergy();
 
-    // Poll every 2 seconds if spectator to see energy updates
-    if (isSpectator) {
+    // Poll every 2 seconds if spectator or gamemaster viewing to see energy updates
+    if (isSpectator || isGamemasterViewing) {
       const interval = setInterval(fetchEnergy, 2000);
       return () => clearInterval(interval);
     }
-  }, [gamecode, teamname, isSpectator]);
+  }, [gamecode, teamname, isSpectator, isGamemasterViewing]);
 
   const updatingPoints = (change = -1) => {
     fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`, {
@@ -110,8 +110,8 @@ useEffect(() => {
   const handleSliceClick = (e, label, ringId, energyvalue) => {
     e.stopPropagation();
 
-    // Disable energy placement for spectators
-    if (isSpectator) {
+    // Disable energy placement for spectators and gamemaster viewers
+    if (isSpectator || isGamemasterViewing) {
       return;
     }
 

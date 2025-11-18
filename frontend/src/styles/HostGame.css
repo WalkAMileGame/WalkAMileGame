@@ -84,16 +84,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: 1.5rem;
   border: 2px solid #86B18A;
   width: 3rem;
   height: 3rem;
+  font-weight: bold;
+}
+
+.btn-back svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  stroke: #3F695D;
+  stroke-width: 2.5;
+  fill: none;
 }
 
 .btn-back:hover {
   background-color: #3F695D;
   color: white;
   border-color: #3F695D;
+}
+
+.btn-back:hover svg {
+  stroke: white;
+  stroke-width: 2.5;
 }
 
 .btn-copy {
