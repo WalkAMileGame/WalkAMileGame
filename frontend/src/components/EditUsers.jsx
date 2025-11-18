@@ -5,6 +5,13 @@ import Snackbar from "./ui/snackbar"
 import { API_BASE } from "../api";
 import { useAuth } from '../context/AuthContext';
 import searchIcon from '../styles/icons/searchicon.png';
+import deleteIcon from '../styles/icons/deleteicon.png';
+import promoteIcon from '../styles/icons/uparrow.png';
+import demoteIcon from '../styles/icons/downarrow.png';
+import userIcon from '../styles/icons/usericon.png';
+import acceptIcon from '../styles/icons/accepticon.png'
+import rejectIcon from '../styles/icons/rejecticon.png'
+
 
 const EditUsers = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -292,7 +299,6 @@ const handleSort = (key) => {
       <div className="header">
         <h1>USER MANAGEMENT</h1>
         <h3>
-          Manage all users in one place. Control roles and pending user requests.
           Pending requests will appear on top of the existing user table.
         </h3>
       </div>
@@ -314,7 +320,12 @@ const handleSort = (key) => {
               <tbody>
                 {pendingUsers.map((u, index) => (
                   <tr key={index}>
-                    <td>👤 {u.email}</td>
+                    <td> 
+                      <img
+                            src={userIcon}
+                            alt="user"
+                            className="user-icon"
+                              /> {u.email}</td>
                     <td>
                       {u.date_created
                         ? new Date(u.date_created).toLocaleDateString()
@@ -327,23 +338,24 @@ const handleSort = (key) => {
                     </td>
                     <td>
                       <div className="requestbuttons">
-                        <button
-                          className="accept-button"
+                        <img
+                          src={acceptIcon}
+                            alt="promote"
+                          className="accept-icon"
                           title="Accept"
                           onClick={() => {
                             setSelectedUser(u.email);
                             setShowPopup(true);
                           }}
-                        >
-                          ✅
-                        </button>
-                        <button
-                          className="remove-button"
+                        />
+                        <img
+                        src={rejectIcon}
+                        alt="reject"
+                          className="reject-icon"
                           onClick={() => handleDeny(u.email)}
                           title="Reject"
-                        >
-                          🗙
-                        </button>
+                        />
+
                       </div>
                     </td>
                   </tr>
@@ -390,7 +402,11 @@ const handleSort = (key) => {
             <tbody>
               {sortedUsers.map((u, index) => (
                 <tr key={index}>
-                  <td>👤 {u.email}</td>
+                  <td>                      <img
+                            src={userIcon}
+                            alt="user"
+                            className="user-icon"
+                              /> {u.email}</td>
                   <td>{u.role}</td>
                   <td>
                     {u.date_created
@@ -406,30 +422,30 @@ const handleSort = (key) => {
                     {u.email !== user?.email && (
                       <div className="editbuttons">
                         {u.role === "gamemaster" && (
-                          <button
-                            className="promote-button"
-                            onClick={() => handlePromote(u.email)}
-                            title="Promote"
-                          >
-                            ⬆️
-                          </button>
+                       <img
+                            src={promoteIcon}
+                            alt="promote"
+                            className="promote-icon"
+                                onClick={() => handlePromote(u.email)}
+                                title="Promote"
+                              />
                         )}
                         {u.role === "admin" && (
-                          <button
-                            className="demote-button"
-                            onClick={() => handleDemote(u.email)}
-                            title="Demote"
-                          >
-                            ⬇️
-                          </button>
+                          <img
+                            src={demoteIcon}
+                            alt="demote"
+                            className="demote-icon"
+                                onClick={() => handleDemote(u.email)}
+                                title="Demote"
+                              />
                         )}
-                        <button
-                          className="remove-button"
-                          onClick={() => handleRemove(u.email)}
-                          title="Delete"
-                        >
-                          🗙
-                        </button>
+                          <img
+                            src={deleteIcon}
+                            alt="delete"
+                            className="remove-button"
+                                onClick={() => handleRemove(u.email)}
+                                title="Delete"
+                              />
                       </div>
                     )}
                   </td>

@@ -15,7 +15,7 @@
   overflow: hidden;
 }
 
-.about-us-container .content {
+.about-us-container .content-container {
   position: relative;
   z-index: 2;
 }

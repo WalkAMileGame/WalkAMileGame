@@ -127,7 +127,7 @@ const handleDelete = async (note) => {
 
   return (
     <div className="circumstance-page">
-      <div className="header">
+      <div className="circumstance-header">
         <h1>EDIT CIRCUMSTANCES</h1>
       </div>
 

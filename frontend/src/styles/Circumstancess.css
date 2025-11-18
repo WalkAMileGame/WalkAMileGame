@@ -9,7 +9,7 @@ body:has(.circumstance-page) #root {
   background-color: #86B18A;
 }
 
-.header {
+.circumstance-header {
   background-color: #3F695D;
   display: flex;
   justify-content: center;
