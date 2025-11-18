@@ -1,0 +1,179 @@
+.spectator-selection {
+  min-height: 100vh;
+  background: #3F695D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.selection-card {
+  background: white;
+  border-radius: 12px;
+  border: 3px solid #86B18A;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  padding: 2rem;
+  width: 100%;
+  max-width: 800px;
+}
+
+.selection-card h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #3F695D;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.game-code {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #3F695D;
+  font-weight: bold;
+  background-color: rgba(134, 177, 138, 0.2);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid #86B18A;
+  display: inline-block;
+  margin: 0 auto 1rem auto;
+  width: fit-content;
+  display: block;
+}
+
+.instructions {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #3F695D;
+  margin: 1.5rem 0;
+  font-weight: 500;
+}
+
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.team-card {
+  background-color: #f8f9fa;
+  border: 2px solid #86B18A;
+  border-left: 4px solid #86B18A;
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.team-card:hover {
+  background-color: rgba(134, 177, 138, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.team-name {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #3F695D;
+  margin-bottom: 0.5rem;
+}
+
+.team-circumstance {
+  color: #666;
+  font-size: 0.95rem;
+  font-style: italic;
+  margin-bottom: 1rem;
+  min-height: 2.5rem;
+}
+
+.btn-spectate {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #E9C46A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-spectate:hover {
+  background-color: #3F695D;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn-back-home {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #86B18A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+}
+
+.btn-back-home:hover {
+  background-color: #3F695D;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.no-teams {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #86B18A;
+  font-size: 1.1rem;
+  background-color: #f8f9fa;
+  border: 2px dashed #86B18A;
+  border-radius: 12px;
+  grid-column: 1 / -1;
+}
+
+.error-container {
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-container h2 {
+  color: #E76F51;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.error-container p {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-back {
+  padding: 0.75rem 1.5rem;
+  background-color: #86B18A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+  background-color: #3F695D;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+  color: white;
+}

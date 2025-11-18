@@ -37,11 +37,19 @@ const HomePage = () => {
     if (code)  {
       const response = await fetch(`${API_BASE}/rooms/${code}`);
       if (response.ok) {
-        navigate(`/waiting/${gameCode}`);
+        const roomData = await response.json();
+
+        // If game has already started, redirect to spectator selection
+        if (roomData.game_started) {
+          navigate(`/spectate/${code}`);
+        } else {
+          // Game hasn't started, go to waiting room
+          navigate(`/waiting/${code}`);
+        }
       }
       else {
         setSnackbarMessage(`No game with code ${code} exists`);
-        setShowSnackbar(true);    
+        setShowSnackbar(true);
       }
     }
   };

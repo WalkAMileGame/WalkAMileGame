@@ -14,6 +14,7 @@ const Game = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isGamemasterViewing = location.state?.isGamemaster || false;
+  const isSpectator = location.state?.isSpectator || false;
   const [gameConfig, setGameConfig] = useState({ ringData: [] })
   const { gamecode, teamname } = useParams();
   const [showInstructions, setShowInstructions] = useState(false);
@@ -49,33 +50,51 @@ const Game = () => {
 useEffect(() => {
   if (teamname === "Gamemaster") return;
 
-  const initializeBoard = async () => {
+  const fetchBoard = async () => {
     try {
       console.log("Fetching board from backend...");
       const res = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`);
       if (!res.ok) throw new Error("No board found for team");
       const data = await res.json();
       console.log("Fetched board data:", data);
-      setGameConfig(data); 
-      setActiveMarkers(restoreEnergyMarkers(data)); 
+      setGameConfig(data);
+      setActiveMarkers(restoreEnergyMarkers(data));
       setIsInitialized(true);
     } catch (err) {
       console.error("Board fetch failed:", err);
     }
   };
 
-  initializeBoard();
-}, [gamecode, teamname]);
+  // Initial fetch
+  fetchBoard();
+
+  // Poll every 2 seconds if spectator or gamemaster viewing to see updates
+  if (isSpectator || isGamemasterViewing) {
+    const interval = setInterval(fetchBoard, 2000);
+    return () => clearInterval(interval);
+  }
+}, [gamecode, teamname, isSpectator, isGamemasterViewing]);
 
   // Fetching points
   useEffect(() => {
     if (teamname === "Gamemaster") return;
 
-    fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`)
-      .then((res) => res.json())
-      .then((data) => setPoints(data.current_energy))
-      .catch((err) => console.error("Failed to fetch energy:", err));
-  }, [gamecode, teamname]);
+    const fetchEnergy = () => {
+      fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`)
+        .then((res) => res.json())
+        .then((data) => setPoints(data.current_energy))
+        .catch((err) => console.error("Failed to fetch energy:", err));
+    };
+
+    // Initial fetch
+    fetchEnergy();
+
+    // Poll every 2 seconds if spectator or gamemaster viewing to see energy updates
+    if (isSpectator || isGamemasterViewing) {
+      const interval = setInterval(fetchEnergy, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [gamecode, teamname, isSpectator, isGamemasterViewing]);
 
   const updatingPoints = (change = -1) => {
     fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`, {
@@ -91,6 +110,11 @@ useEffect(() => {
   // Handle slice click
   const handleSliceClick = (e, label, ringId, energyvalue) => {
     e.stopPropagation();
+
+    // Disable energy placement for spectators and gamemaster viewers
+    if (isSpectator || isGamemasterViewing) {
+      return;
+    }
 
     if (dragState.current.isDragging || dragState.current.recentlyDragged) {
       return;
@@ -471,7 +495,43 @@ if (!isInitialized) {
           ← Back to Dashboard
         </button>
       )}
-      <div className="energypoints" data-testid="energypoints">
+      {isSpectator && (
+        <button
+          onClick={() => navigate(`/spectate/${gamecode}`)}
+          style={{
+            position: 'fixed',
+            top: '1rem',
+            left: '1rem',
+            zIndex: 1000,
+            padding: '0.5rem 1rem',
+            backgroundColor: '#3F695D',
+            color: 'white',
+            border: '2px solid #86B18A',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '0.95rem'
+          }}
+        >
+          ← Back to Team Selection
+        </button>
+      )}
+      {isSpectator && (
+        <div style={{
+          position: 'fixed',
+          left: '20px',
+          top: '3.5rem',
+          border: 'none',
+          color: '#dfd4d4',
+          fontWeight: 'bold',
+          fontSize: '25px',
+          fontFamily: '"Montserrat", sans-serif',
+          zIndex: 100
+        }}>
+          Spectating: {teamname}
+        </div>
+      )}
+      <div className="energypoints" data-testid="energypoints" style={isSpectator ? { top: '3.5rem' } : {}}>
         Remaining energypoints: {points}
       </div>
       <div className="instructions">

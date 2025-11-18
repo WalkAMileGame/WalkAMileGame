@@ -8,6 +8,7 @@ import Game from './components/Game'
 import Lobby from './components/Lobby';
 import AboutUs from './components/AboutUs';
 import GamemasterProgress from './components/GamemasterProgress';
+import SpectatorTeamSelection from './components/SpectatorTeamSelection';
 
 import { useNavigate, BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -70,6 +71,7 @@ function AppContent() {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/login" element={<Login />} /> {/* if admin not logged in */}
           <Route path="/waiting/:gamecode" element={<Lobby />} />
+          <Route path="/spectate/:gamecode" element={<SpectatorTeamSelection />} />
           <Route path="/game/:gamecode/:teamname" element={<Game />} />
 
           <Route element={<ProtectedRoute allowedRoles={['admin', 'gamemaster']} />}>
