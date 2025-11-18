@@ -44,6 +44,7 @@ const Game = () => {
     return restored;
   };
 
+
   // Fetch board && display energymarkers if energypoint true
 useEffect(() => {
   if (teamname === "Gamemaster") return;
@@ -144,6 +145,8 @@ useEffect(() => {
     e.preventDefault(); // prevent default link behavior
     setShowInstructions(true);
   };
+
+  
 // ------------------------------------- GAMEBOARD CONSTRUCTION -------------------------------------//
   const containerRef = useRef(null);
   
@@ -440,6 +443,9 @@ useEffect(() => {
     });
   };
 
+if (!isInitialized) {
+  return <div>Loading board…</div>;
+}
 
 
   return (
