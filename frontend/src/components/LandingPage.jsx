@@ -35,6 +35,14 @@ const LandingPage = () => {
                 <button>Host</button>
               </Link>
             </div>
+             <div className="card">
+              <div className="card-icon">📝</div>
+              <h3>EDIT CIRCUMSTANCES</h3>
+              <p>Edit and add new circumstances</p>
+              <Link to="/circumstances">
+                <button>Edit</button>
+              </Link>
+            </div>
             {user?.role === "admin" && (
             <div className="card">
               <div className="card-icon">👤</div>

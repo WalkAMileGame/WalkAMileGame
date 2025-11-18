@@ -290,7 +290,7 @@ const handleSort = (key) => {
   return (
     <div className="edit-page">
       <div className="header">
-        <h1>User management</h1>
+        <h1>USER MANAGEMENT</h1>
         <h3>
           Manage all users in one place. Control roles and pending user requests.
           Pending requests will appear on top of the existing user table.

@@ -14,6 +14,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './context/ProtectedRoute'
 import ConnectionStatus from './components/ui/ConnectionStatus';
 import EditUsers from './components/EditUsers';
+import Circumstances from './components/Circumstances';
 
 
 function App() {
@@ -76,6 +77,7 @@ function AppContent() {
             <Route path="/gameboard" element={<GameBoard />} />
             <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
             <Route path="/hostgame" element={<HostGamePage />} />
+            <Route path="/circumstances" element={<Circumstances />} />
             <Route path="/gamemaster/progress/:gamecode" element={<GamemasterProgress />} />
           </Route>
           

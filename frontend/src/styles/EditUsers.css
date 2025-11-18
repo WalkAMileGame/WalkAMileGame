@@ -5,7 +5,6 @@ body:has(.edit-page) #root {
   max-width: none;
   margin: 0;
   padding: 0;
-  text-align: start;
 }
 
 .edit-page {
@@ -34,7 +33,7 @@ body:has(.edit-page) #root {
 /* Center and space the header */
 .header {
   text-align:left;
-  margin-bottom: 60px; /* space below the header before tables */
+  margin-bottom: 20px; /* space below the header before tables */
   background-color: #3F695D;
   display: flex;
   flex-direction: column;
@@ -42,12 +41,12 @@ body:has(.edit-page) #root {
   align-items: center;
   color: white;
   text-align: center;
-  height: 30vh;
+  height: 20vh;
 }
 
 
 .table-wrapper {
-  width: 50%;
+  width: 60%;
   margin: 0 auto;      
   text-align: left;      
   margin-bottom: 2rem;   

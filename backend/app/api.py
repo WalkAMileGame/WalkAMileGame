@@ -2,12 +2,13 @@
 from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData
+from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData, Circumstance
 from .db import db
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 from backend.app.security import verify_password, create_access_token, get_current_active_user, get_password_hash
 from backend.app.code_management import generate_new_access_code, is_code_expired, activate_code
+from bson import ObjectId
 
 router = APIRouter()
 
@@ -194,7 +195,9 @@ def read_current_user(current_user: dict = Depends(get_current_active_user)):
 # --------------------------------------------------------------------------------------------
 #                               User management endpoints over
 # --------------------------------------------------------------------------------------------
-
+# --------------------------------------------------------------------------------------------
+#                               GAME ENDPOINT
+# --------------------------------------------------------------------------------------------
 
 @router.get("/timer")
 def get_time(site: str ="game"):
@@ -584,3 +587,30 @@ def delete_board(data: DenyUser):
 def load_users():
     users = list(db.users.find(projection={"_id": False}))
     return users
+
+@router.put("/save_circumstance/{cid}")
+def save_edited_circumstance(cid: str, data: Circumstance):
+    db.circumstance.update_one(
+        {"_id": ObjectId(cid)},
+        {"$set": {
+            "name": data.name,
+            "description": data.description
+        }}
+    )
+@router.post("/save_circumstance")
+def save_new_circumstance(data: Circumstance):
+    new_note = db.circumstance.insert_one({"name": data.name, "description": data.description})
+    fetch_new_note = db.circumstance.find_one({"_id": new_note.inserted_id})
+    fetch_new_note["_id"] = str(fetch_new_note["_id"])
+    return fetch_new_note
+
+@router.get("/circumstances")
+def get_circumstances():
+    circumstances = list(db.circumstance.find())
+    for c in circumstances:
+        c["_id"] = str(c["_id"])
+    return circumstances
+
+@router.delete("/circumstance/{circumstance_id}")
+def delete_circumstance(circumstance_id: str):
+    db.circumstance.delete_one({"_id": ObjectId(circumstance_id)})

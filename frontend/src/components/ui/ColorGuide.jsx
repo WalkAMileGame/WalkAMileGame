@@ -13,10 +13,7 @@ const ColorGuide = () => {
       </div>
 
       <div className="color-guide-row">
-        <div className="color-box split-box">
-          <div className="color-half blue"></div>
-          <div className="color-half light-purple"></div>
-        </div>
+          <div className="color-box single-color light-purple"></div>
         <span className="color-text">ARRIVING</span>
       </div>
 
