@@ -91,9 +91,11 @@ def load_instructions():
 
 @router.post("/login")
 def login(form_data: LoginRequest):
+    print("login function called!")
     user_in_db = db.users.find_one({"email": form_data.email})
     #print("form data:", form_data)
     #print("db output:", user_in_db)
+    print("Started hashing!")
     pw = get_password_hash(form_data.password)
     #print("hashed:", pw)
     #db.users.update_one({"email": form_data.email}, {"$set": {"email": form_data.email, "password": pw, "role": "admin", "pending": True}}, upsert=True)
@@ -116,11 +118,11 @@ def login(form_data: LoginRequest):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Account still pending to be accepted"
         )
-    
+    print("Past the if statements!")
     access_token = create_access_token(
         data={"sub": user_in_db["email"], "role": user_in_db["role"]}
     )
-
+    print("Returning soon!")
     user_info = {"email": user_in_db["email"], "role": user_in_db["role"]}
 
     return {"access_token": access_token, "user": user_info}
