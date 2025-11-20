@@ -11,12 +11,15 @@ from .db import db
 
 load_dotenv()
 SECRET_KEY = getenv("SECRET_KEY")
+print("Secret key:", SECRET_KEY)
 ALGORITHM = getenv("ALGORITHM")
+print("Algorithm:", ALGORITHM)
 ACCESS_TOKEN_EXPIRE_MINUTES = int(getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    print("I am the hashing function!")
     return checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
 def get_password_hash(password: str) -> str:
