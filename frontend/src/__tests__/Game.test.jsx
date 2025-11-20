@@ -132,12 +132,12 @@ const renderWithRouter = () => {
 };
 
 test('renders gameboard', async () => {
-    renderWithRouter();
+  renderWithRouter();
 
-    const linkElement = screen.getByText(/Start!/)
+  const linkElement = await screen.findByText(/Start!/);
+  expect(linkElement).toBeInTheDocument();
+});
 
-    expect(linkElement).toBeInTheDocument()
-})
 
 test('renders energypoints', async () => {
   renderWithRouter();
