@@ -273,10 +273,6 @@ test('should update pan position continuously while dragging', async () => {
   expect(finalTransform).toContain('translate(100px, 150px)');
 });
 
-// Test ColorGuide component rendering
-test('renders ColorGuide component with all elements', () => {
-    renderWithRouter();
-
 // Test CircumstanceView component rendering
 test('renders CircumstanceView with team circumstance name and description', async () => {
   renderWithRouter();

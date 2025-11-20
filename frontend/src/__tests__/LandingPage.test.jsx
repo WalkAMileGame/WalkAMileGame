@@ -40,15 +40,17 @@ test('takes edit gameboard site', async () => {
       </Routes>
     </MemoryRouter>
   );
-    const editgamebtn = screen.getByRole('button', { name: 'Edit' });
+    const editgamebtn = screen.getAllByRole('button', { name: 'Edit' });
     const hostgaembtn = screen.getByRole('button', { name: 'Host' });
     const manageusersbtn = screen.getByRole('button', { name: 'Manage' });
 
-    expect(editgamebtn).toBeInTheDocument();
+    const editgamebutton = editgamebtn[0]
+
+    expect(editgamebutton).toBeInTheDocument();
     expect(hostgaembtn).toBeInTheDocument();
     expect(manageusersbtn).toBeInTheDocument();
 
-    await user.click(editgamebtn);
+    await user.click(editgamebutton);
     expect(screen.getByText('Remaining energypoints:')).toBeInTheDocument();
 });
 
