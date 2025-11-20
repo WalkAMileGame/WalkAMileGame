@@ -5,8 +5,6 @@ import GameBoardSettings from "./GameBoardSettings";
 import { API_BASE } from '../api';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
-import ColorGuide from './ui/ColorGuide';
-
 
 const defaultGameData = {
 name: 'Default Gameboard',
@@ -17,16 +15,16 @@ name: 'Default Gameboard',
         outerRadius: 350,
         name: "Moving",
         labels: [
-          { id: 1, text: "Action 1", color: "#ffc072", energyvalue: 1, "energypoint": false },
-          { id: 2, text: "Action 2", color: "#ffb088", energyvalue: 1, "energypoint": false   },
-          { id: 3, text: "Action 3", color: "#ffc072", energyvalue: 1, "energypoint": false   },
-          { id: 4, text: "Action 4", color: "#ffb088", energyvalue: 1, "energypoint": false   },
-          { id: 5, text: "Action 5", color: "#d79543", energyvalue: 1, "energypoint": false   },
-          { id: 6, text: "Action 6", color: "#d79543", energyvalue: 1, "energypoint": false   },
-          { id: 7, text: "Action 7", color: "#d79543", energyvalue: 1, "energypoint": false   },
-          { id: 8, text: "Action 8", color: "#e17f4d", energyvalue: 1, "energypoint": false   },
-          { id: 9, text: "Action 9", color: "#e17f4d", energyvalue: 1, "energypoint": false   },
-          { id: 10, text: "Action 10", color: "#e17f4d", energyvalue: 1, "energypoint": false   }
+          { id: 1, text: "Action 1", color: "#ffc072", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 2, text: "Action 2", color: "#ffb088", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 3, text: "Action 3", color: "#ffc072", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 4, text: "Action 4", color: "#ffb088", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 5, text: "Action 5", color: "#d79543", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 6, text: "Action 6", color: "#d79543", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 7, text: "Action 7", color: "#d79543", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 8, text: "Action 8", color: "#e17f4d", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 9, text: "Action 9", color: "#e17f4d", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 10, text: "Action 10", color: "#e17f4d", energyvalue: 1, "energypoint": false, required_for: [] }
         ]      
       },
       {
@@ -35,16 +33,16 @@ name: 'Default Gameboard',
         outerRadius: 500,
         name: "Moving",
         labels: [
-          { id: 11, text: "Action 11", color: "#a3d7ff", energyvalue: 1, "energypoint": false   },
-          { id: 12, text: "Action 12", color: "#a0b8ca", energyvalue: 1, "energypoint": false   },
-          { id: 13, text: "Action 13", color: "#a0b8ca", energyvalue: 1, "energypoint": false   },
-          { id: 14, text: "Action 14", color: "#a0b8ca", energyvalue: 1, "energypoint": false   },
-          { id: 15, text: "Action 15", color: "#a3d7ff", energyvalue: 1, "energypoint": false   },
-          { id: 16, text: "Action 16", color: "#d3eafc", energyvalue: 1, "energypoint": false   },
-          { id: 17, text: "Action 17", color: "#a3d7ff", energyvalue: 1, "energypoint": false   },
-          { id: 18, text: "Action 18", color: "#d3eafc", energyvalue: 1, "energypoint": false   },
-          { id: 19, text: "Action 19", color: "#a3d7ff", energyvalue: 1, "energypoint": false   },
-          { id: 20, text: "Action 20", color: "#d3eafc", energyvalue: 1, "energypoint": false   }
+          { id: 11, text: "Action 11", color: "#a3d7ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 12, text: "Action 12", color: "#a0b8ca", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 13, text: "Action 13", color: "#a0b8ca", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 14, text: "Action 14", color: "#a0b8ca", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 15, text: "Action 15", color: "#a3d7ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 16, text: "Action 16", color: "#d3eafc", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 17, text: "Action 17", color: "#a3d7ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 18, text: "Action 18", color: "#d3eafc", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 19, text: "Action 19", color: "#a3d7ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 20, text: "Action 20", color: "#d3eafc", energyvalue: 1, "energypoint": false, required_for: [] }
         ],
       },
       {
@@ -53,16 +51,16 @@ name: 'Default Gameboard',
         outerRadius: 650,
         name: "Arriving",
         labels: [
-          { id: 21, text: "Action 21", color: "#bb98d5", energyvalue: 1, "energypoint": false   },
-          { id: 22, text: "Action 22", color: "#bb98d5", energyvalue: 1, "energypoint": false   },
-          { id: 23, text: "Action 23", color: "#bb98d5", energyvalue: 1, "energypoint": false   },
-          { id: 24, text: "Action 24", color: "#a872d1", energyvalue: 1, "energypoint": false   },
-          { id: 25, text: "Action 25", color: "#e4c1ff", energyvalue: 1, "energypoint": false   },
-          { id: 26, text: "Action 26", color: "#5375d0", energyvalue: 1, "energypoint": false   },
-          { id: 27, text: "Action 27", color: "#5375d0", energyvalue: 1, "energypoint": false   },
-          { id: 28, text: "Action 28", color: "#9fb9ff", energyvalue: 1, "energypoint": false   },
-          { id: 29, text: "Action 29", color: "#7e9ef3", energyvalue: 1, "energypoint": false   },
-          { id: 30, text: "Action 30", color: "#9fb9ff", energyvalue: 1, "energypoint": false   }
+          { id: 21, text: "Action 21", color: "#bb98d5", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 22, text: "Action 22", color: "#bb98d5", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 23, text: "Action 23", color: "#bb98d5", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 24, text: "Action 24", color: "#a872d1", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 25, text: "Action 25", color: "#e4c1ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 26, text: "Action 26", color: "#5375d0", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 27, text: "Action 27", color: "#5375d0", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 28, text: "Action 28", color: "#9fb9ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 29, text: "Action 29", color: "#7e9ef3", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 30, text: "Action 30", color: "#9fb9ff", energyvalue: 1, "energypoint": false, required_for: [] }
         ],   
       },
       {
@@ -71,16 +69,16 @@ name: 'Default Gameboard',
         outerRadius: 800,
         name: "Thriving",
           labels: [
-          { id: 31, text: "Action 31", color: "#da6363", energyvalue: 1, "energypoint": false   },
-          { id: 32, text: "Action 32", color: "#da6363", energyvalue: 1, "energypoint": false   },
-          { id: 33, text: "Action 33", color: "#ff8989", energyvalue: 1, "energypoint": false   },
-          { id: 34, text: "Action 34", color: "#da8a8a", energyvalue: 1, "energypoint": false   },
-          { id: 35, text: "Action 35", color: "#da8a8a", energyvalue: 1, "energypoint": false   },
-          { id: 36, text: "Action 36", color: "#da8a8a", energyvalue: 1, "energypoint": false   },
-          { id: 37, text: "Action 37", color: "#da8a8a", energyvalue: 1, "energypoint": false   },
-          { id: 38, text: "Action 38", color: "#da8a8a", energyvalue: 1, "energypoint": false   },
-          { id: 39, text: "Action 39", color: "#da6363", energyvalue: 1, "energypoint": false   },
-          { id: 40, text: "Action 40", color: "#da6363", energyvalue: 1, "energypoint": false   }
+          { id: 31, text: "Action 31", color: "#da6363", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 32, text: "Action 32", color: "#da6363", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 33, text: "Action 33", color: "#ff8989", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 34, text: "Action 34", color: "#da8a8a", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 35, text: "Action 35", color: "#da8a8a", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 36, text: "Action 36", color: "#da8a8a", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 37, text: "Action 37", color: "#da8a8a", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 38, text: "Action 38", color: "#da8a8a", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 39, text: "Action 39", color: "#da6363", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 40, text: "Action 40", color: "#da6363", energyvalue: 1, "energypoint": false, required_for: [] }
         ],
       },
     ]
@@ -638,14 +636,14 @@ const GameBoard = () => {
         )}
 
         {/* Color Guide */}
-        <div style={{
+        {/* <div style={{
           position: 'fixed',
           bottom: '120px',
           left: '20px',
           zIndex: 100
         }}>
           <ColorGuide />
-        </div>
+        </div> */}
       </div>
     </>
   );

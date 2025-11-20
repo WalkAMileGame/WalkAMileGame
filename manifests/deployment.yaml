@@ -23,5 +23,7 @@ spec:
             - containerPort: 8000
           env:
             - name: DB_URL
-              #to be set:
-              value: none
+              valueFrom:
+                secretKeyRef:
+                  name: walkamile-db-secret
+                  key: DB_URL

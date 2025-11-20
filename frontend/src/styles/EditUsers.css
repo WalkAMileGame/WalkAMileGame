@@ -1,24 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
-
 body:has(.edit-page) #root {
-  max-width: none;
+  max-width: 100vw;  /* changed from none */
+  overflow-x: hidden; /* prevent horizontal scroll */
   margin: 0;
   padding: 0;
-  text-align: start;
 }
 
 .edit-page {
+  width: 100vw;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   font-family: "Montserrat", sans-serif;
   background-color: #3F695D;
-  width: 100vw;   
-  min-height: 100vh; /* ensures page is at least full viewport height */
-  margin: 0;
-  padding: 0;
+  box-sizing: border-box; /* include padding/borders in width */
 }
+
+.header h1 {
+  font-family: "Lilita One", sans-serif;
+  margin-top: 6vh;
+  margin-bottom: 2px;
+}
+
+.header h3 {
+  font-size: 1.2rem;
+  font-weight: 400;
+  text-align: center;
+  max-width: 800px; /* keeps the description from stretching too much */
+}
+
 
 .table-area {
   background-color: #86B18A;
@@ -31,27 +41,24 @@ body:has(.edit-page) #root {
 }
 
 
-/* Center and space the header */
 .header {
-  text-align:left;
-  margin-bottom: 60px; /* space below the header before tables */
   background-color: #3F695D;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: center;   
   color: white;
   text-align: center;
-  height: 30vh;
+  height: 25vh;       
+  padding: 0 20px; 
+  box-sizing: border-box;
 }
 
 
 .table-wrapper {
-  width: 50%;
-  margin: 0 auto;      
-  text-align: left;      
-  margin-bottom: 2rem;   
-  margin-top: 1rem;
+  width: 60%;  
+  margin: 1rem auto;    
+  text-align: left;
 }
 .table-wrapper h2 {
   margin: 0 0 20px 0; 
@@ -138,8 +145,6 @@ tr:hover {background-color: #E9C46A}
 }
 .remove-button {
   border: none;
-  background-color: rgb(207, 40, 40);
-  color: white;
   border-radius: 2px; 
   cursor: pointer;
   display: flex;
@@ -247,8 +252,37 @@ tr:hover {background-color: #E9C46A}
   font-size: 18px;
   padding: 12px 20px 12px 40px; 
   border: 1px solid #ddd;
-  border-radius:5px;
+  border-radius:6px;
   margin-bottom: 12px;
   box-sizing: border-box;
 }
 
+.user-icon {
+  width: 25px;
+  height: 25px;
+  margin-right: 10px;
+}
+
+.demote-icon {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.promote-icon {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.accept-icon {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.reject-icon {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}

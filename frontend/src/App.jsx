@@ -8,6 +8,7 @@ import Game from './components/Game'
 import Lobby from './components/Lobby';
 import AboutUs from './components/AboutUs';
 import GamemasterProgress from './components/GamemasterProgress';
+import SelectCircumstances from './components/SelectCircumstances'
 import SpectatorTeamSelection from './components/SpectatorTeamSelection';
 
 import { useNavigate, BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
@@ -15,6 +16,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './context/ProtectedRoute'
 import ConnectionStatus from './components/ui/ConnectionStatus';
 import EditUsers from './components/EditUsers';
+import Circumstances from './components/Circumstances';
 
 
 function App() {
@@ -78,6 +80,8 @@ function AppContent() {
             <Route path="/gameboard" element={<GameBoard />} />
             <Route path="/landing" element={<LandingPage />} /> {/* if admin logged in show link 'admin panel' or something */}
             <Route path="/hostgame" element={<HostGamePage />} />
+            <Route path="/circumstances" element={<Circumstances />} />
+            <Route path="/select_circumstances" element={<SelectCircumstances />} />
             <Route path="/gamemaster/progress/:gamecode" element={<GamemasterProgress />} />
           </Route>
           

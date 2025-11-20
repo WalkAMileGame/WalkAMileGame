@@ -23,6 +23,7 @@ export default function Lobby() {
   const inviteCode = (location.state?.inviteCode || gamecode || '').trim();
   const isGamemaster = location.state?.isGamemaster || false;
   const boardConfig = location.state?.boardConfig;
+  const availableCircumstances = boardConfig?.circumstances;
 
   // --- Restore team join state on reload ---
   useEffect(() => {
@@ -340,13 +341,19 @@ export default function Lobby() {
                       <div className="team-name">{team.team_name}</div>
                       {editingTeam === team.team_name ? (
                         <div className="edit-circumstance-section">
-                          <input
-                            type="text"
-                            value={editCircumstance}
-                            onChange={(e) => setEditCircumstance(e.target.value)}
-                            placeholder="Enter circumstance"
-                            className="form-input"
-                          />
+                          <p>Select a circumstance</p>
+                          {availableCircumstances.map((circumstance, i) => (
+                            <label key={i}>
+                              <input
+                                type="radio"
+                                name="choice"
+                                value={circumstance.name}
+                                checked={editCircumstance === circumstance.name}
+                                onChange={(e) => setEditCircumstance(e.target.value)}
+                              />
+                            {circumstance.name}
+                            </label>
+                          ))}
                           <div style={{ display: 'flex', gap: '8px' }}>
                             <button
                               onClick={() =>

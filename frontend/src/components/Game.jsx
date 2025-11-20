@@ -4,7 +4,7 @@ import '../styles/Game.css';
 import { API_BASE } from '../api';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
-import ColorGuide from './ui/ColorGuide';
+import CircumstanceView from './ui/CircumstanceView';
 import Timer from "./ui/Timer";
 import Instructions from "./ui/Instructions";
 
@@ -18,6 +18,11 @@ const Game = () => {
   const [gameConfig, setGameConfig] = useState({ ringData: [] })
   const { gamecode, teamname } = useParams();
   const [showInstructions, setShowInstructions] = useState(false);
+  const [activeMarkers, setActiveMarkers] = useState(new Set());
+  const [points, setPoints] = useState(0)
+  const [circumstance, setCircumstance] = useState({ name: '', description: '' });
+  const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
+  const [timeLeft, setTimeLeft] = useState(null); // Timer state
   
 
   const [rotations, setRotations] = useState({
@@ -27,10 +32,32 @@ const Game = () => {
     ring3: 0,
   });
 
-  const [activeMarkers, setActiveMarkers] = useState(new Set());
-  const [points, setPoints] = useState(0);
-  const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
-  const [timeLeft, setTimeLeft] = useState(null); // Timer state
+  // fetch board && display energymarkers if energypoint true
+  useEffect(() => {
+    if (teamname === "Gamemaster") return;
+
+    const initializeBoard = async () => {
+      try {
+        console.log("Fetching board from backend...");
+        const res = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`);
+        if (!res.ok) throw new Error("No board found for team");
+        const data = await res.json();
+        console.log("Fetched board data:", data);
+        setGameConfig(data); 
+        setActiveMarkers(restoreEnergyMarkers(data)); 
+        setIsInitialized(true);
+      } catch (err) {
+        console.error("Board fetch failed:", err);
+      }
+    };
+
+    initializeBoard();
+  if (isSpectator || isGamemasterViewing) {
+    const interval = setInterval(initializeBoard, 2000);
+    return () => clearInterval(interval);
+  }
+}, [gamecode, teamname, isSpectator, isGamemasterViewing]);
+
 
   const restoreEnergyMarkers = (boardData) => {
     if (!boardData?.ringData) return new Set();
@@ -704,14 +731,17 @@ if (!isInitialized) {
           </div>
         )}
 
-        {/* Color Guide */}
+        {/* Circumstance View */}
         <div style={{
           position: 'fixed',
           bottom: '120px',
           left: '20px',
           zIndex: 100
         }}>
-          <ColorGuide />
+          <CircumstanceView
+            name={circumstance.name}
+            description={circumstance.description}
+          />
         </div>
         <Instructions
         show={showInstructions}
