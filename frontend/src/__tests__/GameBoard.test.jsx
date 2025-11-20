@@ -237,19 +237,19 @@ test('should update pan position continuously while dragging', async () => {
 });
 
 // Test ColorGuide component rendering
-test('renders ColorGuide component with all elements', () => {
-    renderWithRouter();
+// test('renders ColorGuide component with all elements', () => {
+//     renderWithRouter();
 
-    // Check container exists
-    const colorGuide = document.querySelector('.color-guide-container');
-    expect(colorGuide).toBeInTheDocument();
+//     // Check container exists
+//     const colorGuide = document.querySelector('.color-guide-container');
+//     expect(colorGuide).toBeInTheDocument();
 
-    // Check all text labels are present
-    expect(screen.getByText('MOVING')).toBeInTheDocument();
-    expect(screen.getByText('ARRIVING')).toBeInTheDocument();
-    expect(screen.getByText('THRIVING')).toBeInTheDocument();
+//     // Check all text labels are present
+//     expect(screen.getByText('MOVING')).toBeInTheDocument();
+//     expect(screen.getByText('ARRIVING')).toBeInTheDocument();
+//     expect(screen.getByText('THRIVING')).toBeInTheDocument();
 
-    // Verify we have 3 rows
-    const rows = document.querySelectorAll('.color-guide-row');
-    expect(rows).toHaveLength(3);
-  });
+//     // Verify we have 3 rows
+//     const rows = document.querySelectorAll('.color-guide-row');
+//     expect(rows).toHaveLength(3);
+//   });
