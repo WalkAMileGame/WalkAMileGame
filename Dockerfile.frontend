@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM python:3.12.3
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -5,7 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     POETRY_HOME=/opt/poetry \
     POETRY_VERSION=1.8.3 \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
+    # install project deps into system site-packages (no per-project .venv)
+    POETRY_VIRTUALENVS_CREATE=false \
     PORT=5173
 
 ENV PATH="${POETRY_HOME}/bin:${PATH}"
@@ -21,21 +23,39 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Copy only pyproject + lock first so dependency layer can be cached
+COPY pyproject.toml poetry.lock* /app/
+
+# Fail early if pyproject is missing
+RUN if [ ! -f pyproject.toml ]; then \
+    echo "ERROR: pyproject.toml not found in /app. If your project is in a subdir, build with --build-arg APP_SUBDIR=..."; \
+    exit 1; \
+    fi
+
+# Create lockfile if missing (safe no-op if lock exists), then install dependencies.
+# For frontend we keep dev deps (tooling) because build tooling often sits in dev-deps.
+RUN poetry lock --no-update || true \
+    && poetry install --no-interaction --no-ansi --no-root
+
+# Copy application sources after deps are installed (cache-friendly)
 COPY . /app
 
-# Poetry: create lock just in case
-RUN poetry lock
-RUN poetry install --no-interaction --no-ansi --no-root
-
-# Permissions and user
+# Ensure permissions for OpenShift / arbitrary UID runtimes
 RUN chgrp -R 0 /app && chmod -R g=u /app
 USER 1001
+
 ENV HOST=0.0.0.0
 ENV BROWSER=none
 EXPOSE 5173
+
+# Default API URL (override at runtime with --env)
 ARG VITE_API_URL
-ENV VITE_API_URL=https://walkamile-backend.ext.ocp-test-0.k8s.it.helsinki.fi
+ENV VITE_API_URL=${VITE_API_URL:-https://walkamile-backend.ext.ocp-test-0.k8s.it.helsinki.fi}
 
-
-CMD ["/bin/sh","-lc","${POETRY_HOME}/bin/poetry run invoke server --frontend"]
-#CMD ["/bin/sh","-lc","invoke","server","--frontend"]
+# Run the invoke task directly (invoke is installed as a console script
+# by Poetry into system site-packages since POETRY_VIRTUALENVS_CREATE=false).
+# This avoids relying on `poetry` at runtime.
+#CMD ["/bin/sh","-lc","invoke server --frontend"]
+# If you want to run the task via python module instead:
+CMD ["python","-m","invoke","server","--frontend"]

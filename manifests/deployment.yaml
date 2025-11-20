@@ -4,7 +4,7 @@ metadata:
   annotations:
     alpha.image.policy.openshift.io/resolve-names: "*"
     image.openshift.io/triggers: >-
-      [{"from":{"kind":"ImageStreamTag","name":"walkamile:staging","namespace":"ohtuprojekti-staging"},"fieldPath":"spec.template.spec.containers[?(@.name==\"walkamile\")].image","pause":"false"}]
+      [{"from":{"kind":"ImageStreamTag","name":"walkamile:staging","namespace":"ohtuprojekti-staging"},"fieldPath":"spec.template.spec.containers[?(@.name==\"walkamile-backend\")].image","pause":"false"}]
   name: walkamile-backend
 spec:
   replicas: 1
@@ -22,6 +22,15 @@ spec:
           ports:
             - containerPort: 8000
           env:
-            - name: DB_URL
+            - name: MONGO_URI
               #to be set:
-              value: none
+              valueFrom:
+                secretKeyRef:
+                  name: walkamile-db-secret
+                  key: DB_URL
+            - name: SECRET_KEY
+              value: ""
+            - name: ALGORITHM
+              value: "HS256"
+            - name: ACCESS_TOKEN_EXPIRE_MINUTES
+              value: "15"

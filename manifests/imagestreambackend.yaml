@@ -12,7 +12,7 @@ spec:
     - name: staging
       from:
         kind: DockerImage
-        name: walkamile/walkamile-backend:staging
+        name: walkamileorg/walkamile-backend:staging
       importPolicy:
         scheduled: true
       referencePolicy:
