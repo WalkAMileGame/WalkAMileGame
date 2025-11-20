@@ -124,6 +124,40 @@ useEffect(() => {
     }
   }, [gamecode, teamname, isSpectator, isGamemasterViewing]);
 
+    // Fetch team circumstance and its description
+  useEffect(() => {
+    const fetchCircumstance = async () => {
+      try {
+        // Get team's circumstance name from room data
+        const roomRes = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        if (!roomRes.ok) return;
+
+        const roomData = await roomRes.json();
+        const team = roomData.teams.find(t => t.team_name === teamname);
+
+        if (team?.circumstance) {
+          // Fetch all circumstances to get the description
+          const circumstancesRes = await fetch(`${API_BASE}/circumstances`);
+          if (circumstancesRes.ok) {
+            const circumstances = await circumstancesRes.json();
+            const found = circumstances.find(c => c.name === team.circumstance);
+
+            setCircumstance({
+              name: team.circumstance,
+              description: found?.description || ''
+            });
+          } else {
+            setCircumstance({ name: team.circumstance, description: '' });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch circumstance:", err);
+      }
+    };
+
+    fetchCircumstance();
+  }, [gamecode, teamname]);
+
   const updatingPoints = (change = -1) => {
     fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`, {
       method: "PUT",
