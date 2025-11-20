@@ -2,13 +2,14 @@
 from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData, Circumstance
+from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData, Circumstance, RenewRequest
 from .db import db
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 from backend.app.security import verify_password, create_access_token, get_current_active_user, get_password_hash
 from backend.app.code_management import generate_new_access_code, is_code_expired, activate_code
 from bson import ObjectId
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -95,6 +96,8 @@ def login(form_data: LoginRequest):
     user_access_code = db.codes.find_one({"usedByUser": form_data.email})
     #print("Users:", list(db.users.find({})))
     #print("Codes:", list(db.codes.find({})))
+    #db.codes.update_one({"code": ""},
+    #                    {"$set": {"expirationTime": datetime.now(timezone.utc) + timedelta(days=90)}}, upsert=True)
 
     if not user_in_db:
         raise HTTPException(
@@ -110,8 +113,8 @@ def login(form_data: LoginRequest):
 
     if is_code_expired(user_access_code["expirationTime"]):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account has expired"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="ACCOUNT_EXPIRED"
         )
 
     user = UserData(email=user_in_db["email"], password=user_in_db["password"],
@@ -139,7 +142,7 @@ def register(form_data: RegisterRequest):
     if user_in_db:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email already in use",
+            detail="Email already in use"
         )
 
     unactivated_code = db.codes.find_one({"code": form_data.code})
@@ -147,7 +150,7 @@ def register(form_data: RegisterRequest):
     if not unactivated_code:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect activation code",
+            detail="Incorrect activation code"
         )
 
     hashed_password = get_password_hash(form_data.password)
@@ -160,6 +163,33 @@ def register(form_data: RegisterRequest):
 
     db.codes.update_one({"code": activated_code["code"]},
                         {"$set": activated_code}, upsert=True)
+
+
+@router.post("/renew-access")
+def renew_access(form_data: RenewRequest):
+    user_in_db = db.users.find_one({"email": form_data.email})
+
+    if not user_in_db or not verify_password(form_data.password, user_in_db["password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+
+    new_code = db.codes.find_one({"code": form_data.new_code, "isUsed": False})
+    if not new_code:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or used code"
+        )
+
+    updated_code = activate_code(new_code, form_data.email).model_dump()
+
+    db.codes.update_one(
+        {"code": new_code["code"]},
+        {"$set": updated_code}
+    )
+
+    return {"message": "Account renewed successfully"}
 
 
 @router.post("/generate_access_code")
