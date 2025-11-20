@@ -54,6 +54,11 @@ class RegisterRequest(BaseModel):
     password: str
     code: str
 
+class RenewRequest(BaseModel):
+    email: EmailStr
+    password: str
+    new_code: str
+
 class AcceptUser(BaseModel):
     email: EmailStr
     role: str
