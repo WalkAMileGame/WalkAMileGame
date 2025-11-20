@@ -93,6 +93,8 @@ def load_instructions():
 def login(form_data: LoginRequest):
     user_in_db = db.users.find_one({"email": form_data.email})
     user_access_code = db.codes.find_one({"usedByUser": form_data.email})
+    #print("Users:", list(db.users.find({})))
+    #print("Codes:", list(db.codes.find({})))
 
     if not user_in_db:
         raise HTTPException(
@@ -125,7 +127,7 @@ def login(form_data: LoginRequest):
         data={"sub": user.email, "role": user.role}
     )
 
-    user_info = {"email": user.email, "role": user.role}
+    user_info = user.model_dump(include={"email", "role"})
 
     return {"access_token": access_token, "user": user_info}
 
@@ -149,27 +151,20 @@ def register(form_data: RegisterRequest):
         )
 
     hashed_password = get_password_hash(form_data.password)
-    user = UserData(email=form_data.email, password=hashed_password)
+    user = UserData(email=form_data.email, password=hashed_password).model_dump()
 
-    db.users.update_one({"email": user.email},
-                        {"$set": {"email": user.email, "password": hashed_password,
-                        "role": user.role}}, upsert=True)
+    db.users.update_one({"email": user["email"]},
+                        {"$set": user}, upsert=True)
     
-    activated_code = activate_code(unactivated_code)
+    activated_code = activate_code(unactivated_code, user["email"]).model_dump()
 
-    db.codes.update_one({"code": activated_code.code},
-                        {"$set": {"code": activated_code.code,
-                                  "creationTime": activated_code.creationTime,
-                                  "expirationTime": activated_code.expirationTime,
-                                  "activationTime": activated_code.activationTime,
-                                  "isUsed": activated_code.isUsed,
-                                  "usedByUser": activated_code.usedByUser}})
+    db.codes.update_one({"code": activated_code["code"]},
+                        {"$set": activated_code}, upsert=True)
 
 
 @router.post("/generate_access_code")
 def generate_access_code(valid_for=6):
 
-    # Generate a new code until a unique one is generated
     while True:
         new_code = generate_new_access_code(valid_for)
 
@@ -177,14 +172,12 @@ def generate_access_code(valid_for=6):
 
         if not code_in_db:
             break
-    
-    db.codes.update_one({"code": new_code.code},
-                        {"$set": {"code": new_code.code,
-                                  "creationTime": new_code.creationTime,
-                                  "expirationTime": new_code.expirationTime,
-                                  "activationTime": new_code.activationTime,
-                                  "isUsed": new_code.isUsed,
-                                  "usedByUser": new_code.usedByUser}})
+
+    code_data_dict = new_code.model_dump()
+    db.codes.update_one(
+            {"code": code_data_dict["code"]},
+            {"$set": code_data_dict},
+            upsert=True)
 
 
 @router.get("/users/me", tags=["auth"])

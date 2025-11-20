@@ -13,6 +13,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [registrationCode, setRegistrationCode] = useState('')
   const [error, setError] = useState('');
   const [localError, setLocalError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
@@ -45,7 +46,7 @@ export default function Login() {
     setLocalError('');
     setError && setError(null);
 
-    if (!email || !password || !confirmPassword) {
+    if (!registrationCode || !email || !password || !confirmPassword) {
       setLocalError('Please fill out all fields.');
       return;
     }
@@ -58,7 +59,7 @@ export default function Login() {
       const res = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, code: registrationCode }),
       });
       if (!res.ok) {
         const errorData = await res.json();
@@ -70,6 +71,7 @@ export default function Login() {
       setEmail('');
       setPassword('');
       setConfirmPassword('');
+      setRegistrationCode('');
 
     } catch (err) {
       setLocalError(err.message || 'Registration failed.'); 
@@ -81,6 +83,7 @@ export default function Login() {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setRegistrationCode('');
     setLocalError('');
     setError && setError(null);
     navigate("/");
@@ -92,17 +95,13 @@ export default function Login() {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setRegistrationCode('');
     setError && setError(null);
     setRegistrationSuccess(false);
   };
 
  return (
     <>
-      {/* Show login status and email at the top */}
-      {/* Mostly for debugging */}
-      <div className="login-status" style={{ textAlign: 'center', margin: '12px 0', color: '#fff' }}>
-        {isLoggedIn ? `Logged in as ${userEmailDisplay}` : 'Not logged in'}
-      </div>
       <div className="login-container">
         {isLoggedIn ? (
           <div className="login-card welcome-card">
@@ -129,6 +128,10 @@ export default function Login() {
                   <p className="subtitle">Create an account to get started.</p>
                   {(error || localError || authError) && <p className="error-message">{localError || error || authError}</p>}
                   <form onSubmit={handleRegister} noValidate>
+                    <div className="form-group">
+                      <label htmlFor="registration-code" className="form-label">Registration code</label>
+                      <input type="text" id="register-code" value={registrationCode} onChange={(e) => setRegistrationCode(e.target.value)} className="form-input" placeholder="ABCD-EFGH-1234-5678" required />
+                    </div>
                     <div className="form-group">
                       <label htmlFor="email" className="form-label">Email Address</label>
                       <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="form-input" placeholder="you@example.com" required />

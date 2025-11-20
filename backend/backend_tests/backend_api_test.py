@@ -5,6 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from backend.app.security import get_current_active_user
+from datetime import datetime, timedelta, timezone
 
 
 os.environ['TESTING'] = 'true'
@@ -180,6 +181,14 @@ def test_login_wrong_password_or_email(mock_db_instance, mock_verify_password):
         "role": "admin",
         "pending": False
         }
+    mock_db_instance.codes.find_one.return_value = {
+        "code": "valid_code",
+        "creationTime": datetime.now(timezone.utc),
+        "expirationTime": datetime.now(timezone.utc) + timedelta(days=1),
+        "activationTime": None,
+        "isUsed": False,
+        "usedByUser": None
+        }
     
     mock_verify_password.return_value = False
 
@@ -192,31 +201,7 @@ def test_login_wrong_password_or_email(mock_db_instance, mock_verify_password):
     assert response.json() == {"detail": "Incorrect email or password"}
 
     mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
-
-@patch('backend.app.api.verify_password')
-@patch('backend.app.api.db')
-def test_login_account_pending_to_be_accepted(mock_db_instance, mock_verify_password):
-    """Test login attempt with account still pending to be accepted"""
-
-    mock_db_instance.users.find_one.return_value = {
-        "_id": "mock_id",
-        "email": "test@example.com",
-        "password": "mock_hashed_password",
-        "role": "admin",
-        "pending": True
-        }
     
-    mock_verify_password.return_value = True
-
-    response = client.post(
-        "/login",
-        json={"email": "test@example.com", "password": "password123"}
-        )
-
-    assert response.status_code == 401
-    assert response.json() == {"detail": "Account still pending to be accepted"}
-
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
 
 @patch('backend.app.api.create_access_token')
 @patch('backend.app.api.verify_password')
@@ -230,6 +215,14 @@ def test_login_successful_login_attempt(mock_db_instance, mock_verify_password, 
         "password": "mock_hashed_password",
         "role": "admin",
         "pending": False
+        }
+    mock_db_instance.codes.find_one.return_value = {
+        "code": "valid_code",
+        "creationTime": datetime.now(timezone.utc),
+        "expirationTime": datetime.now(timezone.utc) + timedelta(days=1),
+        "activationTime": datetime.now(timezone.utc) - timedelta(days=1),
+        "isUsed": True,
+        "usedByUser": "test@example.com"
         }
     
     mock_verify_password.return_value = True
@@ -261,10 +254,18 @@ def test_register_email_already_in_use(mock_db_instance):
         "role": "admin",
         "pending": False
         }
+    mock_db_instance.codes.find_one.return_value = {
+        "code": "valid_code",
+        "creationTime": datetime.now(timezone.utc),
+        "expirationTime": datetime.now(timezone.utc) + timedelta(days=1),
+        "activationTime": None,
+        "isUsed": False,
+        "usedByUser": None
+        }
     
     response = client.post(
         "/register",
-        json={"email": "test@example.com", "password": "password123"}
+        json={"email": "test@example.com", "password": "password123", "code": "valid_code"}
         )
     
     assert response.status_code == 401
@@ -281,7 +282,7 @@ def test_register_invalid_email(mock_db_instance):
     
     response = client.post(
         "/register",
-        json={"email": "test.example.com", "password": "password123"}
+        json={"email": "test.example.com", "password": "password123", "code": "valid_code"}
         )
 
     assert response.status_code == 422
@@ -298,10 +299,18 @@ def test_register_successful_register_attempt(mock_db_instance, mock_get_passwor
     mock_db_instance.users.update_one.return_value = MagicMock(upserted_id="123")
 
     mock_get_password_hash.return_value = "mock_password_hash"
+    mock_db_instance.codes.find_one.return_value = {
+        "code": "valid_code",
+        "creationTime": datetime.now(timezone.utc),
+        "expirationTime": datetime.now(timezone.utc) + timedelta(days=1),
+        "activationTime": None,
+        "isUsed": False,
+        "usedByUser": None
+        }
     
     response = client.post(
         "/register",
-        json={"email": "test@example.com", "password": "password123"}
+        json={"email": "test@example.com", "password": "password123", "code": "valid_code"}
         )
     
     assert response.status_code == 200
@@ -312,8 +321,7 @@ def test_register_successful_register_attempt(mock_db_instance, mock_get_passwor
         "$set": {
             "email": "test@example.com",
             "password": "mock_password_hash",
-            "role": "gamemaster",
-            "pending": True
+            "role": "gamemaster"
             }
         },
         upsert = True

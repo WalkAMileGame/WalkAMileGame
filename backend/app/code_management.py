@@ -29,9 +29,12 @@ def is_code_expired(expiration_time):
         return True
     return False
 
-def activate_code(code: AccessCode, user):
+def activate_code(incoming_code, user):
+    code = AccessCode(code=incoming_code["code"],
+                      creationTime=incoming_code["creationTime"],
+                      expirationTime=incoming_code["expirationTime"])
+    
     code.activationTime = datetime.now(timezone.utc)
     code.isUsed = True
     code.usedByUser = user
-
     return code
