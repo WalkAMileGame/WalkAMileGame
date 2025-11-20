@@ -21,10 +21,13 @@ jobs:
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install Poetry
         run: pip install poetry
+
+      - name: Poetry Lock
+        run: poetry lock
 
       - name: Install dependencies
         run: poetry install --no-root
@@ -51,7 +54,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20' 
+          node-version: "20"
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -95,6 +98,7 @@ jobs:
           context: .
           file: Dockerfile
           push: true
+          no-cache: true
           tags: |
             ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-backend:staging
             ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-backend:${{ github.sha }}
@@ -105,6 +109,7 @@ jobs:
           context: .
           file: Dockerfile.frontend
           push: true
+          no-cache: true
           tags: |
             ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-frontend:staging
             ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_USER }}/walkamile-frontend:${{ github.sha }}
