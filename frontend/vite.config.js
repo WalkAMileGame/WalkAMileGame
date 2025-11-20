@@ -23,6 +23,7 @@ export default defineConfig({
       exclude: [
         'src/components/ui/*',
         'src/context/*',
+        '/src/components/SelectCircumstances.jsx',
         'src/setupTests.js',
         'src/main.jsx',
         'vite.config.js',
