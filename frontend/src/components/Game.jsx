@@ -30,6 +30,7 @@ const Game = () => {
   const [activeMarkers, setActiveMarkers] = useState(new Set());
   const [points, setPoints] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
+  const [timeLeft, setTimeLeft] = useState(null); // Timer state
 
   const restoreEnergyMarkers = (boardData) => {
     if (!boardData?.ringData) return new Set();
@@ -113,6 +114,11 @@ useEffect(() => {
 
     // Disable energy placement for spectators and gamemaster viewers
     if (isSpectator || isGamemasterViewing) {
+      return;
+    }
+
+    // Prevent coin placement when timer is at zero
+    if (timeLeft !== null && timeLeft <= 0) {
       return;
     }
 
@@ -544,7 +550,7 @@ if (!isInitialized) {
       <div className="game-layout">
 
     <div className="clock">
-      <Timer gamecode={gamecode} />
+      <Timer gamecode={gamecode} onTimeUpdate={setTimeLeft} />
     </div>
 
         {/* Main Content Area */}
