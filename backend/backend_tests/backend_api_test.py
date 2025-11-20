@@ -336,3 +336,177 @@ def test_read_current_user():
 
     app.dependency_overrides = {}
 
+
+# Board Management Tests
+
+@patch('backend.app.api.db')
+def test_save_board_success(mock_db_instance):
+    """Test successfully saving a board"""
+    mock_db_instance.boards.update_one.return_value = MagicMock()
+
+    response = client.put("/save", json={
+        "name": "Test Board",
+        "ringData": [
+            {
+                "id": 1,
+                "innerRadius": 100,
+                "outerRadius": 200,
+                "labels": []
+            }
+        ]
+    })
+
+    assert response.status_code == 200
+    mock_db_instance.boards.update_one.assert_called_once()
+
+
+@patch('backend.app.api.db')
+def test_save_board_invalid_data(mock_db_instance):
+    """Test saving a board with invalid data"""
+    response = client.put("/save", json={
+        "name": "Test Board"
+        # Missing ringData
+    })
+
+    assert response.status_code == 422
+
+
+@patch('backend.app.api.db')
+def test_delete_board_success(mock_db_instance):
+    """Test successfully deleting a board"""
+    mock_db_instance.boards.delete_one.return_value = MagicMock()
+
+    response = client.request("DELETE", "/delete", json={
+        "name": "Test Board"
+    })
+
+    assert response.status_code == 200
+    mock_db_instance.boards.delete_one.assert_called_once_with({"name": "Test Board"})
+
+
+@patch('backend.app.api.db')
+def test_load_all_boards(mock_db_instance):
+    """Test loading all boards"""
+    mock_boards = [
+        {"name": "Board 1", "ringData": []},
+        {"name": "Board 2", "ringData": []}
+    ]
+    mock_db_instance.boards.find.return_value = mock_boards
+
+    response = client.get("/load_all")
+
+    assert response.status_code == 200
+    assert response.json() == mock_boards
+    mock_db_instance.boards.find.assert_called_once()
+
+
+@patch('backend.app.api.db')
+def test_load_all_boards_empty(mock_db_instance):
+    """Test loading boards when none exist"""
+    mock_db_instance.boards.find.return_value = []
+
+    response = client.get("/load_all")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+# Instructions Tests
+
+@patch('backend.app.api.db')
+def test_load_instructions_success(mock_db_instance):
+    """Test successfully loading instructions"""
+    mock_instructions = {
+        "id": "0",
+        "instructions": "Game instructions here"
+    }
+    mock_db_instance.instructions.find_one.return_value = mock_instructions
+
+    response = client.get("/instructions")
+
+    assert response.status_code == 200
+    assert response.json() == mock_instructions
+    mock_db_instance.instructions.find_one.assert_called_once_with({"id": "0"}, {"_id": 0})
+
+
+@patch('backend.app.api.db')
+def test_load_instructions_not_found(mock_db_instance):
+    """Test loading instructions when none exist"""
+    mock_db_instance.instructions.find_one.return_value = None
+
+    response = client.get("/instructions")
+
+    assert response.status_code == 200
+    assert response.json() == {"instructions": "No instructions found."}
+
+
+# User Management Tests
+
+@patch('backend.app.api.db')
+def test_accept_user_success(mock_db_instance):
+    """Test successfully accepting a user"""
+    mock_db_instance.users.update_one.return_value = MagicMock()
+
+    response = client.put("/accept_user", json={
+        "email": "test@example.com",
+        "role": "gamemaster"
+    })
+
+    assert response.status_code == 200
+    mock_db_instance.users.update_one.assert_called_once_with(
+        {"email": "test@example.com"},
+        {"$set": {"role": "gamemaster", "pending": False}},
+        upsert=True
+    )
+
+
+@patch('backend.app.api.db')
+def test_accept_user_invalid_data(mock_db_instance):
+    """Test accepting a user with invalid data"""
+    response = client.put("/accept_user", json={
+        "email": "invalid-email",
+        "role": "gamemaster"
+    })
+
+    assert response.status_code == 422
+
+
+@patch('backend.app.api.db')
+def test_remove_user_success(mock_db_instance):
+    """Test successfully removing a user"""
+    mock_db_instance.users.delete_one.return_value = MagicMock()
+
+    response = client.request("DELETE", "/remove_user", json={
+        "email": "test@example.com"
+    })
+
+    assert response.status_code == 200
+    mock_db_instance.users.delete_one.assert_called_once_with({"email": "test@example.com"})
+
+
+@patch('backend.app.api.db')
+def test_load_users_success(mock_db_instance):
+    """Test successfully loading all users"""
+    mock_users = [
+        {"email": "user1@example.com", "role": "admin", "pending": False},
+        {"email": "user2@example.com", "role": "gamemaster", "pending": True}
+    ]
+    mock_db_instance.users.find.return_value = mock_users
+
+    response = client.get("/load_users")
+
+    assert response.status_code == 200
+    assert response.json() == mock_users
+    mock_db_instance.users.find.assert_called_once()
+
+
+@patch('backend.app.api.db')
+def test_load_users_empty(mock_db_instance):
+    """Test loading users when none exist"""
+    mock_db_instance.users.find.return_value = []
+
+    response = client.get("/load_users")
+
+    assert response.status_code == 200
+    assert response.json() == []
+

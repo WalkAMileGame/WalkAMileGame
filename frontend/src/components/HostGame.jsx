@@ -41,14 +41,15 @@ const RefreshIcon = () => (
 
 const ArrowLeftIcon = () => (
   <svg
-    width="28"
-    height="28"
+    width="24"
+    height="24"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
+    stroke="#3F695D"
+    strokeWidth="2.5"
     strokeLinecap="round"
     strokeLinejoin="round"
+    style={{ display: 'block' }}
   >
     <line x1="19" y1="12" x2="5" y2="12"></line>
     <polyline points="12 19 5 12 12 5"></polyline>
@@ -135,12 +136,12 @@ export default function HostGamePage() {
     <div className="host-game-container">
       <div className="host-game-card">
         {/* Back Button */}
-        <button 
-          onClick={() => navigate(-1)} 
+        <button
+          onClick={() => navigate(-1)}
           className="btn btn-back"
           title="Go back"
         >
-          <ArrowLeftIcon />
+          ←
         </button>
 
         <h1 className="host-game-title">

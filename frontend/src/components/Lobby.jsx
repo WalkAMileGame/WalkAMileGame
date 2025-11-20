@@ -94,20 +94,31 @@ export default function Lobby() {
 
   // --- Redirect players when game starts ---
   useEffect(() => {
-    if (roomData?.game_started && !isGamemaster) {
+    if (!roomData?.game_started || isGamemaster) return;
+
+    const saveBoardAndNavigate = async () => {
       const savedTeamName = sessionStorage.getItem(`teamName_${inviteCode}`);
-      if (savedTeamName) {
-        fetch(`${API_BASE}/rooms/${inviteCode}/teams/${savedTeamName}/board`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ board_state: roomData.board_config }),
-      }).catch((err) => console.error("Failed to save board:", err));
+      if (!savedTeamName) return;
+
+      try {
+        await fetch(`${API_BASE}/rooms/${inviteCode}/teams/${savedTeamName}/board`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ board_state: roomData.board_config }),
+        });
+
         navigate(`/game/${inviteCode}/${savedTeamName}`, {
           state: { boardConfig: roomData.board_config, teamName: savedTeamName },
         });
+
+      } catch (err) {
+        console.error("Failed to save board:", err);
       }
-    }
+    };
+
+    saveBoardAndNavigate();
   }, [roomData?.game_started, isGamemaster, inviteCode, navigate, roomData?.board_config]);
+
 
   // --- Create room ---
   const createRoom = async () => {

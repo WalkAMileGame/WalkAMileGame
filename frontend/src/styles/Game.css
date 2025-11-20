@@ -1,35 +1,33 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  text-align: center;
-  font-family: "Montserrat", sans-serif;
-}
 
-
-.links {
-  position: absolute;
-  top: 2rem;
-  left: 4rem;
-  font-size: 20px;
-}
-
-.home-text {
-  color: #ffffff;
-}
 
 .energypoints {
-  padding: 1em 1em;
-  margin-left: auto;
-  position: absolute;
-  top: 5rem;
-  left: 2rem;
+  position: fixed;
+  left: -5px;
+  top: 2rem;
   border: none;
   color: #dfd4d4; 
   font-weight: bold;
   font-size: 25px;
-  text-align: center;
   font-family: "Montserrat", sans-serif;
   z-index: 100;
+}
+
+.instructions {
+    background: red;
+    position: fixed;   
+    left: 0;
+    top: 5rem;     
+    width: 100px;
+    background: none;      
+    z-index: 99;
+}
+
+.instructions button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color:rgb(204, 204, 204);
+    font-size: 20px;
 }
 .read-the-docs {
   color: #888;
@@ -105,15 +103,11 @@
     cursor: grab;
     transition: opacity 0.2s;
   }
-
+  
 .slice-path:hover {
     opacity: 0.8;
   }
-
-.slice-path.title-tile:hover {
-    opacity: 1;
-  }
-
+  
 .slice-path.dragging {
     cursor: grabbing;
   }
@@ -123,50 +117,13 @@
     height: 100%;
   }
 
-.settings-panel {
+
+.clock {
+  font-size: 30px;
+  font-weight: bold;
+  font-family: "Montserrat", sans-serif;
   position: fixed;
-  top: 0;
-  right: 0;
-  height: 100vh;
-  width: 600px;
-  background: #fcfcf7;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-  z-index: 1000;
-  overflow-y: auto;
+  right: 5rem;
+  top: 3rem;
+  z-index: 100;
 }
-
-.settings-panel.open {
-  transform: translateX(0);
-}
-
-.settings-content {
-  padding: 2rem;
-  height: 100%;
-  overflow-y: auto;
-}
-
-.settingsButton {
-  position: fixed;
-  top: 2rem;
-  right: 2rem;
-  z-index: 1001;
-}
-
-
-.settingsButton button {
-  padding: 0.5rem 1rem;
-  background: transparent;
-  cursor: pointer;
-  font-size: 40px;
-  border: none;         
-  outline: none;      
-  box-shadow: none; 
-
-}
-
-.settingsButton button:hover {
-  background: transparent;
-}
-

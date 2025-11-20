@@ -8,13 +8,19 @@ from datetime import datetime
 class Points(BaseModel):
     id: str
     values: int
-    
+
+class TileType(str, Enum):
+    """Types of tiles that can appear on the board"""
+    ACTION = "action"
+    RING_TITLE = "ring_title"
+
 class LabelData(BaseModel):
     id: int
     text: str
     color: str
     energyvalue: int
     energypoint: bool = False
+    tileType: TileType = TileType.ACTION
 
 class LayerData(BaseModel):
     id: int

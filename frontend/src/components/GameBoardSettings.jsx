@@ -97,6 +97,34 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     onConfigChange(updatedConfig);
   };
 
+  const handleTileTypeChange = (layerIndex, labelIndex, isTitleTile) => {
+    const updatedConfig = { ...localConfig };
+    const ring = updatedConfig.ringData[layerIndex];
+
+    if (isTitleTile) {
+      // Create a new title tile and insert at the beginning
+      const newTitleId = ring.labels.length > 0 ? Math.max(...ring.labels.map(s => s.id)) + 1 : 1;
+      const newTitleTile = {
+        id: newTitleId,
+        text: TitleNames[layerIndex],
+        color: '#FFFFFF',
+        energyvalue: 0,
+        energypoint: false,
+        tileType: 'ring_title'
+      };
+      ring.labels.unshift(newTitleTile);
+    } else {
+      // Remove the title tile (first tile if it's a title)
+      if (ring.labels[0]?.tileType === 'ring_title') {
+        ring.labels.shift();
+      }
+    }
+
+    setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
+    onConfigChange(updatedConfig);
+  };
+
   const addSlice = (layerIndex) => {
     const updatedConfig = { ...localConfig };
     const ring = updatedConfig.ringData[layerIndex];
@@ -108,7 +136,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
       text: `New Action ${newLabelId}`,
       color: '#6b7280',
       energyvalue: 1,
-      energypoint: false
+      energypoint: false,
+      tileType: 'action'
     });
     
     setLocalConfig(updatedConfig);
@@ -357,7 +386,7 @@ const deleteGameboard = () => {
               <hr></hr>
               <div className="layerinfo-container">
                 <h4 className="layerinfo-title">
-                  {TitleNames[ringIndex]} ({ring.labels.length} slices)
+                  {TitleNames[ringIndex]} ({ring.labels.filter(l => l.tileType !== 'ring_title').length} slices)
                 </h4>
                 <button
                   onClick={() => addSlice(ringIndex)}
@@ -367,39 +396,75 @@ const deleteGameboard = () => {
                 </button>
               </div>
 
-            <div className="space-y-3">
-              {ring.labels.map((label, labelIndex) => (
-                <div key={label.id} className="border rounded p-3 bg-gray-50">
-                  <div className="flex items-center gap-2 mb-2">
+            {/* Ring Title Section */}
+            {ring.labels[0] && (
+              <div className="border rounded p-3 mb-3" style={{ backgroundColor: '#f0f9ff' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="flex items-center gap-1 cursor-pointer">
                     <input
-                      value={label.text}
-                      onChange={(e) => handleSliceTextChange(ringIndex, labelIndex, e.target.value)}
-                      className="labelname-input"
-                      placeholder="Slice text"
+                      type="checkbox"
+                      checked={ring.labels[0].tileType === 'ring_title'}
+                      onChange={(e) => handleTileTypeChange(ringIndex, 0, e.target.checked)}
+                      className="cursor-pointer"
                     />
-                    <span className="energypoint-text">
-                    Energypoint value:
-                    </span>
-                    <input
-                      data-testid={`energyvalue-input-${label.id}`}
-                      value={label.energyvalue}
-                      onChange={(e) => handleEnergyvalueChange(ringIndex, labelIndex, e.target.value)}
-                      className="energyvalue-input"
-                    />
-                    <button
-                      onClick={() => removeSlice(ringIndex, labelIndex)}
-                      className="deleteslice-button"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <ColorPicker
-                    value={label.color}
-                    colors={LayerColors[ringIndex]}
-                    onChange={(color) => handleSliceColorChange(ringIndex, labelIndex, color)}
-                  />
+                    <span className="text-sm font-weight-600" style={{ fontWeight: 600, color: '#000' }}>Enable Ring Title</span>
+                  </label>
                 </div>
-              ))}
+                {ring.labels[0].tileType === 'ring_title' && (
+                  <>
+                    <input
+                      value={ring.labels[0].text}
+                      onChange={(e) => handleSliceTextChange(ringIndex, 0, e.target.value)}
+                      className="labelname-input mb-2"
+                      placeholder="Ring title text"
+                    />
+                    <ColorPicker
+                      value={ring.labels[0].color}
+                      colors={['#FFFFFF', ...LayerColors[ringIndex]]}
+                      onChange={(color) => handleSliceColorChange(ringIndex, 0, color)}
+                    />
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Regular Slices Section */}
+            <div className="space-y-3">
+              {ring.labels.map((label, labelIndex) => {
+                if (label.tileType === 'ring_title') return null;
+                return (
+                  <div key={label.id} className="border rounded p-3 bg-gray-50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        value={label.text}
+                        onChange={(e) => handleSliceTextChange(ringIndex, labelIndex, e.target.value)}
+                        className="labelname-input"
+                        placeholder="Slice text"
+                      />
+                      <span className="energypoint-text">
+                      Energypoint value:
+                      </span>
+                      <input
+                        data-testid={`energyvalue-input-${label.id}`}
+                        value={label.energyvalue}
+                        onChange={(e) => handleEnergyvalueChange(ringIndex, labelIndex, e.target.value)}
+                        className="energyvalue-input"
+                      />
+                      <button
+                        onClick={() => removeSlice(ringIndex, labelIndex)}
+                        className="deleteslice-button"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <ColorPicker
+                      value={label.color}
+                      colors={LayerColors[ringIndex]}
+                      onChange={(color) => handleSliceColorChange(ringIndex, labelIndex, color)}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act, cleanup } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import Lobby from '../components/Lobby';
@@ -27,6 +27,7 @@ describe('Lobby Component', () => {
   });
 
   afterEach(() => {
+    cleanup(); // Unmount components and clear intervals
     vi.restoreAllMocks();
     // FIXED: Removed vi.useRealTimers()
   });

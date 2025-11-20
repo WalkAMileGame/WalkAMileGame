@@ -4,11 +4,17 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Instructions from "./ui/Instructions";
 import dudeIcon from '../assets/WAM_Element_3.png';
+import { API_BASE } from '../api';
+import Snackbar from "./ui/snackbar"
+
+
 
 
 
 const HomePage = () => {  
   const navigate = useNavigate();
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -25,11 +31,29 @@ const HomePage = () => {
     setShowInstructions(true);
   };
 
-  const handleJoinGame = () => {
-    if (gameCode.trim()) {
-      navigate(`/waiting/${gameCode}`);
+  const handleJoinGame = async () => {
+    const code = gameCode.trim()
+
+    if (code)  {
+      const response = await fetch(`${API_BASE}/rooms/${code}`);
+      if (response.ok) {
+        const roomData = await response.json();
+
+        // If game has already started, redirect to spectator selection
+        if (roomData.game_started) {
+          navigate(`/spectate/${code}`);
+        } else {
+          // Game hasn't started, go to waiting room
+          navigate(`/waiting/${code}`);
+        }
+      }
+      else {
+        setSnackbarMessage(`No game with code ${code} exists`);
+        setShowSnackbar(true);
+      }
     }
   };
+
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
@@ -44,6 +68,7 @@ const HomePage = () => {
 
 
     return (
+      
       <div className="home-text">
         <header>
           <h1>WALK A MILE:</h1>
@@ -98,7 +123,13 @@ const HomePage = () => {
       />
         </div>
         </div>
+    <Snackbar
+        message={snackbarMessage}
+        show={showSnackbar}
+        onClose={() => setShowSnackbar(false)}
+    />
       </div>
+      
   );
 };
 

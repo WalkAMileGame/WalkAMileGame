@@ -354,7 +354,7 @@ const GameBoard = () => {
   }, []);
 
   // Render text on curved path
-  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId) => {
+  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId, isTitleTile = false) => {
     const midRadius = (innerRadius + outerRadius) / 2;
     const angleRad = (endAngleDeg - startAngleDeg) * (Math.PI / 180);
 
@@ -427,8 +427,8 @@ const GameBoard = () => {
               startOffset="50%"
               textAnchor="middle"
               fill="#000"
-              fontSize="20"
-              fontWeight="600"
+              fontSize={isTitleTile ? "32" : "20"}
+              fontWeight={isTitleTile ? "700" : "600"}
             >
               {line}
             </textPath>
@@ -490,41 +490,57 @@ const GameBoard = () => {
                   {gameConfig.ringData.map((ring) => {
                     const numSlices = ring.labels.length;
                     const rotation = rotations[ring.id] || 0;
-                    const anglePerSlice = 360 / numSlices;
-                    
+
+                    // Calculate total angle units (title tiles count as 2, regular as 1)
+                    const firstTileIsTitle = ring.labels[0]?.tileType === 'ring_title';
+                    const totalAngleUnits = firstTileIsTitle ? numSlices + 1 : numSlices;
+                    const baseAnglePerSlice = 360 / totalAngleUnits;
+
                     return (
                       <g
                         data-testid={`ring-group-${ring.id}`}
                         key={ring.id}
                         transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
                       >
-                        
+
                         {/* Render slices */}
                         {ring.labels.map((label, i) => {
-                          const startAngle = i * anglePerSlice;
-                          const endAngle = (i + 1) * anglePerSlice;
-                          const color = label.color;
-                          
+                          const isTitleTile = label.tileType === 'ring_title';
+
+                          // Calculate cumulative angle up to this slice
+                          let cumulativeAngle = 0;
+                          for (let j = 0; j < i; j++) {
+                            const prevTile = ring.labels[j];
+                            cumulativeAngle += prevTile.tileType === 'ring_title' ? baseAnglePerSlice * 2 : baseAnglePerSlice;
+                          }
+
+                          const startAngle = cumulativeAngle;
+                          const sliceAngle = isTitleTile ? baseAnglePerSlice * 2 : baseAnglePerSlice;
+                          const endAngle = startAngle + sliceAngle;
+                          const color = isTitleTile ? (label.color || "#FFFFFF") : label.color;
+
                           return (
                             <g key={`${ring.id}-slice-${i}`}>
                               {/* Slice shape */}
                               <path
                                 data-testid={`slice-${label.id}`}
-                                className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
+                                className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''} ${isTitleTile ? 'title-tile' : ''}`}
                                 d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
                                 fill={color}
-                                stroke="#f5f5f3ff"
-                                strokeWidth={whiteLineThickness}
+                                stroke={isTitleTile ? "none" : "#f5f5f3ff"}
+                                strokeWidth={isTitleTile ? 0 : whiteLineThickness}
                                 onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
-                                onClick={(e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
-                                onMouseEnter={(e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
-                                onMouseLeave={handleSliceMouseLeave}
-                                onMouseMove={handleSliceMouseMove}
-                                style={{ cursor: "pointer" }}
+                                onClick={isTitleTile ? undefined : (e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
+                                onMouseEnter={isTitleTile ? undefined : (e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
+                                onMouseLeave={isTitleTile ? undefined : handleSliceMouseLeave}
+                                onMouseMove={isTitleTile ? undefined : handleSliceMouseMove}
+                                style={{
+                                  cursor: isTitleTile ? "grab" : "pointer"
+                                }}
                                 filter="url(#whiteShadow)"
                               />
                               {/* Render Text */}
-                              {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
+                              {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id, isTitleTile)}
                             </g>
                           );
                         })}

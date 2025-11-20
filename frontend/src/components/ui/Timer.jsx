@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { API_BASE } from "../../api";
 
-function Timer({ gamecode, onEnd }) {
+function Timer({ gamecode, onEnd, onTimeUpdate }) {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Call onTimeUpdate whenever timeLeft changes
+  useEffect(() => {
+    if (onTimeUpdate) {
+      onTimeUpdate(timeLeft);
+    }
+  }, [timeLeft, onTimeUpdate]);
 
   useEffect(() => {
     if (!gamecode) return;
