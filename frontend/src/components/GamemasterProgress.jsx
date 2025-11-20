@@ -80,35 +80,42 @@ const GamemasterProgress = () => {
       return;
     }
     try {
-      // Calculate actual remaining time based on elapsed time and pause state
-      const now = new Date();
-      const gameStartTime = new Date(roomData.game_started_at);
-      const totalDuration = roomData.time_remaining * 60; // in seconds
-      const accumulatedPauseTime = roomData.accumulated_pause_time || 0;
+      let newTimeRemaining;
 
-      let elapsedSeconds = Math.floor((now - gameStartTime) / 1000);
-
-      // If game is currently paused, account for current pause duration
-      if (roomData.game_paused && roomData.paused_at) {
-        const pausedAt = new Date(roomData.paused_at);
-        const currentPauseDuration = Math.floor((now - pausedAt) / 1000);
-        elapsedSeconds -= (accumulatedPauseTime + currentPauseDuration);
+      // If game hasn't started yet, just add to the original time_remaining
+      if (!roomData.game_started_at) {
+        newTimeRemaining = Math.max(0, roomData.time_remaining + minutes);
       } else {
-        elapsedSeconds -= accumulatedPauseTime;
+        // Calculate actual remaining time based on elapsed time and pause state
+        const now = new Date();
+        const gameStartTime = new Date(roomData.game_started_at);
+        const totalDuration = roomData.time_remaining * 60; // in seconds
+        const accumulatedPauseTime = roomData.accumulated_pause_time || 0;
+
+        let elapsedSeconds = Math.floor((now - gameStartTime) / 1000);
+
+        // If game is currently paused, account for current pause duration
+        if (roomData.game_paused && roomData.paused_at) {
+          const pausedAt = new Date(roomData.paused_at);
+          const currentPauseDuration = Math.floor((now - pausedAt) / 1000);
+          elapsedSeconds -= (accumulatedPauseTime + currentPauseDuration);
+        } else {
+          elapsedSeconds -= accumulatedPauseTime;
+        }
+
+        const currentRemainingSeconds = Math.max(0, totalDuration - elapsedSeconds);
+        const currentRemainingMinutes = currentRemainingSeconds / 60;
+
+        // Add the adjustment to the actual remaining time
+        newTimeRemaining = Math.max(0, Math.ceil(currentRemainingMinutes + minutes));
       }
-
-      const currentRemainingSeconds = Math.max(0, totalDuration - elapsedSeconds);
-      const currentRemainingMinutes = currentRemainingSeconds / 60;
-
-      // Add the adjustment to the actual remaining time
-      const newTimeRemaining = Math.max(0, Math.ceil(currentRemainingMinutes + minutes));
 
       const response = await fetch(`${API_BASE}/rooms/${gamecode}/time`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           time_remaining: newTimeRemaining,
-          reset_timer: true  // Reset timer to start fresh from this new duration
+          reset_timer: !!roomData.game_started_at  // Only reset timer if game has started
         }),
       });
       if (!response.ok) {

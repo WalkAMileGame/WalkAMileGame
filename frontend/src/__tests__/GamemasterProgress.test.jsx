@@ -33,7 +33,10 @@ describe('GamemasterProgress Component', () => {
     room_code: 'TEST123',
     board_config: mockBoardConfig,
     time_remaining: 30,
+    game_started_at: null,
     game_paused: false,
+    accumulated_pause_time: 0,
+    paused_at: null,
     teams: [
       { team_name: 'Team Alpha', circumstance: 'Test circumstance' },
       { team_name: 'Team Beta', circumstance: 'Another circumstance' }
@@ -195,6 +198,7 @@ describe('GamemasterProgress Component', () => {
       expect(timeCall).toBeDefined();
       const body = JSON.parse(timeCall[1].body);
       expect(body.time_remaining).toBe(40);
+      expect(body.reset_timer).toBe(false); // Game hasn't started yet
     });
   });
 
@@ -226,6 +230,7 @@ describe('GamemasterProgress Component', () => {
       );
       const body = JSON.parse(timeCall[1].body);
       expect(body.time_remaining).toBe(25);
+      expect(body.reset_timer).toBe(false); // Game hasn't started yet
     });
   });
 

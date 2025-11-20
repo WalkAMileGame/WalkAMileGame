@@ -80,6 +80,19 @@ beforeEach(() => {
       });
     }
 
+    if (url.includes('/rooms/')) {
+      // Mock timer data for room endpoint
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          time_remaining: 30,
+          game_started_at: new Date().toISOString(),
+          game_paused: false,
+          accumulated_pause_time: 0
+        }),
+      });
+    }
+
     // any other endpoint
     return Promise.resolve({
       ok: true,
@@ -107,10 +120,10 @@ const renderWithRouter = () => {
 test('renders gameboard', async () => {
     renderWithRouter();
 
-    const linkElement = screen.getByText(/Start!/)
+    const linkElement = await screen.findByText(/Start!/);
 
-    expect(linkElement).toBeInTheDocument()
-})
+    expect(linkElement).toBeInTheDocument();
+});
 
 test('renders energypoints', async () => {
   renderWithRouter();
@@ -253,8 +266,11 @@ test('should update pan position continuously while dragging', async () => {
 });
 
 // Test ColorGuide component rendering
-test('renders ColorGuide component with all elements', () => {
+test('renders ColorGuide component with all elements', async () => {
     renderWithRouter();
+
+    // Wait for board to load
+    await screen.findByText(/Start!/);
 
     // Check container exists
     const colorGuide = document.querySelector('.color-guide-container');
