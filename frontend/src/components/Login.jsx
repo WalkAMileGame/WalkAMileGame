@@ -31,7 +31,7 @@ export default function Login() {
     setPassword('');
     setConfirmPassword('');
     setRegistrationCode('');
-    setRegistrationSuccess(false);
+    // setRegistrationSuccess(false);
   };
 
   const handleLogin = async (event) => {
@@ -195,7 +195,7 @@ export default function Login() {
                   <>
                     <h2 className="title">Success!</h2>
                     <p className="subtitle">Your account creation request is successful!</p>
-                    <button onClick={() => toggleForm('login')} className="btn btn-primary" style={{width: '100%'}}>
+                    <button onClick={() => {toggleForm('login'); setRegistrationSuccess(false)}} className="btn btn-primary" style={{width: '100%'}}>
                       Proceed to Login
                     </button>
                   </>

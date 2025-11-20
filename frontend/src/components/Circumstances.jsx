@@ -162,15 +162,17 @@ const handleDelete = async (note) => {
             <div className="modal">
             <h2>{isAdding ? "Add new circumstance" : "Edit circumstance"}</h2>
 
-            <label>Title</label>
+            <label htmlFor="edit-title">Title</label>
             <input 
+                id="edit-title"
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
             />
 
-            <label>Content</label>
+            <label htmlFor="edit-content">Content</label>
             <textarea
+                id="edit-content"
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
             />

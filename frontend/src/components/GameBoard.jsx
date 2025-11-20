@@ -5,8 +5,6 @@ import GameBoardSettings from "./GameBoardSettings";
 import { API_BASE } from '../api';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
-import ColorGuide from './ui/ColorGuide';
-
 
 const defaultGameData = {
 name: 'Default Gameboard',

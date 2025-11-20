@@ -13,19 +13,45 @@ vi.mock('../context/AuthContext', () => ({
 }));
 
 const mockNotes = [
-  {name: 'circumstance 1',description: 'this is circumstance 1',},
-  {name: 'circumstance 2', description: 'this is circumstance 2',},
+  {_id: '1', name: 'circumstance 1',description: 'this is circumstance 1',},
+  {_id: '2', name: 'circumstance 2', description: 'this is circumstance 2',},
 ];
 
 beforeEach(() => {
-  global.fetch = vi.fn(() =>
-    Promise.resolve({
-      json: () => Promise.resolve(mockNotes),
-    })
-  );
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
 
-  vi.spyOn(window, "confirm").mockReturnValue(true);
+  // Mock all fetch calls
+  global.fetch = vi.fn((url, options) => {
+    if (options?.method === 'DELETE') {
+      return Promise.resolve({ ok: true });
+    }
+    if (options?.method === 'PUT') {
+      return Promise.resolve({
+        json: () =>
+          Promise.resolve({
+            _id: '1',
+            name: 'Updated Title',
+            description: 'Updated Content',
+          }),
+      });
+    }
+    if (options?.method === 'POST') {
+      return Promise.resolve({
+        json: () =>
+          Promise.resolve({
+            _id: '3',
+            name: 'New Circumstance',
+            description: 'New Content',
+          }),
+      });
+    }
+    return Promise.resolve({
+      json: () =>
+        Promise.resolve(mockNotes),
+    });
+  });
 });
+
 
 test('renders content', async () => {
   render(
@@ -59,45 +85,107 @@ test('adding new circumstance'), async () => {
   expect(screen.getByText("Add new circumstance")).toBeInTheDocument();
 };
 
-test('editing circumstance'), async () => {
-    const user = userEvent.setup();
-    render(
-        <MemoryRouter>
-            <Circumstances />
-        </MemoryRouter>
-    );
+test('editing circumstance', async () => {
+  const user = userEvent.setup();
 
-    await waitFor(() => {
-        expect(screen.getByText('circumstance 1')).toBeInTheDocument();
+  render(
+    <MemoryRouter>
+      <Circumstances />
+    </MemoryRouter>
+  );
+
+  await waitFor(() => expect(screen.getByText('circumstance 1')).toBeInTheDocument());
+
+  const editBtn = screen.getAllByTitle('Edit')[0];
+  await user.click(editBtn);
+
+  const titleInput = screen.getByLabelText('Title');
+  const contentInput = screen.getByLabelText('Content');
+
+  await user.clear(titleInput);
+  await user.type(titleInput, 'Updated Title');
+
+  await user.clear(contentInput);
+  await user.type(contentInput, 'Updated Content');
+
+  global.fetch = vi.fn(() =>
+    Promise.resolve({
+      json: () => Promise.resolve({ _id: '1', name: 'Updated Title', description: 'Updated Content' }),
     })
-    const editBtn = screen.getAllByTitle('Edit')
-    await user.click(editBtn[0])
-    expect(screen.getByText('Edit circumstance')).toBeInTheDocument();
-    expect(screen.getByText('circumstance 1')).toBeInTheDocument();
-    expect(screen.getByText('this is circumstance 1')).toBeInTheDocument();
-}
+  );
 
-test('delete circumstance'), async () => {
-    const user = userEvent.setup();
+  const saveButton = screen.getByText('Save');
+  await user.click(saveButton);
 
-    global.fetch = vi.fn((url, options) => {
-    if (options?.method === "DELETE") {
-      return Promise.resolve({ ok: true });
-    }
-    return Promise.resolve({ json: () => Promise.resolve(mockNotes) });
+  await waitFor(() => {
+    expect(screen.getByText('Updated Title')).toBeInTheDocument();
+    expect(screen.getByText('Updated Content')).toBeInTheDocument();
   });
 
-    render(
-        <MemoryRouter>
-            <Circumstances />
-        </MemoryRouter>
-    );
-     await waitFor(() => {
-        expect(screen.getByText('circumstance 1')).toBeInTheDocument();
+  expect(global.fetch).toHaveBeenCalledWith(
+    expect.stringContaining('1'),
+    expect.objectContaining({
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Updated Title', description: 'Updated Content' }),
     })
-    const deleteBtn = screen.getAllByTitle('Delete')
-    await user.click(deleteBtn[0])   
-    await waitFor(() => {
-    expect(screen.queryByText("circumstance 1")).not.toBeInTheDocument();
+  );
+});
+
+
+test('delete circumstance', async () => {
+  const user = userEvent.setup();
+
+  render(
+    <MemoryRouter>
+      <Circumstances />
+    </MemoryRouter>
+  );
+
+  await waitFor(() => screen.getByText('circumstance 1'));
+
+  const deleteBtn = screen.getAllByTitle('Delete')[0];
+  await user.click(deleteBtn);
+
+  await waitFor(() => {
+    expect(screen.queryByText('circumstance 1')).not.toBeInTheDocument();
   });
-}
+
+  expect(global.fetch).toHaveBeenCalledWith(
+    expect.stringContaining('1'),
+    expect.objectContaining({ method: 'DELETE' })
+  );
+});
+
+
+test('adding a new circumstance saves correctly', async () => {
+  const user = userEvent.setup();
+
+  render(
+    <MemoryRouter>
+      <Circumstances />
+    </MemoryRouter>
+  );
+
+  await waitFor(() => screen.getByText('circumstance 1'));
+
+  await user.click(screen.getByTitle('Add new circumstance'));
+
+    const titleInput = screen.getByLabelText('Title');
+    const contentInput = screen.getByLabelText('Content');
+
+    await user.type(titleInput, 'new circumstance')
+    await user.type(contentInput, 'here is new content for new circumstance')
+
+  global.fetch = vi.fn(() =>
+    Promise.resolve({
+      json: () => Promise.resolve({ _id: '3', name: 'new circumstance', description: 'here is new content for new circumstance' })
+    })
+  );
+
+  await user.click(screen.getByText('Save'));
+
+  expect(screen.getByText('new circumstance')).toBeInTheDocument();
+  expect(screen.getByText('here is new content for new circumstance')).toBeInTheDocument();
+});
+
