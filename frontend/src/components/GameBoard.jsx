@@ -622,14 +622,14 @@ const GameBoard = () => {
         )}
 
         {/* Color Guide */}
-        <div style={{
+        {/* <div style={{
           position: 'fixed',
           bottom: '120px',
           left: '20px',
           zIndex: 100
         }}>
           <ColorGuide />
-        </div>
+        </div> */}
       </div>
     </>
   );

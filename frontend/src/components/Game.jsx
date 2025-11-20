@@ -4,7 +4,7 @@ import '../styles/Gameboard.css';
 import { API_BASE } from '../api';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
-import ColorGuide from './ui/ColorGuide';
+import CircumstanceView from './ui/CircumstanceView';
 import Timer from "./ui/Timer";
 
 
@@ -25,6 +25,7 @@ const Game = () => {
 
   const [activeMarkers, setActiveMarkers] = useState(new Set());
   const [points, setPoints] = useState(0)
+  const [circumstance, setCircumstance] = useState({ name: '', description: '' });
 
   // fetch board && display energymarkers if energypoint true
   useEffect(() => {
@@ -72,6 +73,40 @@ const restoreEnergyMarkers = (boardData) => {
     .then((res) => res.json())
     .then((data) => setPoints(data.current_energy));
 }, []);
+
+  // Fetch team circumstance and its description
+  useEffect(() => {
+    const fetchCircumstance = async () => {
+      try {
+        // Get team's circumstance name from room data
+        const roomRes = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        if (!roomRes.ok) return;
+
+        const roomData = await roomRes.json();
+        const team = roomData.teams.find(t => t.team_name === teamname);
+
+        if (team?.circumstance) {
+          // Fetch all circumstances to get the description
+          const circumstancesRes = await fetch(`${API_BASE}/circumstances`);
+          if (circumstancesRes.ok) {
+            const circumstances = await circumstancesRes.json();
+            const found = circumstances.find(c => c.name === team.circumstance);
+
+            setCircumstance({
+              name: team.circumstance,
+              description: found?.description || ''
+            });
+          } else {
+            setCircumstance({ name: team.circumstance, description: '' });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch circumstance:", err);
+      }
+    };
+
+    fetchCircumstance();
+  }, [gamecode, teamname]);
 
   const updatingPoints = (change = -1) => { // takes input number now
     fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`, {
@@ -612,14 +647,17 @@ const restoreEnergyMarkers = (boardData) => {
           </div>
         )}
 
-        {/* Color Guide */}
+        {/* Circumstance View */}
         <div style={{
           position: 'fixed',
           bottom: '120px',
           left: '20px',
           zIndex: 100
         }}>
-          <ColorGuide />
+          <CircumstanceView
+            name={circumstance.name}
+            description={circumstance.description}
+          />
         </div>
       </div>
     </>
