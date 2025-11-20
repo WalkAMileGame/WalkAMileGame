@@ -5,8 +5,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api import router
 from backend.app.db import initialize_database
+import jose
+print(f"Jose version: {jose.__version__}")
+print(f"Jose path: {jose.__file__}")
 
-
+try:
+    from jose import jws
+    print(f"Available algorithms: {jws.ALGORITHMS.SUPPORTED}")
+except Exception as e:
+    print(f"Error checking algorithms: {e}")
 app = FastAPI()
 
 if os.getenv('TESTING') != 'true':
@@ -22,7 +29,7 @@ app.add_middleware(
     CORSMiddleware,
     #This must be changed before production.
     allow_origins=["*"],
-    allow_origin_regex=origin_regex,
+    #allow_origin_regex=origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
