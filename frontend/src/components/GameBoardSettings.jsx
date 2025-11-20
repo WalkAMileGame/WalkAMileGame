@@ -445,7 +445,7 @@ const deleteGameboard = () => {
                   />
                   <CircumstancePicker
                     circumstances={localConfig.circumstances}
-                    selected={localConfig.ringData[ringIndex].labels[labelIndex].required_for}
+                    selected={localConfig.ringData[ringIndex]?.labels[labelIndex]?.required_for ?? []}
                     onChange={(required) => handleSliceCircumstanceChange(ringIndex, labelIndex, required)}
                   />
                 </div>
