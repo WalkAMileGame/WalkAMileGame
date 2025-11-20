@@ -235,21 +235,3 @@ test('should update pan position continuously while dragging', async () => {
   const finalTransform = wheelContainer.style.transform;
   expect(finalTransform).toContain('translate(100px, 150px)');
 });
-
-// Test ColorGuide component rendering
-// test('renders ColorGuide component with all elements', () => {
-//     renderWithRouter();
-
-//     // Check container exists
-//     const colorGuide = document.querySelector('.color-guide-container');
-//     expect(colorGuide).toBeInTheDocument();
-
-//     // Check all text labels are present
-//     expect(screen.getByText('MOVING')).toBeInTheDocument();
-//     expect(screen.getByText('ARRIVING')).toBeInTheDocument();
-//     expect(screen.getByText('THRIVING')).toBeInTheDocument();
-
-//     // Verify we have 3 rows
-//     const rows = document.querySelectorAll('.color-guide-row');
-//     expect(rows).toHaveLength(3);
-//   });
