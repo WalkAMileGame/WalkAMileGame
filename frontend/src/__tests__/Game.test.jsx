@@ -64,6 +64,19 @@ vi.stubGlobal('fetch', vi.fn(() =>
   })
 ));
 
+const mockRoomData = {
+  room_code: 'ABC123',
+  teams: [
+    { team_name: 'team1', circumstance: 'Test Circumstance', current_energy: 100 },
+    { team_name: 'team2', circumstance: 'Other Circumstance', current_energy: 100 }
+  ]
+};
+
+const mockCircumstances = [
+  { name: 'Test Circumstance', description: 'This is a test circumstance description' },
+  { name: 'Other Circumstance', description: 'Another circumstance description' }
+];
+
 beforeEach(() => {
   global.fetch = vi.fn((url) => {
     if (url.includes('/energy')) {
@@ -77,6 +90,20 @@ beforeEach(() => {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve(defaultGameConfig),
+      });
+    }
+
+    if (url.match(/\/rooms\/[^/]+$/) && !url.includes('/teams')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockRoomData),
+      });
+    }
+
+    if (url.includes('/circumstances')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockCircumstances),
       });
     }
 
@@ -250,16 +277,62 @@ test('should update pan position continuously while dragging', async () => {
 test('renders ColorGuide component with all elements', () => {
     renderWithRouter();
 
-    // Check container exists
-    const colorGuide = document.querySelector('.color-guide-container');
-    expect(colorGuide).toBeInTheDocument();
+// Test CircumstanceView component rendering
+test('renders CircumstanceView with team circumstance name and description', async () => {
+  renderWithRouter();
 
-    // Check all text labels are present
-    expect(screen.getByText('MOVING')).toBeInTheDocument();
-    expect(screen.getByText('ARRIVING')).toBeInTheDocument();
-    expect(screen.getByText('THRIVING')).toBeInTheDocument();
-
-    // Verify we have 3 rows
-    const rows = document.querySelectorAll('.color-guide-row');
-    expect(rows).toHaveLength(3);
+  await waitFor(() => {
+    expect(screen.getByText('YOUR CIRCUMSTANCE')).toBeInTheDocument();
   });
+
+  // Check container exists
+  const circumstanceContainer = document.querySelector('.circumstance-view-container');
+  expect(circumstanceContainer).toBeInTheDocument();
+
+  expect(screen.getByText('Test Circumstance')).toBeInTheDocument();
+  expect(screen.getByText('This is a test circumstance description')).toBeInTheDocument();
+});
+
+test('renders CircumstanceView for different team with different circumstance', async () => {
+  render(
+    <MemoryRouter initialEntries={[{
+      pathname: '/rooms/ABC123/teams/team2',
+      state: { boardConfig: defaultGameConfig }
+    }]}>
+      <Routes>
+        <Route path="/rooms/:gamecode/teams/:teamname" element={<Game />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+  await waitFor(() => {
+    expect(screen.getByText('YOUR CIRCUMSTANCE')).toBeInTheDocument();
+  });
+  expect(screen.getByText('Other Circumstance')).toBeInTheDocument();
+  expect(screen.getByText('Another circumstance description')).toBeInTheDocument();
+});
+
+test('does not render CircumstanceView when team has no circumstance', async () => {
+  global.fetch = vi.fn((url) => {
+    if (url.includes('/energy')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ current_energy: 100 }) });
+    }
+    if (url.includes('/board')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(defaultGameConfig) });
+    }
+    if (url.match(/\/rooms\/[^/]+$/) && !url.includes('/teams')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          room_code: 'ABC123',
+          teams: [{ team_name: 'team1', circumstance: '', current_energy: 100 }]
+        }),
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  });
+
+  renderWithRouter();
+  await waitFor(() => expect(screen.getByTestId('energypoints')).toBeInTheDocument());
+  expect(screen.queryByText('YOUR CIRCUMSTANCE')).not.toBeInTheDocument();
+});

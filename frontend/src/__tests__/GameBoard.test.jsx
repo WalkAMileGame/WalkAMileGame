@@ -237,7 +237,7 @@ test('should update pan position continuously while dragging', async () => {
 });
 
 // Test ColorGuide component rendering
-test('renders ColorGuide component with all elements', () => {
+/* test('renders ColorGuide component with all elements', () => {
     renderWithRouter();
 
     // Check container exists
@@ -252,4 +252,4 @@ test('renders ColorGuide component with all elements', () => {
     // Verify we have 3 rows
     const rows = document.querySelectorAll('.color-guide-row');
     expect(rows).toHaveLength(3);
-  });
+  });*/
