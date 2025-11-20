@@ -26,6 +26,36 @@ const ColorPicker = ({ onChange, colors = [] }) => {
   );
 };
 
+const CircumstancePicker = ({ onChange, selected, circumstances = [] }) => {
+  const handleToggle = (name) => {
+    let updated;
+
+    if (selected.includes(name)) {
+      updated = selected.filter((item) => item !== name);
+    } else {
+      updated = [...selected, name]
+    }
+
+    onChange(updated)
+  }
+
+  return (
+    <div className="circumstance-picker">
+      {circumstances.map((circumstance) => (
+        <label key={circumstance.name} className="checkbox-option">
+          <input
+            type="checkbox"
+            className="circumstance-boxes"
+            checked={selected.includes(circumstance.name)}
+            onChange={() => handleToggle(circumstance.name)}
+          />
+          {circumstance.name}
+        </label>
+      ))}
+    </div>
+  );
+};
+
 const LayerColors = [
     ["#ffc072", "#ffb088"],
     ["#a3d7ff", "#d3eafc"],
@@ -92,6 +122,14 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const handleSliceColorChange = (layerIndex, labelIndex, color) => {
     const updatedConfig = { ...localConfig };
     updatedConfig.ringData[layerIndex].labels[labelIndex].color = color;
+    setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
+    onConfigChange(updatedConfig);
+  };
+
+  const handleSliceCircumstanceChange = (layerIndex, labelIndex, required) => {
+    const updatedConfig = { ...localConfig };
+    updatedConfig.ringData[layerIndex].labels[labelIndex].required_for = required;
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
     onConfigChange(updatedConfig);
@@ -218,7 +256,8 @@ const saveGameboard = () => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
       name: localConfig.name?.trim(), 
-      ringData: localConfig.ringData 
+      ringData: localConfig.ringData,
+      circumstances: localConfig.circumstances
     }),
   });
 };
@@ -403,6 +442,11 @@ const deleteGameboard = () => {
                     value={label.color}
                     colors={LayerColors[ringIndex]}
                     onChange={(color) => handleSliceColorChange(ringIndex, labelIndex, color)}
+                  />
+                  <CircumstancePicker
+                    circumstances={localConfig.circumstances}
+                    selected={localConfig.ringData[ringIndex].labels[labelIndex].required_for}
+                    onChange={(required) => handleSliceCircumstanceChange(ringIndex, labelIndex, required)}
                   />
                 </div>
               ))}
