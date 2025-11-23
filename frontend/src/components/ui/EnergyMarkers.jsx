@@ -1,10 +1,11 @@
 // EnergyMarkers.jsx
 import React from 'react';
 import '../../styles/EnergyMarkers.css';
-import energy1 from '../../assets/energy1.png';
-import energy2 from '../../assets/energy2.png';
-import energy3 from '../../assets/energy3.png';
-import energy4 from '../../assets/energy4.png';
+import energy1 from '../../assets/energy01.png';
+import energy2 from '../../assets/energy02.png';
+import energy3 from '../../assets/energy03.png';
+import energy4 from '../../assets/energy04.png';
+import energyEmpty from '../../assets/energyEmpty.png';
 
 const EnergyMarkers = ({
   gameConfig,
@@ -18,7 +19,13 @@ const EnergyMarkers = ({
     if (energyValue == 1) return energy1;
     if (energyValue == 2) return energy2;
     if (energyValue == 3) return energy3;
-    return energy4; // For energyValue >= 4
+    if (energyValue == 4) return energy4;
+    return energyEmpty; // For energyValue != 1-4
+  };
+
+  // Check if we need to show a number overlay
+  const needsNumberOverlay = (energyValue) => {
+    return energyValue < 1 || energyValue > 4;
   };
 
   // Calculate where to place the marker on a tile (WITHOUT rotation)
@@ -58,15 +65,28 @@ const EnergyMarkers = ({
               style={{ pointerEvents: 'none' }}
             >
             <g transform={`rotate(${midAngleDeg} ${x} ${y})`}>
-            <image
-              data-testid={`energy-marker-${label.id}`}
-              href={getEnergyIcon(label.energyvalue)}
-              x={x - 30}
-              y={y - 30}
-              width="60"
-              height="60"
-            />
-          </g>
+              <image
+                data-testid={`energy-marker-${label.id}`}
+                href={getEnergyIcon(label.energyvalue)}
+                x={x - 30}
+                y={y - 30}
+                width="60"
+                height="60"
+              />
+              {needsNumberOverlay(label.energyvalue) && (
+                <text
+                  x={x}
+                  y={y + 8}
+                  textAnchor="middle"
+                  fontFamily="'Lilita One', cursive"
+                  fontSize="28"
+                  fontWeight="bold"
+                  fill="#d5b14e"
+                >
+                  {label.energyvalue}
+                </text>
+              )}
+            </g>
           </g>
           );
         });
