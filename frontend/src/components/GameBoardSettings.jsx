@@ -462,7 +462,7 @@ const deleteGameboard = () => {
 
             {/* Ring Title Section */}
             {ring.labels[0] && (
-              <div className="border rounded p-3 mb-3" style={{ backgroundColor: '#f0f9ff' }}>
+              <div className="ring-title-section">
                 <div className="flex items-center gap-2 mb-2">
                   <label className="flex items-center gap-1 cursor-pointer">
                     <input
@@ -471,7 +471,7 @@ const deleteGameboard = () => {
                       onChange={(e) => handleTileTypeChange(ringIndex, 0, e.target.checked)}
                       className="cursor-pointer"
                     />
-                    <span className="text-sm font-weight-600" style={{ fontWeight: 600, color: '#000' }}>Enable Ring Title</span>
+                    <span className="ring-title-label">Enable Ring Title</span>
                   </label>
                 </div>
                 {ring.labels[0].tileType === 'ring_title' && (
