@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/GameboardSettings.css';
 import Snackbar from "./ui/snackbar"
 import { API_BASE } from "../api";
@@ -67,7 +67,6 @@ const LayerColors = [
 const TitleNames = ["MOVING", "MOVING", "ARRIVING", "THRIVING"]
 
 const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
-  const location = useLocation()
   const navigate = useNavigate()
 
   const [localConfig, setLocalConfig] = useState(gameConfig);

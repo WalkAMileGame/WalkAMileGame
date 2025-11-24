@@ -37,8 +37,8 @@ describe('Lobby Component', () => {
   const mockBoardConfig = {
     name: 'Test Board',
     circumstances: [
-      {name: 'Circumstance A'},
-      {name: 'Circumstance B'}
+      {title: 'Circumstance A'},
+      {title: 'Circumstance B'}
     ],
     ringData: [
       { 
