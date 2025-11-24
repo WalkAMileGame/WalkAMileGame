@@ -140,7 +140,7 @@ useEffect(() => {
           const circumstancesRes = await fetch(`${API_BASE}/circumstances`);
           if (circumstancesRes.ok) {
             const circumstances = await circumstancesRes.json();
-            const found = circumstances.find(c => c.name === team.circumstance);
+            const found = circumstances.find(c => c.title === team.circumstance);
 
             setCircumstance({
               name: team.circumstance,
