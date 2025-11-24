@@ -23,7 +23,7 @@ export default function Lobby() {
   const inviteCode = (location.state?.inviteCode || gamecode || '').trim();
   const isGamemaster = location.state?.isGamemaster || false;
   const boardConfig = location.state?.boardConfig;
-  const availableCircumstances = boardConfig?.circumstances;
+  const availableCircumstances = boardConfig?.circumstances || [];
 
   // --- Restore team join state on reload ---
   useEffect(() => {
