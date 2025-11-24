@@ -363,7 +363,7 @@ export default function Lobby() {
                             >
                               Save
                             </button>
-                            <button onClick={cancelEditingCircumstance} className="btn" style={{ border: '2px solid #86B18A' }}>
+                            <button onClick={cancelEditingCircumstance} className="btn btn-cancel">
                               Cancel
                             </button>
                           </div>

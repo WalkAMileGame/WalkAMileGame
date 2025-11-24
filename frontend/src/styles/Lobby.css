@@ -131,6 +131,10 @@
   background-color: #d65d42;
 }
 
+.btn-cancel {
+  border: 2px solid #86B18A !important;
+}
+
 /* Button group container for team items */
 .team-actions {
   display: flex;
