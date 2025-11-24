@@ -5,6 +5,7 @@ import editIcon from '../styles/icons/editicon.png';
 import deleteIcon from '../styles/icons/deleteicon.png';
 import addIcon from '../styles/icons/addicon.png';
 import searchIcon from '../styles/icons/searchicon.png';
+import acceptIcon from '../styles/icons/accepticon.png';
 import { API_BASE } from "../api";
 
 const CircumstanceCard = ({ title, description, onEdit, onDelete, selected, onSelect }) => {
@@ -12,14 +13,14 @@ const CircumstanceCard = ({ title, description, onEdit, onDelete, selected, onSe
     <div
       className={`note-card-select-mode ${selected ? "selected" : ""}`}
       onClick={onSelect}
-      title="Select circumstance"
+      title={selected ? "Selected" : "Select circumstance"}
     >
       <img
         src={editIcon}
         alt="edit"
         className="edit-icon"
         onClick={(e) => { e.stopPropagation(); onEdit(); }}
-        title="Edit"
+        title={selected ? "Selected" : "Select circumstance"}
       />
       <img
         src={deleteIcon}
@@ -30,6 +31,14 @@ const CircumstanceCard = ({ title, description, onEdit, onDelete, selected, onSe
       />
       <h3 className="note-title">{title}</h3>
       <p className="note-description">{description}</p>
+            {selected && (
+        <img
+          src={acceptIcon}
+          alt="selected"
+          className="accept-icon"
+          title="Selected"
+        />
+      )}
     </div>
   );
 };
