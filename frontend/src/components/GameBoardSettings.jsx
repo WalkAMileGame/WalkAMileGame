@@ -464,6 +464,14 @@ const deleteGameboard = () => {
             {ring.labels[0] && (
               <div className="ring-title-section">
                 <div className="flex items-center gap-2 mb-2">
+                  {ring.labels[0].tileType === 'ring_title' && (
+                    <input
+                      value={ring.labels[0].text}
+                      onChange={(e) => handleSliceTextChange(ringIndex, 0, e.target.value)}
+                      className="labelname-input"
+                      placeholder="Ring title text"
+                    />
+                  )}
                   <label className="flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
@@ -475,19 +483,11 @@ const deleteGameboard = () => {
                   </label>
                 </div>
                 {ring.labels[0].tileType === 'ring_title' && (
-                  <>
-                    <input
-                      value={ring.labels[0].text}
-                      onChange={(e) => handleSliceTextChange(ringIndex, 0, e.target.value)}
-                      className="labelname-input mb-2"
-                      placeholder="Ring title text"
-                    />
-                    <ColorPicker
-                      value={ring.labels[0].color}
-                      colors={['#FFFFFF', ...LayerColors[ringIndex]]}
-                      onChange={(color) => handleSliceColorChange(ringIndex, 0, color)}
-                    />
-                  </>
+                  <ColorPicker
+                    value={ring.labels[0].color}
+                    colors={['#FFFFFF', ...LayerColors[ringIndex]]}
+                    onChange={(color) => handleSliceColorChange(ringIndex, 0, color)}
+                  />
                 )}
               </div>
             )}

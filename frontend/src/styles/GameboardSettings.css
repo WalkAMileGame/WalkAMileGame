@@ -208,3 +208,7 @@
   height: 16px;
   cursor: pointer;
 }
+
+.ring-title-section .color.picker {
+  margin-left: 20%;
+}
