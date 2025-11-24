@@ -38,27 +38,25 @@ const CircumstanceCard = ({ title, description, onEdit, onDelete, selected, onSe
 const Circumstances = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const config = location.state.config
+  const initialCircumstances = config?.circumstances?.map(c => c.id) || [];
 
   const [notes, setNotes] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [selectedNoteIds, setSelectedNoteIds] = useState([]);
+  const [selectedNoteIds, setSelectedNoteIds] = useState(initialCircumstances);
   const [searchTerm, setSearchTerm] = useState("");
-  const config = location.state.config
 
     const handleAccept = () => {
-    const selectedNotes = notes.filter(note => selectedNoteIds.includes(note.id));
-    config.circumstances = selectedNotes
+      const selectedNotes = notes.filter(note => selectedNoteIds.includes(note.id));
+      config.circumstances = selectedNotes
 
-    navigate("/gameboard", { state: { boardConfig: config, settings: true } });  // nää saa useLocationin kautta
+      navigate("/gameboard", { state: { boardConfig: config, settings: true } });  // nää saa useLocationin kautta
     };
 
-    const filteredNotes = notes.filter((note) =>
-    note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    note.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
 
   useEffect(() => {
     const loadCircumstances = async () => {
@@ -67,7 +65,7 @@ const Circumstances = () => {
         const data = await res.json();
         
         const formatted = data.map(c => ({
-        id: c._id, 
+        id: c._id,
         title: c.title,
         description: c.description
         }));
@@ -95,6 +93,7 @@ const saveEdit = async () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: '',
           title: editTitle,
           description: editDescription
         })
@@ -121,6 +120,7 @@ const saveEdit = async () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: '',
           title: editTitle,
           description: editDescription
         })
@@ -185,7 +185,7 @@ const handleDelete = async (note) => {
         title="Add new circumstance"
       />
         <div className="select-circumstance-note-area">
-          {filteredNotes.map((note, i) => (
+          {notes.map((note, i) => (
             <CircumstanceCard
               key={i}
               title={note.title}

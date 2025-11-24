@@ -110,7 +110,7 @@ test('editing circumstance', async () => {
 
   global.fetch = vi.fn(() =>
     Promise.resolve({
-      json: () => Promise.resolve({ _id: '1', title: 'Updated Title', description: 'Updated Description' }),
+      json: () => Promise.resolve({ _id: '1', id: '', title: 'Updated Title', description: 'Updated Description' }),
     })
   );
 
@@ -127,7 +127,7 @@ test('editing circumstance', async () => {
     expect.objectContaining({
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: 'Updated Title', description: 'Updated Description' }),
+      body: JSON.stringify({ id: '', title: 'Updated Title', description: 'Updated Description' }),
     })
   );
 });

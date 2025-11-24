@@ -72,6 +72,7 @@ const saveEdit = async () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: '',
           title: editTitle,
           description: editDescription
         })
@@ -98,6 +99,7 @@ const saveEdit = async () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: '',
           title: editTitle,
           description: editDescription
         })
