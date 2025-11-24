@@ -34,6 +34,8 @@ describe('GamemasterProgress Component', () => {
     board_config: mockBoardConfig,
     time_remaining: 30,
     game_paused: false,
+    game_started_at: new Date().toISOString(),
+    accumulated_pause_time: 0,
     teams: [
       { team_name: 'Team Alpha', circumstance: 'Test circumstance' },
       { team_name: 'Team Beta', circumstance: 'Another circumstance' }

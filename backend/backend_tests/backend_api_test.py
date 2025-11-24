@@ -1,22 +1,27 @@
 """tests for backend fastapi code"""
 import os
-from unittest.mock import patch, MagicMock
+import sys
+from unittest.mock import patch, MagicMock, Mock
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
-from backend.app.security import get_current_active_user
 from datetime import datetime, timedelta, timezone
 
 
 os.environ['TESTING'] = 'true'
 
+# Mock MongoDB connection before importing db module
+mock_mongo_client = MagicMock()
+mock_mongo_client.get_database.return_value = MagicMock()
+mock_mongo_client.admin.command.return_value = {}
+
+with patch('backend.app.db.MongoClient', return_value=mock_mongo_client):
+    from backend.app.security import get_current_active_user
+    from backend.app.api import router
+
 # Create a test app
 app = FastAPI()
-
-# Mock the database before importing router
-with patch("backend.app.api.db") as mock_db:
-    from backend.app.api import router
-    app.include_router(router)
+app.include_router(router)
 
 client = TestClient(app)
 
