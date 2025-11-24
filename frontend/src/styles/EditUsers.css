@@ -101,23 +101,7 @@ td:last-child {
   padding-right: 25px;
 }
 
-
 tr:hover {background-color: #E9C46A}
-
-.accept-button {
-  border: none;
-  background-color: transparent;
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-  justify-content: right;
-  font-size: 25px;
-}
-
-.accept-button:focus {
-  outline: none;
-  box-shadow: none;
-}
 
 .requestbuttons {
   display: flex;
@@ -127,7 +111,6 @@ tr:hover {background-color: #E9C46A}
   padding: 0;
   margin: 0;
 }
-
 
 .editbuttons {
   display: flex;
@@ -222,8 +205,6 @@ tr:hover {background-color: #E9C46A}
   gap: 10px;
 }
 
-
-
 .popup input[type="email"] {
   width: 100%;
   max-width: 250px;
@@ -285,4 +266,34 @@ tr:hover {background-color: #E9C46A}
   width: 30px;
   height: 30px;
   cursor: pointer;
+}
+
+.generate-code-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.generate-code-button {
+  border: none;
+  background-color: #E76F51;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: "Montserrat", sans-serif;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.generate-code-input {
+  padding: 0.5rem 1rem;
+  border: 2px solid #86B18A;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: all 0.2s;
 }

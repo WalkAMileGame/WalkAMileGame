@@ -53,6 +53,9 @@ class AccessCode(BaseModel):
     isUsed: bool = False
     usedByUser: EmailStr = None
 
+class GenerateCodeRequest(BaseModel):
+    valid_for: int
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
