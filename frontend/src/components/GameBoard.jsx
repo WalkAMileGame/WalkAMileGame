@@ -131,7 +131,8 @@ const GameBoard = () => {
 
 // Settings
 
-  const [showSettings, setShowSettings] = useState(false);
+  const initialState = location.state?.settings || false;
+  const [showSettings, setShowSettings] = useState(initialState);
 
   // Helper function to create annular sector path (donut slice)
   const createAnnularSectorPath = (innerRadius, outerRadius, startAngleDeg, endAngleDeg) => {

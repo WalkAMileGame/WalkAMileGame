@@ -347,11 +347,11 @@ export default function Lobby() {
                               <input
                                 type="radio"
                                 name="choice"
-                                value={circumstance.name}
-                                checked={editCircumstance === circumstance.name}
+                                value={circumstance.title}
+                                checked={editCircumstance === circumstance.title}
                                 onChange={(e) => setEditCircumstance(e.target.value)}
                               />
-                            {circumstance.name}
+                            {circumstance.title}
                             </label>
                           ))}
                           <div style={{ display: 'flex', gap: '8px' }}>

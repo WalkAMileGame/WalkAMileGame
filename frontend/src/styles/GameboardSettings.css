@@ -148,6 +148,19 @@
   margin-bottom: 20px;
 }
 
+.edit-button {
+  color: white;
+  background-color: rgb(98, 137, 196);
+  height: 50px;
+  width: 190px;
+  border: 2px solid white;
+  font-size: 18px;
+  border-radius: 50px;
+  margin-left: 40px;
+  margin-right: 40px;
+  margin-bottom: 20px;
+}
+
 .delete-button {
   color: white;
   background-color: rgb(228, 52, 52);

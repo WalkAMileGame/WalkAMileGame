@@ -616,13 +616,13 @@ def save_edited_circumstance(cid: str, data: Circumstance):
     db.circumstance.update_one(
         {"_id": ObjectId(cid)},
         {"$set": {
-            "name": data.name,
+            "title": data.title,
             "description": data.description
         }}
     )
 @router.post("/save_circumstance")
 def save_new_circumstance(data: Circumstance):
-    new_note = db.circumstance.insert_one({"name": data.name, "description": data.description})
+    new_note = db.circumstance.insert_one({"title": data.title, "description": data.description})
     fetch_new_note = db.circumstance.find_one({"_id": new_note.inserted_id})
     fetch_new_note["_id"] = str(fetch_new_note["_id"])
     return fetch_new_note

@@ -5,7 +5,7 @@ import deleteIcon from '../styles/icons/deleteicon.png';
 import addIcon from '../styles/icons/addicon.png';
 import { API_BASE } from "../api";
 
-const CircumstanceCard = ({ title, content, onEdit, onDelete }) => {
+const CircumstanceCard = ({ title, description, onEdit, onDelete }) => {
   return (
     <div className="note-card">
       <img
@@ -23,7 +23,7 @@ const CircumstanceCard = ({ title, content, onEdit, onDelete }) => {
         title="Delete"
       />
       <h3 className="note-title">{title}</h3>
-      <p className="note-content">{content}</p>
+      <p className="note-description">{description}</p>
     </div>
   );
 };
@@ -32,7 +32,7 @@ const Circumstances = () => {
   const [notes, setNotes] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
   
@@ -45,8 +45,8 @@ const Circumstances = () => {
         
         const formatted = data.map(c => ({
         id: c._id, 
-        title: c.name,
-        content: c.description
+        title: c.title,
+        description: c.description
         }));
 
         setNotes(formatted);
@@ -61,7 +61,7 @@ const Circumstances = () => {
   const openEditor = (i) => {
     setEditingIndex(i);
     setEditTitle(notes[i].title);
-    setEditContent(notes[i].content);
+    setEditDescription(notes[i].description);
   };
 
 const saveEdit = async () => {
@@ -72,17 +72,17 @@ const saveEdit = async () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: editTitle,
-          description: editContent
+          title: editTitle,
+          description: editDescription
         })
       });
 
       const newNote = await res.json(); 
 
       setNotes(prev => [...prev, { 
-        id: newNote._id, 
-        title: newNote.name, 
-        content: newNote.description 
+        id: newNote._id,
+        title: newNote.title,
+        description: newNote.description
       }]);
     } catch (err) {
       console.error("Failed to create note:", err);
@@ -90,7 +90,7 @@ const saveEdit = async () => {
   } else {
     // edit existing note
     const updated = [...notes];
-    updated[editingIndex] = { title: editTitle, content: editContent, id: notes[editingIndex].id };
+    updated[editingIndex] = { title: editTitle, description: editDescription, id: notes[editingIndex].id };
     setNotes(updated);
 
     try {
@@ -98,8 +98,8 @@ const saveEdit = async () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: editTitle,
-          description: editContent
+          title: editTitle,
+          description: editDescription
         })
       });
     } catch (err) {
@@ -131,7 +131,7 @@ const handleDelete = async (note) => {
         <h1>EDIT CIRCUMSTANCES</h1>
       </div>
 
-      <div className="content">
+      <div className="description">
         <img
         src={addIcon}
         alt="add"
@@ -139,7 +139,7 @@ const handleDelete = async (note) => {
         onClick={() => {
             setIsAdding(true);
             setEditTitle("");
-            setEditContent("");
+            setEditDescription("");
             setEditingIndex(null); 
         }}
         title="Add new circumstance"
@@ -149,7 +149,7 @@ const handleDelete = async (note) => {
             <CircumstanceCard
               key={i}
               title={note.title}
-              content={note.content}
+              description={note.description}
               onEdit={() => openEditor(i)}
               onDelete={() => handleDelete(note)}
             />
@@ -170,11 +170,11 @@ const handleDelete = async (note) => {
                 onChange={(e) => setEditTitle(e.target.value)}
             />
 
-            <label htmlFor="edit-content">Content</label>
+            <label htmlFor="edit-description">Description</label>
             <textarea
-                id="edit-content"
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
+                id="edit-description"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
             />
 
             <div className="modal-buttons">

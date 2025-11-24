@@ -16,7 +16,8 @@ class TileType(str, Enum):
 
 
 class Circumstance(BaseModel):
-    name: str
+    id: str
+    title: str
     description: str
     
 class LabelData(BaseModel):
