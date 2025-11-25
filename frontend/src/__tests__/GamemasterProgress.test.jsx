@@ -35,7 +35,6 @@ describe('GamemasterProgress Component', () => {
     time_remaining: 30,
     game_started_at: null,
     game_paused: false,
-    game_started_at: new Date().toISOString(),
     accumulated_pause_time: 0,
     teams: [
       { team_name: 'Team Alpha', circumstance: 'Test circumstance' },
@@ -171,9 +170,10 @@ describe('GamemasterProgress Component', () => {
 
   test('adjusts time with positive number', async () => {
     setupFetchMock({
-      '/rooms/TEST123': { ok: true, json: async () => mockRoomData },
-      '/time': { ok: true, json: async () => ({}) }
+      '/rooms/TEST123/time': { ok: true, json: async () => ({}) },
+      '/rooms/TEST123': { ok: true, json: async () => mockRoomData }
     });
+
 
     await act(async () => {
       renderComponent();
@@ -204,9 +204,10 @@ describe('GamemasterProgress Component', () => {
 
   test('adjusts time with negative number', async () => {
     setupFetchMock({
-      '/rooms/TEST123': { ok: true, json: async () => mockRoomData },
-      '/time': { ok: true, json: async () => ({}) }
+      '/rooms/TEST123/time': { ok: true, json: async () => ({}) },
+      '/rooms/TEST123': { ok: true, json: async () => mockRoomData }
     });
+
 
     await act(async () => {
       renderComponent();
