@@ -35,8 +35,8 @@ describe('GamemasterProgress Component', () => {
     time_remaining: 30,
     game_started_at: null,
     game_paused: false,
+    game_started_at: new Date().toISOString(),
     accumulated_pause_time: 0,
-    paused_at: null,
     teams: [
       { team_name: 'Team Alpha', circumstance: 'Test circumstance' },
       { team_name: 'Team Beta', circumstance: 'Another circumstance' }

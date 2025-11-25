@@ -1,5 +1,6 @@
 """Tests for main.py"""
 import os
+import sys
 from unittest.mock import patch, MagicMock
 import pytest
 from fastapi.testclient import TestClient
@@ -7,8 +8,12 @@ from fastapi.testclient import TestClient
 
 os.environ['TESTING'] = 'true'
 
-# Mock the router before importing main
-with patch('backend.app.api.router') as mock_router:
+# Mock MongoDB connection before importing main
+mock_mongo_client = MagicMock()
+mock_mongo_client.get_database.return_value = MagicMock()
+mock_mongo_client.admin.command.return_value = {}
+
+with patch('backend.app.db.MongoClient', return_value=mock_mongo_client):
     from backend.main import app
 
 client = TestClient(app)

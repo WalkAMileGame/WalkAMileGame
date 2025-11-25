@@ -4,27 +4,40 @@ import '../styles/Login.css';
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from '../api';
 
-
 export default function Login() {
   const { user, login, logout, error: authError } = useAuth();
 
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isRenewing, setIsRenewing] = useState(false);
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [registrationCode, setRegistrationCode] = useState('');
   const [error, setError] = useState('');
   const [localError, setLocalError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  
   const isLoggedIn = !!user;
   const userEmailDisplay = user?.email || userEmail;
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  const clearForms = () => {
+    setLocalError('');
+    setError && setError(null);
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setRegistrationCode('');
+    // setRegistrationSuccess(false);
+  };
 
   const handleLogin = async (event) => {
     event.preventDefault();
     setError('');
-    setError &&  setError(null);
+    setError && setError(null);
 
     if (!email || !password) {
       setError('Please enter both email and password.');
@@ -36,7 +49,49 @@ export default function Login() {
       setUserEmail(email);
       navigate("/landing");
     } catch (e) {
-      setLocalError(e.message || 'Login failed.');
+      const isExpired = e.message?.includes("ACCOUNT_EXPIRED") || e.status === 403;
+      
+      if (isExpired) {
+        setLocalError("Your account has expired. Please enter a new code to reactivate.");
+        setIsRenewing(true);
+        setIsRegistering(false);
+      } else {
+        setLocalError(e.message || 'Login failed.');
+      }
+    }
+  };
+
+  const handleRenew = async (event) => {
+    event.preventDefault();
+    setLocalError('');
+
+    if (!registrationCode || !email || !password) {
+      setLocalError('Please fill out all fields.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/renew-access`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            email, 
+            password, 
+            new_code: registrationCode
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        const message = errorData.detail || "Renewal failed";
+        throw new Error(message);
+      }
+
+      alert("Account successfully renewed! You can now log in.");
+      toggleForm('login'); 
+
+    } catch (err) {
+      setLocalError(err.message || 'Renewal failed.'); 
     }
   };
 
@@ -45,7 +100,7 @@ export default function Login() {
     setLocalError('');
     setError && setError(null);
 
-    if (!email || !password || !confirmPassword) {
+    if (!registrationCode || !email || !password || !confirmPassword) {
       setLocalError('Please fill out all fields.');
       return;
     }
@@ -58,7 +113,7 @@ export default function Login() {
       const res = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, code: registrationCode }),
       });
       if (!res.ok) {
         const errorData = await res.json();
@@ -67,9 +122,7 @@ export default function Login() {
       }
 
       setRegistrationSuccess(true);
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
+      clearForms(); // Use helper to clean up
 
     } catch (err) {
       setLocalError(err.message || 'Registration failed.'); 
@@ -78,31 +131,27 @@ export default function Login() {
 
   const handleLogout = () => {
     logout();
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-    setLocalError('');
-    setError && setError(null);
+    clearForms();
     navigate("/");
   };
 
-  const toggleForm = () => {
-    setIsRegistering(!isRegistering);
-    setLocalError('');
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-    setError && setError(null);
-    setRegistrationSuccess(false);
+  const toggleForm = (targetView) => {
+    clearForms();
+    
+    if (targetView === 'register') {
+        setIsRegistering(true);
+        setIsRenewing(false);
+    } else if (targetView === 'renew') {
+        setIsRenewing(true);
+        setIsRegistering(false);
+    } else {
+        setIsRegistering(false);
+        setIsRenewing(false);
+    }
   };
 
  return (
     <>
-      {/* Show login status and email at the top */}
-      {/* Mostly for debugging */}
-      <div className="login-status" style={{ textAlign: 'center', margin: '12px 0', color: '#fff' }}>
-        {isLoggedIn ? `Logged in as ${userEmailDisplay}` : 'Not logged in'}
-      </div>
       <div className="login-container">
         {isLoggedIn ? (
           <div className="login-card welcome-card">
@@ -114,12 +163,39 @@ export default function Login() {
           </div>
         ) : (
           <div className="login-card">
-              {isRegistering ? (
+              {/* LOGIC: Check Renewing -> Check Registering -> Else Login */}
+              {isRenewing ? (
+                <>
+                  <h2 className="title">Reactivate Account</h2>
+                  <p className="subtitle">Enter your credentials and a new code.</p>
+                  {(error || localError || authError) && <p className="error-message">{localError || error || authError}</p>}
+                  
+                  <form onSubmit={handleRenew} noValidate>
+                    <div className="form-group">
+                      <label htmlFor="email" className="form-label">Email Address</label>
+                      <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="form-input" placeholder="you@example.com" required />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="password" className="form-label">Password</label>
+                      <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="form-input" placeholder="••••••••" required />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="renew-code" className="form-label">New Registration Code</label>
+                      <input type="text" id="renew-code" value={registrationCode} onChange={(e) => setRegistrationCode(e.target.value)} className="form-input" placeholder="NEW-CODE-HERE" required />
+                    </div>
+                    <button type="submit" className="btn btn-primary">Reactivate Account</button>
+                  </form>
+                  
+                  <div className="toggle-form">
+                    <button onClick={() => toggleForm('login')} className="toggle-button">Back to Login</button>
+                  </div>
+                </>
+              ) : isRegistering ? (
                 registrationSuccess ? (
                   <>
                     <h2 className="title">Success!</h2>
                     <p className="subtitle">Your account creation request is successful!</p>
-                    <button onClick={toggleForm} className="btn btn-primary" style={{width: '100%'}}>
+                    <button onClick={() => {toggleForm('login'); setRegistrationSuccess(false)}} className="btn btn-primary" style={{width: '100%'}}>
                       Proceed to Login
                     </button>
                   </>
@@ -129,6 +205,10 @@ export default function Login() {
                   <p className="subtitle">Create an account to get started.</p>
                   {(error || localError || authError) && <p className="error-message">{localError || error || authError}</p>}
                   <form onSubmit={handleRegister} noValidate>
+                    <div className="form-group">
+                      <label htmlFor="register-code" className="form-label">Registration code</label>
+                      <input type="text" id="register-code" value={registrationCode} onChange={(e) => setRegistrationCode(e.target.value)} className="form-input" placeholder="ABCD-EFGH-1234-5678" required />
+                    </div>
                     <div className="form-group">
                       <label htmlFor="email" className="form-label">Email Address</label>
                       <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="form-input" placeholder="you@example.com" required />
@@ -145,7 +225,7 @@ export default function Login() {
                   </form>
                   <div className="toggle-form">
                     <span>Already have an account? </span>
-                    <button onClick={toggleForm} className="toggle-button">Login</button>
+                    <button onClick={() => toggleForm('login')} className="toggle-button">Login</button>
                   </div>
                 </>
               )
@@ -167,7 +247,7 @@ export default function Login() {
                   </form>
                   <div className="toggle-form">
                     <span>Don't have an account? </span>
-                    <button onClick={toggleForm} className="toggle-button">Register</button>
+                    <button onClick={() => toggleForm('register')} className="toggle-button">Register</button>
                   </div>
                 </>
               )}
