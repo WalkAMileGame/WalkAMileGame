@@ -68,10 +68,11 @@
   font-size: 16px;
   border-radius: 50px;
   padding: 5px;
+  cursor: pointer;
 }
 
 .color.picker {
-  margin-left: 20%;
+  margin-left: 7%;
 }
 
 .colorbuttons {
@@ -108,6 +109,7 @@
 
 .layeredit-title {
   color: black;
+  margin-top:0px;
 }
 
 .layerinfo-container {
@@ -120,7 +122,7 @@
   color:black;
   font-size: 18px;
   margin-right: 20px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 
 .addslice-button {
@@ -143,23 +145,24 @@
   border: 2px solid white;
   font-size: 18px;
   border-radius: 50px;
-  margin-left: 40px;
-  margin-right: 40px;
+  margin-left: 50px;
+  margin-right: 10px;
   margin-bottom: 20px;
 }
 
 .edit-button {
   color: white;
   background-color: rgb(98, 137, 196);
-  height: 50px;
+  height: 40px;
   width: 190px;
   border: 2px solid white;
   font-size: 18px;
   border-radius: 50px;
   margin-left: 40px;
   margin-right: 40px;
-  margin-bottom: 20px;
+  margin-bottom:20px;
   margin-top: 20px;
+  cursor: pointer;
 }
 
 .delete-button {
@@ -170,7 +173,7 @@
   border: 2px solid white;
   font-size: 18px;
   border-radius: 50px;
-  margin-left: 40px;
+  margin-left: 10px;
   margin-right: 40px;
   margin-bottom: 20px;
 }
@@ -211,7 +214,7 @@
 }
 
 .ring-title-section .color.picker {
-  margin-left: 20%;
+  margin-left: 16%;
 }
 .circumstance-picker {
   color: black;

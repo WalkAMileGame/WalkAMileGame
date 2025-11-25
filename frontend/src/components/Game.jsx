@@ -598,7 +598,7 @@ if (!isInitialized) {
           Spectating: {teamname}
         </div>
       )}
-      <div className="energypoints" data-testid="energypoints" style={isSpectator ? { top: '3.5rem' } : {}}>
+      <div className="game-energypoints" data-testid="energypoints" style={isSpectator ? { top: '3.5rem' } : {}}>
         Remaining energypoints: {points}
       </div>
       <div className="instructions">

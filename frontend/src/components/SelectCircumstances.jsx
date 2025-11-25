@@ -179,7 +179,7 @@ const handleDelete = async (note) => {
             }}
         />
         <button title="Return with selections"onClick={handleAccept}>Done</button>
-        <button title="Return without selections"onClick={() => navigate("/gameboard")}>Cancel</button>
+        <button title="Return without selections"onClick={() => navigate("/gameboard", { state: { boardConfig: config, settings: true } })}>Cancel</button>
         </div>
         <img
         src={addIcon}

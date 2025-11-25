@@ -441,7 +441,7 @@ const GameBoard = () => {
 
   return (
     <>
-      <div className="energypoints">
+      <div className="energypoints-gameboard">
         Remaining energypoints: {points}
       </div>
       <div className="game-layout">

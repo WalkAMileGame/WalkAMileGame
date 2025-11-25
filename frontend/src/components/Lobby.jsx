@@ -324,7 +324,7 @@ export default function Lobby() {
               }}
               className="time-input"
             />
-            <button onClick={updateTime} className="btn btn-primary">
+            <button onClick={updateTime} className="btn btn-updatetime">
               Update Time
             </button>
           </div>

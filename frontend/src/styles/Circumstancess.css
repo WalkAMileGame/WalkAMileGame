@@ -173,6 +173,7 @@ body:has(.circumstance-page) #root {
   margin-bottom: 14px;
   margin-top: 30px;
   justify-content: center; /* centers the flex row horizontally */
+  margin-bottom: 30px;
 }
 
 .search-bar-container input {

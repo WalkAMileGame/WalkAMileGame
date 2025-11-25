@@ -479,7 +479,7 @@ const deleteGameboard = () => {
                       onChange={(e) => handleTileTypeChange(ringIndex, 0, e.target.checked)}
                       className="cursor-pointer"
                     />
-                    <span className="ring-title-label">Enable Ring Title</span>
+                    <span className="ring-title-label">Enable ring title</span>
                   </label>
                 </div>
                 {ring.labels[0].tileType === 'ring_title' && (
@@ -517,6 +517,7 @@ const deleteGameboard = () => {
                       <button
                         onClick={() => removeSlice(ringIndex, labelIndex)}
                         className="deleteslice-button"
+                        title = "Remove this slice"
                       >
                         ✕
                       </button>

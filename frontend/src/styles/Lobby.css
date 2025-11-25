@@ -106,6 +106,17 @@
   color: white;
 }
 
+.btn-updatetime {
+  margin-top: 15px;
+  background-color: #86B18A;
+  color: white;
+}
+
+.btn-updatetime:hover {
+  background-color: #6fa073;
+
+}
+
 .btn-primary:hover:not(:disabled) {
   background-color: #6fa073;
 }

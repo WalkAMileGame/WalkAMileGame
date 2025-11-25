@@ -138,7 +138,7 @@ export default function HostGamePage() {
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="btn btn-back"
+          className="back-button"
           title="Go back"
         >
           ←
