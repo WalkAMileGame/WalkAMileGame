@@ -30,21 +30,27 @@ const EnergyMarkers = ({
 
   // Calculate where to place the marker on a tile (WITHOUT rotation)
   const getMarkerPosition = (ring, labelIndex) => {
-    const numSlices = ring.labels.length;
-    const anglePerSlice = 360 / numSlices;
-    
-    // Calculate the center angle of the slice (without rotation applied)
-    const midAngleDeg = (labelIndex + 0.5) * anglePerSlice;
-    const midAngle = (midAngleDeg - 90) * Math.PI / 180;
-    
-    // Place marker at the center of the ring
-    const midRadius = (ring.innerRadius + ring.outerRadius) / 2;
-    
-    return {
-      x: centerX + midRadius * Math.cos(midAngle),
-      y: centerY + midRadius * Math.sin(midAngle),
-      midAngleDeg
-    };
+    // Compute cumulative angles l
+    const totalAngleUnits = ring.labels.reduce(
+      (acc, l) => acc + (l.tileType === "ring_title" ? 2 : 1),
+      0
+    );
+    const baseAnglePerUnit = 360 / totalAngleUnits;
+
+    let cumulativeAngle = 0;
+    for (let i = 0; i <= labelIndex; i++) {
+      const l = ring.labels[i];
+      const sliceAngle = l.tileType === "ring_title" ? baseAnglePerUnit * 2 : baseAnglePerUnit;
+      if (i === labelIndex) {
+        const midAngleDeg = cumulativeAngle + sliceAngle / 2;
+        const midAngle = (midAngleDeg - 90) * (Math.PI / 180);
+        const midRadius = (ring.innerRadius + ring.outerRadius) / 2;
+        const x = centerX + midRadius * Math.cos(midAngle);
+        const y = centerY + midRadius * Math.sin(midAngle);
+        return { x, y, midAngleDeg };
+      }
+      cumulativeAngle += sliceAngle;
+    }
   };
 
   return (

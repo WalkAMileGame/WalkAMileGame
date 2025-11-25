@@ -24,6 +24,7 @@ const Game = () => {
   const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
   const [timeLeft, setTimeLeft] = useState(null); // Timer state
   
+  
 
   const [rotations, setRotations] = useState({
     ring0: 0,
@@ -453,7 +454,7 @@ useEffect(() => {
   }, []);
 
   // Render text on curved path
-  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId) => {
+  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId, isTitleTile = false) => {
     const midRadius = (innerRadius + outerRadius) / 2;
     const angleRad = (endAngleDeg - startAngleDeg) * (Math.PI / 180);
 
@@ -523,8 +524,8 @@ useEffect(() => {
               startOffset="50%"
               textAnchor="middle"
               fill="#000"
-              fontSize="20"
-              fontWeight="600"
+              fontSize={isTitleTile ? "32" : "20"}
+              fontWeight={isTitleTile ? "700" : "600"}
             >
               {line}
             </textPath>
@@ -587,7 +588,7 @@ if (!isInitialized) {
         <div style={{
           position: 'fixed',
           left: '20px',
-          top: '3.5rem',
+          top: '20rem',
           border: 'none',
           color: '#dfd4d4',
           fontWeight: 'bold',
@@ -644,51 +645,63 @@ if (!isInitialized) {
                       />
                     </filter>
                   </defs>
-                  {/* Render rings from innermost to outermost */}     
-                  {gameConfig?.ringData?.map((ring) => {
-                    const numSlices = ring.labels.length;
-                    const rotation = rotations[ring.id] || 0;
-                    const anglePerSlice = 360 / numSlices;
-                    
-                    return (
-                      <g
-                        data-testid={`ring-group-${ring.id}`}
-                        key={ring.id}
-                        transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
-                      >
-                        
-                        {/* Render slices */}
-                        {ring.labels.map((label, i) => {
-                          const startAngle = i * anglePerSlice;
-                          const endAngle = (i + 1) * anglePerSlice;
-                          const color = label.color;
-                          
-                          return (
-                            <g key={`${ring.id}-slice-${i}`}>
-                              {/* Slice shape */}
-                              <path
-                                data-testid={`slice-${label.id}`}
-                                className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
-                                d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
-                                fill={color}
-                                stroke="#f5f5f3ff"
-                                strokeWidth={whiteLineThickness}
-                                onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
-                                onClick={(e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
-                                onMouseEnter={(e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
-                                onMouseLeave={handleSliceMouseLeave}
-                                onMouseMove={handleSliceMouseMove}
-                                style={{ cursor: "pointer" }}
-                                filter="url(#whiteShadow)"
-                              />
-                              {/* Render Text */}
-                              {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
-                            </g>
-                          );
-                        })}
-                      </g>
-                    );
-                  })}
+                    {/* Render rings from innermost to outermost */}     
+                    {gameConfig?.ringData?.map((ring) => {
+                      const rotation = rotations[ring.id] || 0;
+
+                      // Count title tiles as 2 units, normal tiles as 1
+                      const totalAngleUnits = ring.labels.reduce((acc, label) => {
+                        return acc + (label.tileType === 'ring_title' ? 2 : 1);
+                      }, 0);
+
+                      const baseAnglePerUnit = 360 / totalAngleUnits;
+                      let cumulativeAngle = 0; // start at 0 for each ring
+
+                      return (
+                        <g
+                          data-testid={`ring-group-${ring.id}`}
+                          key={ring.id}
+                          transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
+                        >
+                          {/* Render slices */}
+                          {ring.labels.map((label, i) => {
+                            const isTitleSlice = label.tileType === 'ring_title';
+                            const sliceAngle = isTitleSlice ? baseAnglePerUnit * 2 : baseAnglePerUnit;
+
+                            const startAngle = cumulativeAngle;
+                            const endAngle = cumulativeAngle + sliceAngle;
+
+                            cumulativeAngle += sliceAngle; // increment for next slice
+
+                            const color = label.color;
+
+                            return (
+                              <g key={`${ring.id}-slice-${i}`}>
+                                {/* Slice shape */}
+                                <path
+                                  data-testid={`slice-${label.id}`}
+                                  d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
+                                  fill={color}
+                                  stroke={"#f5f5f3ff"}
+                                  strokeWidth={whiteLineThickness}
+                                  className={isTitleSlice ? "title-tile" : "slice-path"}
+                                  onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
+                                  onClick={isTitleSlice ? undefined : (e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
+                                  onMouseEnter={isTitleSlice ? undefined : (e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
+                                  onMouseLeave={isTitleSlice ? undefined : handleSliceMouseLeave}
+                                  onMouseMove={isTitleSlice ? undefined : handleSliceMouseMove}
+                                  style={{cursor: isTitleSlice ? "grab" : "pointer"}}
+                                  filter="url(#whiteShadow)"
+                                />
+                                {/* Render Text */}
+                                {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id, isTitleSlice)}
+                              </g>
+                            );
+                          })}
+                        </g>
+                      );
+                    })}
+
                 {/* Separator Circles */}
                   {gameConfig?.ringData?.map((ring) => (
                     <circle

@@ -526,8 +526,8 @@ const GameBoard = () => {
                                 className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''} ${isTitleTile ? 'title-tile' : ''}`}
                                 d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
                                 fill={color}
-                                stroke={isTitleTile ? "none" : "#f5f5f3ff"}
-                                strokeWidth={isTitleTile ? 0 : whiteLineThickness}
+                                stroke={"#f5f5f3ff"}
+                                strokeWidth={whiteLineThickness}
                                 onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
                                 onClick={isTitleTile ? undefined : (e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
                                 onMouseEnter={isTitleTile ? undefined : (e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
