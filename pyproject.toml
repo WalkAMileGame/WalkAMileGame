@@ -19,6 +19,7 @@ httpx = ">=0.28.1,<0.29.0"
 dotenv = ">=0.9.9,<0.10.0"
 invoke = ">=2.2.0,<3.0.0"
 # ...other runtime libs
+playwright = "^1.56.0"
 
 [tool.poetry.dev-dependencies]
 pytest = ">=8.4.2,<9.0.0"
