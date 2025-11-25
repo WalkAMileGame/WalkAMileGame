@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import LandingPage from '../components/LandingPage'
@@ -14,39 +14,29 @@ vi.mock('../context/AuthContext', () => ({
   }),
 }));
 
-const mockUsers = [
-  {
-    email: 'admin@test.com',
-    role: 'admin',
-    pending: false
-  },
-	{
-	  email: 'gamemaster@test.com',
-	  role: 'gamemaster',
-	  pending: false
-	},
-	{
-	email: 'new@test.com',
-    role: 'gamemaster',
-    pending: true
-	}
-];
+const mockResponse = {
+  users: [
+    { email: "admin@test.com", role: "admin" },
+    { email: "gamemaster@test.com", role: "gamemaster" },
+    { email: "new@test.com", role: "gamemaster" }
+  ],
+  codes: []
+};
 
 describe('EditUsers', () => {
 
-	beforeAll(() => {
-		global.fetch = vi.fn(() => 
-			Promise.resolve({
-				ok: true,
-				json: () => Promise.resolve(mockUsers),
+	beforeEach(() => {
+		global.fetch = vi.fn(() =>
+		Promise.resolve({
+			ok: true,
+			json: () => Promise.resolve(mockResponse),
 			})
 		);
 	});
 
-		afterAll(() => {
-			global.fetch.mockRestore?.();
-		});
-
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
 
 	test('renders content', () => {
 
@@ -56,9 +46,8 @@ describe('EditUsers', () => {
 	  	</MemoryRouter>
 	  );
 
-	  expect(screen.getByText('Existing users')).toBeInTheDocument();
+	  expect(screen.getByText('Active users')).toBeInTheDocument();
 	});
-
 
 	test('loading users', async () => {
 	  render(
@@ -72,356 +61,109 @@ describe('EditUsers', () => {
 
 		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
 		expect(gamemaster).toBeInTheDocument();
-
-		const pending = await screen.findByText((content) => content.includes('new@test.com'))
-		expect(pending).toBeInTheDocument();
 	});
-
-
-	test('accepting pending gamemaster', async () => {
-    const user = userEvent.setup();
-
-  	render(
-  	  <MemoryRouter>
-  	    <EditUsers />
-  	  </MemoryRouter>
-  	);
-  	  const acceptButton = await screen.findByTitle("Accept");
-
-  	  expect(acceptButton).toBeInTheDocument();
-
-  	  await user.click(acceptButton);
-  	  expect(await screen.findByRole("radio", { name: "Admin" })).toBeInTheDocument();
-    	expect(await screen.findByRole("radio", { name: "Gamemaster" })).toBeInTheDocument();
-
-			const acceptButtons = await screen.findAllByRole('button', { name: 'Accept' });
-
-  	  expect(acceptButtons[0]).toBeInTheDocument();
-
-			await user.click(acceptButtons[0]);
-
-		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
-		expect(admin).toBeInTheDocument();
-
-		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
-		expect(gamemaster).toBeInTheDocument();
-
-		const pending = await screen.findByText((content) => content.includes('new@test.com'))
-		expect(pending).toBeInTheDocument();
-	})
-
-
-	test('accepting pending admin', async () => {
-    const user = userEvent.setup();
-
-  	render(
-  	  <MemoryRouter>
-  	    <EditUsers />
-  	  </MemoryRouter>
-  	);
-  	  const acceptButton = await screen.findByTitle("Accept");
-
-  	  expect(acceptButton).toBeInTheDocument();
-
-  	  await user.click(acceptButton);
-  	  expect(await screen.findByRole("radio", { name: "Admin" })).toBeInTheDocument();
-    	expect(await screen.findByRole("radio", { name: "Gamemaster" })).toBeInTheDocument();
-
-			const radio = await screen.findByRole('radio', { name: 'Admin' });
-			await user.click(radio)
-
-			const acceptButtons = await screen.findAllByRole('button', { name: 'Accept' });
-
-  	  expect(acceptButtons[0]).toBeInTheDocument();
-
-			await user.click(acceptButtons[0]);
-
-		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
-		expect(admin).toBeInTheDocument();
-
-		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
-		expect(gamemaster).toBeInTheDocument();
-
-		const pending = await screen.findByText((content) => content.includes('new@test.com'))
-		expect(pending).toBeInTheDocument();
-	})
-
-
-	test('denying user', async () => {
-    const user = userEvent.setup();
-		const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
-
-  	render(
-  	  <MemoryRouter>
-  	    <EditUsers />
-  	  </MemoryRouter>
-  	);
-	const denyButton = await screen.findByTitle("Reject");
-		expect(denyButton).toBeInTheDocument();
-
-  	  await user.click(denyButton);
-
-			expect(confirmSpy).toHaveBeenCalledWith(
-    		'Are you sure you want to deny new@test.com?'
-  		);
-
-		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
-		expect(admin).toBeInTheDocument();
-
-		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
-		expect(gamemaster).toBeInTheDocument();
-
-			await waitFor(() => {
-    		expect(screen.queryByText('new@test.com')).not.toBeInTheDocument();
-  		});
-
-			confirmSpy.mockRestore();
-	})
-
 
 	test('removing user', async () => {
-    const user = userEvent.setup();
+		const user = userEvent.setup();
 		const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
-  	render(
-  	  <MemoryRouter>
-  	    <EditUsers />
-  	  </MemoryRouter>
-  	);
-  	  const removeButton = await screen.findByTitle("Delete");
+		render(
+		<MemoryRouter>
+			<EditUsers />
+		</MemoryRouter>
+		);
 
-  	  expect(removeButton).toBeInTheDocument();
+		const userEmail = await screen.findByText(/gamemaster@test.com/i);
+		const row = userEmail.closest('tr');
 
-  	  await user.click(removeButton);
-
-			expect(confirmSpy).toHaveBeenCalledWith(
-    		'Are you sure you want to remove gamemaster@test.com?'
-  		);
-
-
-		const pending = await screen.findAllByText((content) => content.includes('new@test.com'))
-		expect(pending[0]).toBeInTheDocument();
-
-		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
-		expect(admin).toBeInTheDocument();
-
-			await waitFor(() => {
-    		expect(screen.queryByText('gamemaster@test.com')).not.toBeInTheDocument();
-  		});
-
-			confirmSpy.mockRestore();
-	})
-
-	test("accept user fails", async () => {
-		const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
-
-    global.fetch = vi.fn((url) => {
-      if (url.includes('load_users')) {
-        return Promise.resolve({ 
-          ok: true, 
-          json: () => Promise.resolve(mockUsers) 
-        });
-      }
-      if (url.includes('accept_user')) {
-        return Promise.resolve({
-          ok: false,
-          json: () => Promise.resolve({}), 
-        });
-      }
-    });
-
-    render(
-      <MemoryRouter>
-  	    <EditUsers />
-  	  </MemoryRouter>
-    );
-
-		const acceptButton = await screen.findByTitle("Accept");
-
-  	expect(acceptButton).toBeInTheDocument();
-
-  	await user.click(acceptButton);
-
-		const radio = await screen.findByRole('radio', { name: 'Admin' });
-		await user.click(radio)
-
-		const acceptButtons = await screen.findAllByRole('button', { name: 'Accept' });
-
-  	expect(acceptButtons[0]).toBeInTheDocument();
-
-		await user.click(acceptButtons[0]);
-
-		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
-		expect(admin).toBeInTheDocument();
-
-		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
-		expect(gamemaster).toBeInTheDocument();
-
-		const pending = await screen.findAllByText((content) => content.includes('new@test.com'))
-		expect(pending[0]).toBeInTheDocument();
-
-    confirmSpy.mockRestore();
-  });
-
-	test("deny user fails", async () => {
-		const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
-
-    global.fetch = vi.fn((url) => {
-      if (url.includes('load_users')) {
-        return Promise.resolve({ 
-          ok: true, 
-          json: () => Promise.resolve(mockUsers) 
-        });
-      }
-      if (url.includes('remove_user')) {
-        return Promise.resolve({
-          ok: false,
-          json: () => Promise.resolve({}), 
-        });
-      }
-    });
-
-    render(
-      <MemoryRouter>
-  	    <EditUsers />
-  	  </MemoryRouter>
-    );
-
-		const denyButton = await screen.findByTitle("Reject");
-
-  	expect(denyButton).toBeInTheDocument();
-
-  	await user.click(denyButton);
+		const removeButton = within(row).getByTitle("Delete");
+		
+		await user.click(removeButton);
 
 		expect(confirmSpy).toHaveBeenCalledWith(
-    		'Are you sure you want to deny new@test.com?'
-  		);
+			expect.stringContaining('gamemaster@test.com')
+		);
 
-		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
-		expect(admin).toBeInTheDocument();
+		await waitFor(() => {
+			expect(screen.queryByText(/gamemaster@test.com/i)).not.toBeInTheDocument();
+		});
 
-		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
-		expect(gamemaster).toBeInTheDocument();
-
-		const pending = await screen.findByText((content) => content.includes('new@test.com'))
-		expect(pending).toBeInTheDocument();
-
-    confirmSpy.mockRestore();
-  });
-
-
-	test("remove user fails", async () => {
-		const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
-
-    global.fetch = vi.fn((url) => {
-      if (url.includes('load_users')) {
-        return Promise.resolve({ 
-          ok: true, 
-          json: () => Promise.resolve(mockUsers) 
-        });
-      }
-      if (url.includes('remove_user')) {
-        return Promise.resolve({
-          ok: false,
-          json: () => Promise.resolve({}), 
-        });
-      }
-    });
-
-    render(
-      <MemoryRouter>
-  	    <EditUsers />
-  	  </MemoryRouter>
-    );
-
-		const removeButton = await screen.findByTitle("Delete");
-
-  	expect(removeButton).toBeInTheDocument();
-
-  	await user.click(removeButton);
-
-		expect(confirmSpy).toHaveBeenCalledWith(
-    		'Are you sure you want to remove gamemaster@test.com?'
-  		);
-
-		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
-		expect(admin).toBeInTheDocument();
-
-		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
-		expect(gamemaster).toBeInTheDocument();
-
-		const pending = await screen.findByText((content) => content.includes('new@test.com'))
-		expect(pending).toBeInTheDocument();
-
-    confirmSpy.mockRestore();
-  });
-
-
-	test('cancel denying user', async () => {
-    const user = userEvent.setup();
-		const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => false);
-
-  	render(
-  	  <MemoryRouter>
-  	    <EditUsers />
-  	  </MemoryRouter>
-  	);
-  	  const denyButton = await screen.findByTitle("Reject");
-	  
-
-  	  expect(denyButton).toBeInTheDocument();
-
-  	  await user.click(denyButton);
-
-			expect(confirmSpy).toHaveBeenCalledWith(
-    		'Are you sure you want to deny new@test.com?'
-  		);
-
-		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
-		expect(admin).toBeInTheDocument();
-
-		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
-		expect(gamemaster).toBeInTheDocument();
-
-		const pending = await screen.findByText((content) => content.includes('new@test.com'))
-		expect(pending).toBeInTheDocument();
-
-			confirmSpy.mockRestore();
+		confirmSpy.mockRestore();
 	});
 
+	test("remove user fails", async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
+
+    global.fetch = vi.fn((url) => {
+        if (url.includes('load_user_data')) {
+            return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve(mockResponse)
+            });
+        }
+        if (url.includes('remove_user')) {
+            return Promise.resolve({
+                ok: false,
+                json: () => Promise.resolve({ error: "Server error" }),
+            });
+        }
+        return Promise.reject(new Error(`Unknown URL: ${url}`));
+    });
+
+    render(
+        <MemoryRouter>
+            <EditUsers />
+        </MemoryRouter>
+    );
+
+    const userEmail = await screen.findByText(/gamemaster@test.com/i);
+    
+    const row = userEmail.closest('tr');
+    const removeButton = within(row).getByTitle("Delete");
+
+    expect(removeButton).toBeInTheDocument();
+
+    await user.click(removeButton);
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+        expect.stringContaining('gamemaster@test.com')
+    );
+
+    const gamemaster = await screen.findByText(/gamemaster@test.com/i);
+    expect(gamemaster).toBeInTheDocument();
+
+    confirmSpy.mockRestore();
+});
 
 	test('cancel removing user', async () => {
     const user = userEvent.setup();
-		const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => false);
+  	const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => false);
 
-  	render(
-  	  <MemoryRouter>
-  	    <EditUsers />
-  	  </MemoryRouter>
-  	);
-  	  const removeButton = await screen.findByTitle("Delete");
+	render(
+	<MemoryRouter>
+		<EditUsers />
+	</MemoryRouter>
+	);
 
-  	  expect(removeButton).toBeInTheDocument();
+	const userEmail = await screen.findByText(/gamemaster@test.com/i);
+	const row = userEmail.closest('tr');
 
-  	  await user.click(removeButton);
+	const removeButton = within(row).getByTitle("Delete");
 
-			expect(confirmSpy).toHaveBeenCalledWith(
-    		'Are you sure you want to remove gamemaster@test.com?'
-  		);
+	await user.click(removeButton);
 
-		const admin = await screen.findByText((content) => content.includes('admin@test.com'))
-		expect(admin).toBeInTheDocument();
+	expect(confirmSpy).toHaveBeenCalledWith(
+		'Are you sure you want to remove gamemaster@test.com?'
+	);
 
-		const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
-		expect(gamemaster).toBeInTheDocument();
+	const admin = await screen.findByText((content) => content.includes('admin@test.com'))
+	expect(admin).toBeInTheDocument();
 
-		const pending = await screen.findByText((content) => content.includes('new@test.com'))
-		expect(pending).toBeInTheDocument();
+	const gamemaster = await screen.findByText((content) => content.includes('gamemaster@test.com'))
+	expect(gamemaster).toBeInTheDocument();
 
-			confirmSpy.mockRestore();
+	confirmSpy.mockRestore();
 	});
 
 });

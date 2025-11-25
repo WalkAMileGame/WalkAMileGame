@@ -5,8 +5,6 @@ import GameBoardSettings from "./GameBoardSettings";
 import { API_BASE } from '../api';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
-import ColorGuide from './ui/ColorGuide';
-
 
 const defaultGameData = {
 name: 'Default Gameboard',
@@ -17,16 +15,16 @@ name: 'Default Gameboard',
         outerRadius: 350,
         name: "Moving",
         labels: [
-          { id: 1, text: "Action 1", color: "#ffc072", energyvalue: 1, "energypoint": false },
-          { id: 2, text: "Action 2", color: "#ffb088", energyvalue: 1, "energypoint": false   },
-          { id: 3, text: "Action 3", color: "#ffc072", energyvalue: 1, "energypoint": false   },
-          { id: 4, text: "Action 4", color: "#ffb088", energyvalue: 1, "energypoint": false   },
-          { id: 5, text: "Action 5", color: "#d79543", energyvalue: 1, "energypoint": false   },
-          { id: 6, text: "Action 6", color: "#d79543", energyvalue: 1, "energypoint": false   },
-          { id: 7, text: "Action 7", color: "#d79543", energyvalue: 1, "energypoint": false   },
-          { id: 8, text: "Action 8", color: "#e17f4d", energyvalue: 1, "energypoint": false   },
-          { id: 9, text: "Action 9", color: "#e17f4d", energyvalue: 1, "energypoint": false   },
-          { id: 10, text: "Action 10", color: "#e17f4d", energyvalue: 1, "energypoint": false   }
+          { id: 1, text: "Action 1", color: "#ffc072", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 2, text: "Action 2", color: "#ffb088", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 3, text: "Action 3", color: "#ffc072", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 4, text: "Action 4", color: "#ffb088", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 5, text: "Action 5", color: "#d79543", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 6, text: "Action 6", color: "#d79543", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 7, text: "Action 7", color: "#d79543", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 8, text: "Action 8", color: "#e17f4d", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 9, text: "Action 9", color: "#e17f4d", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 10, text: "Action 10", color: "#e17f4d", energyvalue: 1, "energypoint": false, required_for: [] }
         ]      
       },
       {
@@ -35,16 +33,16 @@ name: 'Default Gameboard',
         outerRadius: 500,
         name: "Moving",
         labels: [
-          { id: 11, text: "Action 11", color: "#a3d7ff", energyvalue: 1, "energypoint": false   },
-          { id: 12, text: "Action 12", color: "#a0b8ca", energyvalue: 1, "energypoint": false   },
-          { id: 13, text: "Action 13", color: "#a0b8ca", energyvalue: 1, "energypoint": false   },
-          { id: 14, text: "Action 14", color: "#a0b8ca", energyvalue: 1, "energypoint": false   },
-          { id: 15, text: "Action 15", color: "#a3d7ff", energyvalue: 1, "energypoint": false   },
-          { id: 16, text: "Action 16", color: "#d3eafc", energyvalue: 1, "energypoint": false   },
-          { id: 17, text: "Action 17", color: "#a3d7ff", energyvalue: 1, "energypoint": false   },
-          { id: 18, text: "Action 18", color: "#d3eafc", energyvalue: 1, "energypoint": false   },
-          { id: 19, text: "Action 19", color: "#a3d7ff", energyvalue: 1, "energypoint": false   },
-          { id: 20, text: "Action 20", color: "#d3eafc", energyvalue: 1, "energypoint": false   }
+          { id: 11, text: "Action 11", color: "#a3d7ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 12, text: "Action 12", color: "#a0b8ca", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 13, text: "Action 13", color: "#a0b8ca", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 14, text: "Action 14", color: "#a0b8ca", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 15, text: "Action 15", color: "#a3d7ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 16, text: "Action 16", color: "#d3eafc", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 17, text: "Action 17", color: "#a3d7ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 18, text: "Action 18", color: "#d3eafc", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 19, text: "Action 19", color: "#a3d7ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 20, text: "Action 20", color: "#d3eafc", energyvalue: 1, "energypoint": false, required_for: [] }
         ],
       },
       {
@@ -53,16 +51,16 @@ name: 'Default Gameboard',
         outerRadius: 650,
         name: "Arriving",
         labels: [
-          { id: 21, text: "Action 21", color: "#bb98d5", energyvalue: 1, "energypoint": false   },
-          { id: 22, text: "Action 22", color: "#bb98d5", energyvalue: 1, "energypoint": false   },
-          { id: 23, text: "Action 23", color: "#bb98d5", energyvalue: 1, "energypoint": false   },
-          { id: 24, text: "Action 24", color: "#a872d1", energyvalue: 1, "energypoint": false   },
-          { id: 25, text: "Action 25", color: "#e4c1ff", energyvalue: 1, "energypoint": false   },
-          { id: 26, text: "Action 26", color: "#5375d0", energyvalue: 1, "energypoint": false   },
-          { id: 27, text: "Action 27", color: "#5375d0", energyvalue: 1, "energypoint": false   },
-          { id: 28, text: "Action 28", color: "#9fb9ff", energyvalue: 1, "energypoint": false   },
-          { id: 29, text: "Action 29", color: "#7e9ef3", energyvalue: 1, "energypoint": false   },
-          { id: 30, text: "Action 30", color: "#9fb9ff", energyvalue: 1, "energypoint": false   }
+          { id: 21, text: "Action 21", color: "#bb98d5", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 22, text: "Action 22", color: "#bb98d5", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 23, text: "Action 23", color: "#bb98d5", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 24, text: "Action 24", color: "#a872d1", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 25, text: "Action 25", color: "#e4c1ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 26, text: "Action 26", color: "#5375d0", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 27, text: "Action 27", color: "#5375d0", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 28, text: "Action 28", color: "#9fb9ff", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 29, text: "Action 29", color: "#7e9ef3", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 30, text: "Action 30", color: "#9fb9ff", energyvalue: 1, "energypoint": false, required_for: [] }
         ],   
       },
       {
@@ -71,16 +69,16 @@ name: 'Default Gameboard',
         outerRadius: 800,
         name: "Thriving",
           labels: [
-          { id: 31, text: "Action 31", color: "#da6363", energyvalue: 1, "energypoint": false   },
-          { id: 32, text: "Action 32", color: "#da6363", energyvalue: 1, "energypoint": false   },
-          { id: 33, text: "Action 33", color: "#ff8989", energyvalue: 1, "energypoint": false   },
-          { id: 34, text: "Action 34", color: "#da8a8a", energyvalue: 1, "energypoint": false   },
-          { id: 35, text: "Action 35", color: "#da8a8a", energyvalue: 1, "energypoint": false   },
-          { id: 36, text: "Action 36", color: "#da8a8a", energyvalue: 1, "energypoint": false   },
-          { id: 37, text: "Action 37", color: "#da8a8a", energyvalue: 1, "energypoint": false   },
-          { id: 38, text: "Action 38", color: "#da8a8a", energyvalue: 1, "energypoint": false   },
-          { id: 39, text: "Action 39", color: "#da6363", energyvalue: 1, "energypoint": false   },
-          { id: 40, text: "Action 40", color: "#da6363", energyvalue: 1, "energypoint": false   }
+          { id: 31, text: "Action 31", color: "#da6363", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 32, text: "Action 32", color: "#da6363", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 33, text: "Action 33", color: "#ff8989", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 34, text: "Action 34", color: "#da8a8a", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 35, text: "Action 35", color: "#da8a8a", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 36, text: "Action 36", color: "#da8a8a", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 37, text: "Action 37", color: "#da8a8a", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 38, text: "Action 38", color: "#da8a8a", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 39, text: "Action 39", color: "#da6363", energyvalue: 1, "energypoint": false, required_for: [] },
+          { id: 40, text: "Action 40", color: "#da6363", energyvalue: 1, "energypoint": false, required_for: [] }
         ],
       },
     ]
@@ -133,7 +131,8 @@ const GameBoard = () => {
 
 // Settings
 
-  const [showSettings, setShowSettings] = useState(false);
+  const initialState = location.state?.settings || false;
+  const [showSettings, setShowSettings] = useState(initialState);
 
   // Helper function to create annular sector path (donut slice)
   const createAnnularSectorPath = (innerRadius, outerRadius, startAngleDeg, endAngleDeg) => {
@@ -354,7 +353,7 @@ const GameBoard = () => {
   }, []);
 
   // Render text on curved path
-  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId) => {
+  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId, isTitleTile = false) => {
     const midRadius = (innerRadius + outerRadius) / 2;
     const angleRad = (endAngleDeg - startAngleDeg) * (Math.PI / 180);
 
@@ -427,8 +426,8 @@ const GameBoard = () => {
               startOffset="50%"
               textAnchor="middle"
               fill="#000"
-              fontSize="20"
-              fontWeight="600"
+              fontSize={isTitleTile ? "32" : "20"}
+              fontWeight={isTitleTile ? "700" : "600"}
             >
               {line}
             </textPath>
@@ -442,7 +441,7 @@ const GameBoard = () => {
 
   return (
     <>
-      <div className="energypoints">
+      <div className="energypoints-gameboard">
         Remaining energypoints: {points}
       </div>
       <div className="game-layout">
@@ -490,41 +489,57 @@ const GameBoard = () => {
                   {gameConfig.ringData.map((ring) => {
                     const numSlices = ring.labels.length;
                     const rotation = rotations[ring.id] || 0;
-                    const anglePerSlice = 360 / numSlices;
-                    
+
+                    // Calculate total angle units (title tiles count as 2, regular as 1)
+                    const firstTileIsTitle = ring.labels[0]?.tileType === 'ring_title';
+                    const totalAngleUnits = firstTileIsTitle ? numSlices + 1 : numSlices;
+                    const baseAnglePerSlice = 360 / totalAngleUnits;
+
                     return (
                       <g
                         data-testid={`ring-group-${ring.id}`}
                         key={ring.id}
                         transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
                       >
-                        
+
                         {/* Render slices */}
                         {ring.labels.map((label, i) => {
-                          const startAngle = i * anglePerSlice;
-                          const endAngle = (i + 1) * anglePerSlice;
-                          const color = label.color;
-                          
+                          const isTitleTile = label.tileType === 'ring_title';
+
+                          // Calculate cumulative angle up to this slice
+                          let cumulativeAngle = 0;
+                          for (let j = 0; j < i; j++) {
+                            const prevTile = ring.labels[j];
+                            cumulativeAngle += prevTile.tileType === 'ring_title' ? baseAnglePerSlice * 2 : baseAnglePerSlice;
+                          }
+
+                          const startAngle = cumulativeAngle;
+                          const sliceAngle = isTitleTile ? baseAnglePerSlice * 2 : baseAnglePerSlice;
+                          const endAngle = startAngle + sliceAngle;
+                          const color = isTitleTile ? (label.color || "#FFFFFF") : label.color;
+
                           return (
                             <g key={`${ring.id}-slice-${i}`}>
                               {/* Slice shape */}
                               <path
                                 data-testid={`slice-${label.id}`}
-                                className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
+                                className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''} ${isTitleTile ? 'title-tile' : ''}`}
                                 d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
                                 fill={color}
-                                stroke="#f5f5f3ff"
+                                stroke={"#f5f5f3ff"}
                                 strokeWidth={whiteLineThickness}
                                 onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
-                                onClick={(e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
-                                onMouseEnter={(e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
-                                onMouseLeave={handleSliceMouseLeave}
-                                onMouseMove={handleSliceMouseMove}
-                                style={{ cursor: "pointer" }}
+                                onClick={isTitleTile ? undefined : (e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
+                                onMouseEnter={isTitleTile ? undefined : (e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
+                                onMouseLeave={isTitleTile ? undefined : handleSliceMouseLeave}
+                                onMouseMove={isTitleTile ? undefined : handleSliceMouseMove}
+                                style={{
+                                  cursor: isTitleTile ? "grab" : "pointer"
+                                }}
                                 filter="url(#whiteShadow)"
                               />
                               {/* Render Text */}
-                              {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
+                              {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id, isTitleTile)}
                             </g>
                           );
                         })}
@@ -622,14 +637,14 @@ const GameBoard = () => {
         )}
 
         {/* Color Guide */}
-        <div style={{
+        {/* <div style={{
           position: 'fixed',
           bottom: '120px',
           left: '20px',
           zIndex: 100
         }}>
           <ColorGuide />
-        </div>
+        </div> */}
       </div>
     </>
   );

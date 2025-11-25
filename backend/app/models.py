@@ -8,6 +8,17 @@ from datetime import datetime
 class Points(BaseModel):
     id: str
     values: int
+
+class TileType(str, Enum):
+    """Types of tiles that can appear on the board"""
+    ACTION = "action"
+    RING_TITLE = "ring_title"
+
+
+class Circumstance(BaseModel):
+    id: str
+    title: str
+    description: str
     
 class LabelData(BaseModel):
     id: int
@@ -15,38 +26,56 @@ class LabelData(BaseModel):
     color: str
     energyvalue: int
     energypoint: bool = False
+    required_for: List[str] = []
+    tileType: TileType = TileType.ACTION
 
 class LayerData(BaseModel):
     id: int
     innerRadius: int
     outerRadius: int
-    labels: list[LabelData]
+    labels: List[LabelData]
 
 class Boards(BaseModel):
     name: str
-    ringData: list[LayerData]
-
-class Role(str, Enum):
-    """all existing roles are defined here"""
-    ADMIN = "admin"
-    GAMEMASTER = "gamemaster"
+    circumstances: List[Circumstance] = []
+    ringData: List[LayerData]
 
 class UserData(BaseModel):
     email: EmailStr
     password: str
-    role: Role = Role.GAMEMASTER
-    pending: bool = True
+    role: str = "gamemaster"
 
-    @field_validator('password')
-    def password_must_be_strong(cls, v):
-        if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
-        return v
+class AccessCode(BaseModel):
+    code: str
+    creationTime: datetime
+    expirationTime: datetime
+    activationTime: datetime = None
+    isUsed: bool = False
+    usedByUser: EmailStr = None
+
+class GenerateCodeRequest(BaseModel):
+    valid_for: int
 
 class LoginRequest(BaseModel):
-    """Model for the data expected in a login request."""
     email: EmailStr
     password: str
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    code: str
+
+class RenewRequest(BaseModel):
+    email: EmailStr
+    password: str
+    new_code: str
+
+class AcceptUser(BaseModel):
+    email: EmailStr
+    role: str
+
+class DenyUser(BaseModel):
+    email: EmailStr
 
 class Team(BaseModel):
     id: int
@@ -63,6 +92,9 @@ class Room(BaseModel):
     teams: List[Team] = Field(default_factory=list)
     game_started: bool = False
     game_started_at: Optional[str] = None
+    game_paused: bool = False
+    paused_at: Optional[str] = None
+    accumulated_pause_time: int = 0
 
     @field_validator('room_code')
     def code_must_be_valid(cls, v):
@@ -70,13 +102,3 @@ class Room(BaseModel):
             raise ValueError('Room code must be at least 4 characters')
         return v.upper()
 
-class RegisterRequest(BaseModel):
-    email: EmailStr
-    password: str
-
-class AcceptUser(BaseModel):
-    email: EmailStr
-    role: str
-
-class DenyUser(BaseModel):
-    email: EmailStr

@@ -17,11 +17,11 @@
   color: #ffffff;
 }
 
-.energypoints {
+.energypoints-gameboard {
   padding: 1em 1em;
   margin-left: auto;
   position: absolute;
-  top: 5rem;
+  top: 4rem;
   left: 2rem;
   border: none;
   color: #dfd4d4; 
@@ -105,11 +105,15 @@
     cursor: grab;
     transition: opacity 0.2s;
   }
-  
+
 .slice-path:hover {
     opacity: 0.8;
   }
-  
+
+.slice-path.title-tile:hover {
+    opacity: 1;
+  }
+
 .slice-path.dragging {
     cursor: grabbing;
   }
@@ -166,12 +170,3 @@
   background: transparent;
 }
 
-.clock {
-  font-size: 30px;
-  font-weight: bold;
-  font-family: "Montserrat", sans-serif;
-  position: absolute;
-  right: 5rem;
-  top: 3rem;
-  z-index: 100;
-}

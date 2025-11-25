@@ -2,11 +2,14 @@
 from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team
+from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData, Circumstance, RenewRequest, GenerateCodeRequest
 from .db import db
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 from backend.app.security import verify_password, create_access_token, get_current_active_user, get_password_hash
+from backend.app.code_management import generate_new_access_code, is_code_expired, activate_code
+from bson import ObjectId
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -34,18 +37,11 @@ def update_points(data: ChangePoints):
     updated_points = db.points.find_one({"id": "0"}, {"_id": 0})
     return updated_points
 
-
-class NewBoard(BaseModel):
-    name: str
-    ringData: list
-
-
 @router.put("/save")
-def save_board(data: NewBoard):
+def save_board(data: Boards):
     db.boards.update_one({"name": data.name},
-                         {"$set": {"name": data.name, "ringData": data.ringData}},
+                         {"$set": data.model_dump()},
                          upsert=True)
-
 
 class DeleteBoard(BaseModel):
     name: str
@@ -89,17 +85,20 @@ def load_instructions():
     return {"instructions": "No instructions found."}
 
 
+# --------------------------------------------------------------------------------------------
+#                               User management endpoints
+# --------------------------------------------------------------------------------------------
+
+
 @router.post("/login")
 def login(form_data: LoginRequest):
     print("login function called!")
     user_in_db = db.users.find_one({"email": form_data.email})
-    #print("form data:", form_data)
-    #print("db output:", user_in_db)
-    print("Started hashing!")
-    pw = get_password_hash(form_data.password)
-    #print("hashed:", pw)
-    #db.users.update_one({"email": form_data.email}, {"$set": {"email": form_data.email, "password": pw, "role": "admin", "pending": True}}, upsert=True)
-    #print(list(db.users.find()))
+    user_access_code = db.codes.find_one({"usedByUser": form_data.email})
+    #print("Users:", list(db.users.find({})))
+    #print("Codes:", list(db.codes.find({})))
+    #db.codes.update_one({"code": ""},
+    #                    {"$set": {"expirationTime": datetime.now(timezone.utc) + timedelta(days=90)}}, upsert=True)
 
     if not user_in_db:
         raise HTTPException(
@@ -107,23 +106,32 @@ def login(form_data: LoginRequest):
             detail="Incorrect email or password",
         )
     
-    if not verify_password(form_data.password, user_in_db["password"]):
+    if not user_access_code:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account hasn't been activated"
+        )
+
+    if is_code_expired(user_access_code["expirationTime"]):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="ACCOUNT_EXPIRED"
+        )
+
+    user = UserData(email=user_in_db["email"], password=user_in_db["password"],
+                    role=user_in_db["role"])
+    
+    if not verify_password(form_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
-    
-    if user_in_db["pending"]:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account still pending to be accepted"
-        )
     print("Past the if statements!")
     access_token = create_access_token(
-        data={"sub": user_in_db["email"], "role": user_in_db["role"]}
+        data={"sub": user.email, "role": user.role}
     )
-    print("Returning soon!")
-    user_info = {"email": user_in_db["email"], "role": user_in_db["role"]}
+
+    user_info = user.model_dump(include={"email", "role"})
 
     return {"access_token": access_token, "user": user_info}
 
@@ -135,20 +143,85 @@ def register(form_data: RegisterRequest):
     if user_in_db:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email already in use",
+            detail="Email already in use"
         )
 
-    #print("register for data:", form_data)
+    unactivated_code = db.codes.find_one({"code": form_data.code})
+
+    if not unactivated_code:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect activation code"
+        )
+
     hashed_password = get_password_hash(form_data.password)
-    db.users.update_one({"email": form_data.email},
-                        {"$set": {"email": form_data.email, "password": hashed_password,
-                        "role": "admin", "pending": True}}, upsert=True)
+    user = UserData(email=form_data.email, password=hashed_password).model_dump()
+
+    db.users.update_one({"email": user["email"]},
+                        {"$set": user}, upsert=True)
+    
+    activated_code = activate_code(unactivated_code, user["email"]).model_dump()
+
+    db.codes.update_one({"code": activated_code["code"]},
+                        {"$set": activated_code}, upsert=True)
+
+
+@router.post("/renew-access")
+def renew_access(form_data: RenewRequest):
+    user_in_db = db.users.find_one({"email": form_data.email})
+
+    if not user_in_db or not verify_password(form_data.password, user_in_db["password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+
+    new_code = db.codes.find_one({"code": form_data.new_code, "isUsed": False})
+    if not new_code:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or used code"
+        )
+
+    updated_code = activate_code(new_code, form_data.email).model_dump()
+
+    db.codes.update_one(
+        {"code": new_code["code"]},
+        {"$set": updated_code}
+    )
+
+    return {"message": "Account renewed successfully"}
+
+
+@router.post("/generate_access_code")
+def generate_access_code(data: GenerateCodeRequest):
+    valid_for = data.valid_for
+    while True:
+        new_code = generate_new_access_code(valid_for)
+
+        code_in_db = db.codes.find_one({"code": new_code.code})
+
+        if not code_in_db:
+            break
+
+    code_data_dict = new_code.model_dump()
+    db.codes.update_one(
+            {"code": code_data_dict["code"]},
+            {"$set": code_data_dict},
+            upsert=True)
 
 
 @router.get("/users/me", tags=["auth"])
 def read_current_user(current_user: dict = Depends(get_current_active_user)):
     return current_user
 
+
+# --------------------------------------------------------------------------------------------
+#                               User management endpoints over
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
+#                               GAME ENDPOINT
+# --------------------------------------------------------------------------------------------
 
 @router.get("/timer")
 def get_time(site: str ="game"):
@@ -186,7 +259,7 @@ def create_room(room: Room):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Room with this code already exists"
             )
-        
+
         # Create room document
         room_doc = {
             "room_code": room.room_code.upper(),
@@ -298,22 +371,33 @@ def update_team_circumstance(room_code: str, team_name: str, update: Circumstanc
 
 class TimeUpdate(BaseModel):
     time_remaining: int
+    reset_timer: bool = False
 
 
 @router.post("/rooms/{room_code}/time")
 def update_time(room_code: str, time_update: TimeUpdate):
     """Update time remaining for a room"""
+    update_fields = {"time_remaining": time_update.time_remaining}
+
+    # If reset_timer is True, reset the game_started_at timestamp and accumulated_pause_time
+    # This ensures the timer starts at exactly the specified minutes with :00 seconds
+    if time_update.reset_timer:
+        update_fields["game_started_at"] = datetime.now(timezone.utc).isoformat()
+        update_fields["accumulated_pause_time"] = 0
+        update_fields["paused_at"] = None
+        update_fields["game_paused"] = False
+
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
-        {"$set": {"time_remaining": time_update.time_remaining}}
+        {"$set": update_fields}
     )
-    
+
     if result.matched_count == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Room not found"
         )
-    
+
     return {"message": "Time updated successfully"}
 
 
@@ -326,14 +410,85 @@ def start_game(room_code: str):
                   "game_started_at": datetime.now(timezone.utc).isoformat()
                   }}
     )
-    
+
     if result.matched_count == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Room not found"
         )
-    
+
     return {"message": "Game started successfully"}
+
+
+@router.post("/rooms/{room_code}/pause")
+def pause_game(room_code: str):
+    """Pause the game timer for a room"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$set": {
+            "game_paused": True,
+            "paused_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    return {"message": "Game paused successfully"}
+
+
+@router.post("/rooms/{room_code}/resume")
+def resume_game(room_code: str):
+    """Resume the game timer for a room"""
+    room = db.rooms.find_one({"room_code": room_code.upper()})
+
+    if not room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    # Calculate accumulated pause time
+    accumulated_pause_time = room.get("accumulated_pause_time", 0)
+    if room.get("game_paused") and room.get("paused_at"):
+        paused_at = datetime.fromisoformat(room["paused_at"])
+        pause_duration = (datetime.now(timezone.utc) - paused_at).total_seconds()
+        accumulated_pause_time += int(pause_duration)
+
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$set": {
+            "game_paused": False,
+            "paused_at": None,
+            "accumulated_pause_time": accumulated_pause_time
+        }}
+    )
+
+    return {"message": "Game resumed successfully"}
+
+
+@router.post("/rooms/{room_code}/end")
+def end_game(room_code: str):
+    """End the game for a room"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$set": {
+            "game_started": False,
+            "game_paused": False,
+            "time_remaining": 0
+        }}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    return {"message": "Game ended successfully"}
 
 
 # Team Board and Energy Management Endpoints
@@ -360,7 +515,7 @@ def get_team_board(room_code: str, team_name: str):
             detail="Team not found"
         )
     
-    return team.get("gameboard_state", {})
+    return {"ringData": team.get("gameboard_state", {}).get("ringData", [])}
 
 
 @router.put("/rooms/{room_code}/teams/{team_name}/board")
@@ -452,7 +607,35 @@ def add_user(data: AcceptUser):
 def delete_board(data: DenyUser):
     db.users.delete_one({"email": data.email})
     
-@router.get("/load_users")
+@router.get("/load_user_data")
 def load_users():
-    users = list(db.users.find(projection={"_id": False}))
-    return users
+    users = list(db.users.find(projection={"_id": False, "password": False}))
+    codes = list(db.codes.find(projection={"_id": False}))
+    return {"users": users, "codes": codes}
+
+@router.put("/save_circumstance/{cid}")
+def save_edited_circumstance(cid: str, data: Circumstance):
+    db.circumstance.update_one(
+        {"_id": ObjectId(cid)},
+        {"$set": {
+            "title": data.title,
+            "description": data.description
+        }}
+    )
+@router.post("/save_circumstance")
+def save_new_circumstance(data: Circumstance):
+    new_note = db.circumstance.insert_one({"title": data.title, "description": data.description})
+    fetch_new_note = db.circumstance.find_one({"_id": new_note.inserted_id})
+    fetch_new_note["_id"] = str(fetch_new_note["_id"])
+    return fetch_new_note
+
+@router.get("/circumstances")
+def get_circumstances():
+    circumstances = list(db.circumstance.find())
+    for c in circumstances:
+        c["_id"] = str(c["_id"])
+    return circumstances
+
+@router.delete("/circumstance/{circumstance_id}")
+def delete_circumstance(circumstance_id: str):
+    db.circumstance.delete_one({"_id": ObjectId(circumstance_id)})

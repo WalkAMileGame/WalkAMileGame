@@ -11,7 +11,7 @@ const AboutUs = () => {
       <img src={element1} alt="" className="decoration-element element1-bottom" />
       <img src={element2} alt="" className="decoration-element element2-bottom" />
 
-      <div className="content">
+      <div className="content-container">
         <h1>ABOUT US</h1>
         <hr />
         <p>

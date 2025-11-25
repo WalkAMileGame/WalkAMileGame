@@ -1,0 +1,19 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: walkamile-redirect-route
+  namespace: ohtuprojekti-staging
+  labels:
+    app: walkamile-frontend
+    type: external
+spec:
+  host: walk-a-mile.org
+  port:
+    targetPort: 5173
+  to:
+    kind: Service
+    name: walkamile-svc
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
