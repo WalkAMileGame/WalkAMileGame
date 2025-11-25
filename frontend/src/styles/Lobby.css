@@ -7,7 +7,6 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  font-family: 'Arial', sans-serif;
 }
 
 .lobby-card {
@@ -107,6 +106,17 @@
   color: white;
 }
 
+.btn-updatetime {
+  margin-top: 15px;
+  background-color: #86B18A;
+  color: white;
+}
+
+.btn-updatetime:hover {
+  background-color: #6fa073;
+
+}
+
 .btn-primary:hover:not(:disabled) {
   background-color: #6fa073;
 }
@@ -130,6 +140,10 @@
 
 .btn-delete:hover {
   background-color: #d65d42;
+}
+
+.btn-cancel {
+  border: 2px solid #86B18A !important;
 }
 
 /* Button group container for team items */
@@ -216,10 +230,14 @@
 
 .edit-circumstance-section {
   margin-top: 8px;
+  font-size: 1.rem;
+  color: black
 }
 
-.edit-circumstance-section .form-input {
-  width: 100%;
+.edit-circumstance-section label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 8px;
 }
 

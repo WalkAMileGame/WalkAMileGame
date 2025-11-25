@@ -74,7 +74,7 @@
   transition: all 0.2s;
 }
 
-.btn-back {
+.back-button {
   position: absolute;
   top: 1rem;
   left: 1rem;
@@ -89,9 +89,10 @@
   width: 3rem;
   height: 3rem;
   font-weight: bold;
+  border-radius: 8px;
 }
 
-.btn-back svg {
+.back-button svg {
   display: block;
   width: 24px;
   height: 24px;
@@ -100,13 +101,13 @@
   fill: none;
 }
 
-.btn-back:hover {
+.back-button:hover {
   background-color: #3F695D;
   color: white;
   border-color: #3F695D;
 }
 
-.btn-back:hover svg {
+.back-button:hover svg {
   stroke: white;
   stroke-width: 2.5;
 }

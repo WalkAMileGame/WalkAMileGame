@@ -2,11 +2,14 @@
 from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team
+from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData, Circumstance, RenewRequest, GenerateCodeRequest
 from .db import db
 from datetime import datetime, timedelta, timezone
 from typing import Dict
 from backend.app.security import verify_password, create_access_token, get_current_active_user, get_password_hash
+from backend.app.code_management import generate_new_access_code, is_code_expired, activate_code
+from bson import ObjectId
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -34,18 +37,11 @@ def update_points(data: ChangePoints):
     updated_points = db.points.find_one({"id": "0"}, {"_id": 0})
     return updated_points
 
-
-class NewBoard(BaseModel):
-    name: str
-    ringData: list
-
-
 @router.put("/save")
-def save_board(data: NewBoard):
+def save_board(data: Boards):
     db.boards.update_one({"name": data.name},
-                         {"$set": {"name": data.name, "ringData": data.ringData}},
+                         {"$set": data.model_dump()},
                          upsert=True)
-
 
 class DeleteBoard(BaseModel):
     name: str
@@ -89,17 +85,20 @@ def load_instructions():
     return {"instructions": "No instructions found."}
 
 
+# --------------------------------------------------------------------------------------------
+#                               User management endpoints
+# --------------------------------------------------------------------------------------------
+
+
 @router.post("/login")
 def login(form_data: LoginRequest):
     print("login function called!")
     user_in_db = db.users.find_one({"email": form_data.email})
-    #print("form data:", form_data)
-    #print("db output:", user_in_db)
-    print("Started hashing!")
-    pw = get_password_hash(form_data.password)
-    #print("hashed:", pw)
-    #db.users.update_one({"email": form_data.email}, {"$set": {"email": form_data.email, "password": pw, "role": "admin", "pending": True}}, upsert=True)
-    #print(list(db.users.find()))
+    user_access_code = db.codes.find_one({"usedByUser": form_data.email})
+    #print("Users:", list(db.users.find({})))
+    #print("Codes:", list(db.codes.find({})))
+    #db.codes.update_one({"code": ""},
+    #                    {"$set": {"expirationTime": datetime.now(timezone.utc) + timedelta(days=90)}}, upsert=True)
 
     if not user_in_db:
         raise HTTPException(
@@ -107,23 +106,32 @@ def login(form_data: LoginRequest):
             detail="Incorrect email or password",
         )
     
-    if not verify_password(form_data.password, user_in_db["password"]):
+    if not user_access_code:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account hasn't been activated"
+        )
+
+    if is_code_expired(user_access_code["expirationTime"]):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="ACCOUNT_EXPIRED"
+        )
+
+    user = UserData(email=user_in_db["email"], password=user_in_db["password"],
+                    role=user_in_db["role"])
+    
+    if not verify_password(form_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
-    
-    if user_in_db["pending"]:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account still pending to be accepted"
-        )
     print("Past the if statements!")
     access_token = create_access_token(
-        data={"sub": user_in_db["email"], "role": user_in_db["role"]}
+        data={"sub": user.email, "role": user.role}
     )
-    print("Returning soon!")
-    user_info = {"email": user_in_db["email"], "role": user_in_db["role"]}
+
+    user_info = user.model_dump(include={"email", "role"})
 
     return {"access_token": access_token, "user": user_info}
 
@@ -135,20 +143,85 @@ def register(form_data: RegisterRequest):
     if user_in_db:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email already in use",
+            detail="Email already in use"
         )
 
-    #print("register for data:", form_data)
+    unactivated_code = db.codes.find_one({"code": form_data.code})
+
+    if not unactivated_code:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect activation code"
+        )
+
     hashed_password = get_password_hash(form_data.password)
-    db.users.update_one({"email": form_data.email},
-                        {"$set": {"email": form_data.email, "password": hashed_password,
-                        "role": "admin", "pending": True}}, upsert=True)
+    user = UserData(email=form_data.email, password=hashed_password).model_dump()
+
+    db.users.update_one({"email": user["email"]},
+                        {"$set": user}, upsert=True)
+    
+    activated_code = activate_code(unactivated_code, user["email"]).model_dump()
+
+    db.codes.update_one({"code": activated_code["code"]},
+                        {"$set": activated_code}, upsert=True)
+
+
+@router.post("/renew-access")
+def renew_access(form_data: RenewRequest):
+    user_in_db = db.users.find_one({"email": form_data.email})
+
+    if not user_in_db or not verify_password(form_data.password, user_in_db["password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+
+    new_code = db.codes.find_one({"code": form_data.new_code, "isUsed": False})
+    if not new_code:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or used code"
+        )
+
+    updated_code = activate_code(new_code, form_data.email).model_dump()
+
+    db.codes.update_one(
+        {"code": new_code["code"]},
+        {"$set": updated_code}
+    )
+
+    return {"message": "Account renewed successfully"}
+
+
+@router.post("/generate_access_code")
+def generate_access_code(data: GenerateCodeRequest):
+    valid_for = data.valid_for
+    while True:
+        new_code = generate_new_access_code(valid_for)
+
+        code_in_db = db.codes.find_one({"code": new_code.code})
+
+        if not code_in_db:
+            break
+
+    code_data_dict = new_code.model_dump()
+    db.codes.update_one(
+            {"code": code_data_dict["code"]},
+            {"$set": code_data_dict},
+            upsert=True)
 
 
 @router.get("/users/me", tags=["auth"])
 def read_current_user(current_user: dict = Depends(get_current_active_user)):
     return current_user
 
+
+# --------------------------------------------------------------------------------------------
+#                               User management endpoints over
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
+#                               GAME ENDPOINT
+# --------------------------------------------------------------------------------------------
 
 @router.get("/timer")
 def get_time(site: str ="game"):
@@ -186,7 +259,7 @@ def create_room(room: Room):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Room with this code already exists"
             )
-        
+
         # Create room document
         room_doc = {
             "room_code": room.room_code.upper(),
@@ -534,7 +607,35 @@ def add_user(data: AcceptUser):
 def delete_board(data: DenyUser):
     db.users.delete_one({"email": data.email})
     
-@router.get("/load_users")
+@router.get("/load_user_data")
 def load_users():
-    users = list(db.users.find(projection={"_id": False}))
-    return users
+    users = list(db.users.find(projection={"_id": False, "password": False}))
+    codes = list(db.codes.find(projection={"_id": False}))
+    return {"users": users, "codes": codes}
+
+@router.put("/save_circumstance/{cid}")
+def save_edited_circumstance(cid: str, data: Circumstance):
+    db.circumstance.update_one(
+        {"_id": ObjectId(cid)},
+        {"$set": {
+            "title": data.title,
+            "description": data.description
+        }}
+    )
+@router.post("/save_circumstance")
+def save_new_circumstance(data: Circumstance):
+    new_note = db.circumstance.insert_one({"title": data.title, "description": data.description})
+    fetch_new_note = db.circumstance.find_one({"_id": new_note.inserted_id})
+    fetch_new_note["_id"] = str(fetch_new_note["_id"])
+    return fetch_new_note
+
+@router.get("/circumstances")
+def get_circumstances():
+    circumstances = list(db.circumstance.find())
+    for c in circumstances:
+        c["_id"] = str(c["_id"])
+    return circumstances
+
+@router.delete("/circumstance/{circumstance_id}")
+def delete_circumstance(circumstance_id: str):
+    db.circumstance.delete_one({"_id": ObjectId(circumstance_id)})

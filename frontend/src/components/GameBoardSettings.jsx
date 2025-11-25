@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/GameboardSettings.css';
 import Snackbar from "./ui/snackbar"
 import { API_BASE } from "../api";
@@ -26,6 +27,36 @@ const ColorPicker = ({ onChange, colors = [] }) => {
   );
 };
 
+const CircumstancePicker = ({ onChange, selected, circumstances = [] }) => {
+  const handleToggle = (name) => {
+    let updated;
+
+    if (selected.includes(name)) {
+      updated = selected.filter((item) => item !== name);
+    } else {
+      updated = [...selected, name]
+    }
+
+    onChange(updated)
+  }
+
+  return (
+    <div className="circumstance-picker">
+      {circumstances.map((circumstance) => (
+        <label key={circumstance.title} className="checkbox-option">
+          <input
+            type="checkbox"
+            className="circumstance-boxes"
+            checked={selected.includes(circumstance.title)}
+            onChange={() => handleToggle(circumstance.title)}
+          />
+          {circumstance.title}
+        </label>
+      ))}
+    </div>
+  );
+};
+
 const LayerColors = [
     ["#ffc072", "#ffb088"],
     ["#a3d7ff", "#d3eafc"],
@@ -36,6 +67,8 @@ const LayerColors = [
 const TitleNames = ["MOVING", "MOVING", "ARRIVING", "THRIVING"]
 
 const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
+  const navigate = useNavigate()
+
   const [localConfig, setLocalConfig] = useState(gameConfig);
   const [templates, setTemplates] = useState([]);
   const [selectedTemplateName, setSelectedTemplateName] = useState("");
@@ -66,6 +99,10 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     console.log("loading complete")
   };
 
+  const handleCircumstances = () => {
+    navigate("/select_circumstances", { state: { config: localConfig } });
+  };
+
   const handleNameChange = (value) => {
     const updatedConfig = { ...localConfig, name: value };
     setLocalConfig(updatedConfig);
@@ -79,7 +116,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
     onConfigChange(updatedConfig)
-  }
+  };
 
   const handleSliceTextChange = (layerIndex, labelIndex, text) => {
     const updatedConfig = { ...localConfig };
@@ -92,6 +129,14 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const handleSliceColorChange = (layerIndex, labelIndex, color) => {
     const updatedConfig = { ...localConfig };
     updatedConfig.ringData[layerIndex].labels[labelIndex].color = color;
+    setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
+    onConfigChange(updatedConfig);
+  };
+
+  const handleSliceCircumstanceChange = (layerIndex, labelIndex, required) => {
+    const updatedConfig = { ...localConfig };
+    updatedConfig.ringData[layerIndex].labels[labelIndex].required_for = required;
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
     onConfigChange(updatedConfig);
@@ -247,7 +292,8 @@ const saveGameboard = () => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
       name: localConfig.name?.trim(), 
-      ringData: localConfig.ringData 
+      ringData: localConfig.ringData,
+      circumstances: localConfig.circumstances
     }),
   });
 };
@@ -356,14 +402,20 @@ const deleteGameboard = () => {
           <select 
           value={selectedTemplateName}
           onChange={(e) => {
+
+            const newValue = e.target.value;
+
             if (unsavedChanges) {
               const confirmBox = window.confirm(
                 `Unsaved changes will be discarded. Are you sure you want to proceed?`
               )
-              if (!confirmBox) {return}
+              if (!confirmBox) {
+                e.target.value = selectedTemplateName;
+                return;
+              }
             }
-            setSelectedTemplateName(e.target.value)
-            const selectedTemplate = templates.find(t => t.name === e.target.value)
+            setSelectedTemplateName(newValue)
+            const selectedTemplate = templates.find(t => t.name === newValue)
             if (selectedTemplate) {
               const clonedTemplate = structuredClone(selectedTemplate);
               loadSavedGameboard(clonedTemplate);
@@ -377,6 +429,18 @@ const deleteGameboard = () => {
             ))}
           </select>
         )}
+        </div>
+        {/* Edit Circumstances */}
+
+        <div className="pt-4 border-t">
+          <button
+            onClick={() => {
+              handleCircumstances()
+            }}
+            className="edit-button"
+          >
+            Edit Circumstances
+          </button>
         </div>
 
         {/* Layers */}
@@ -398,8 +462,16 @@ const deleteGameboard = () => {
 
             {/* Ring Title Section */}
             {ring.labels[0] && (
-              <div className="border rounded p-3 mb-3" style={{ backgroundColor: '#f0f9ff' }}>
+              <div className="ring-title-section">
                 <div className="flex items-center gap-2 mb-2">
+                  {ring.labels[0].tileType === 'ring_title' && (
+                    <input
+                      value={ring.labels[0].text}
+                      onChange={(e) => handleSliceTextChange(ringIndex, 0, e.target.value)}
+                      className="labelname-input"
+                      placeholder="Ring title text"
+                    />
+                  )}
                   <label className="flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
@@ -407,23 +479,15 @@ const deleteGameboard = () => {
                       onChange={(e) => handleTileTypeChange(ringIndex, 0, e.target.checked)}
                       className="cursor-pointer"
                     />
-                    <span className="text-sm font-weight-600" style={{ fontWeight: 600, color: '#000' }}>Enable Ring Title</span>
+                    <span className="ring-title-label">Enable ring title</span>
                   </label>
                 </div>
                 {ring.labels[0].tileType === 'ring_title' && (
-                  <>
-                    <input
-                      value={ring.labels[0].text}
-                      onChange={(e) => handleSliceTextChange(ringIndex, 0, e.target.value)}
-                      className="labelname-input mb-2"
-                      placeholder="Ring title text"
-                    />
-                    <ColorPicker
-                      value={ring.labels[0].color}
-                      colors={['#FFFFFF', ...LayerColors[ringIndex]]}
-                      onChange={(color) => handleSliceColorChange(ringIndex, 0, color)}
-                    />
-                  </>
+                  <ColorPicker
+                    value={ring.labels[0].color}
+                    colors={['#FFFFFF', ...LayerColors[ringIndex]]}
+                    onChange={(color) => handleSliceColorChange(ringIndex, 0, color)}
+                  />
                 )}
               </div>
             )}
@@ -453,6 +517,7 @@ const deleteGameboard = () => {
                       <button
                         onClick={() => removeSlice(ringIndex, labelIndex)}
                         className="deleteslice-button"
+                        title = "Remove this slice"
                       >
                         ✕
                       </button>
@@ -461,6 +526,11 @@ const deleteGameboard = () => {
                       value={label.color}
                       colors={LayerColors[ringIndex]}
                       onChange={(color) => handleSliceColorChange(ringIndex, labelIndex, color)}
+                    />
+                    <CircumstancePicker
+                      circumstances={localConfig.circumstances}
+                      selected={localConfig.ringData[ringIndex]?.labels[labelIndex]?.required_for ?? []}
+                      onChange={(required) => handleSliceCircumstanceChange(ringIndex, labelIndex, required)}
                     />
                   </div>
                 );

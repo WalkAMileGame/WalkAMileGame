@@ -4,7 +4,7 @@ import '../styles/Game.css';
 import { API_BASE } from '../api';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
-import ColorGuide from './ui/ColorGuide';
+import CircumstanceView from './ui/CircumstanceView';
 import Timer from "./ui/Timer";
 import Instructions from "./ui/Instructions";
 
@@ -18,6 +18,12 @@ const Game = () => {
   const [gameConfig, setGameConfig] = useState({ ringData: [] })
   const { gamecode, teamname } = useParams();
   const [showInstructions, setShowInstructions] = useState(false);
+  const [activeMarkers, setActiveMarkers] = useState(new Set());
+  const [points, setPoints] = useState(0)
+  const [circumstance, setCircumstance] = useState({ name: '', description: '' });
+  const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
+  const [timeLeft, setTimeLeft] = useState(null); // Timer state
+  
   
 
   const [rotations, setRotations] = useState({
@@ -27,10 +33,32 @@ const Game = () => {
     ring3: 0,
   });
 
-  const [activeMarkers, setActiveMarkers] = useState(new Set());
-  const [points, setPoints] = useState(0);
-  const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
-  const [timeLeft, setTimeLeft] = useState(null); // Timer state
+  // fetch board && display energymarkers if energypoint true
+  useEffect(() => {
+    if (teamname === "Gamemaster") return;
+
+    const initializeBoard = async () => {
+      try {
+        console.log("Fetching board from backend...");
+        const res = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`);
+        if (!res.ok) throw new Error("No board found for team");
+        const data = await res.json();
+        console.log("Fetched board data:", data);
+        setGameConfig(data); 
+        setActiveMarkers(restoreEnergyMarkers(data)); 
+        setIsInitialized(true);
+      } catch (err) {
+        console.error("Board fetch failed:", err);
+      }
+    };
+
+    initializeBoard();
+  if (isSpectator || isGamemasterViewing) {
+    const interval = setInterval(initializeBoard, 2000);
+    return () => clearInterval(interval);
+  }
+}, [gamecode, teamname, isSpectator, isGamemasterViewing]);
+
 
   const restoreEnergyMarkers = (boardData) => {
     if (!boardData?.ringData) return new Set();
@@ -96,6 +124,40 @@ useEffect(() => {
       return () => clearInterval(interval);
     }
   }, [gamecode, teamname, isSpectator, isGamemasterViewing]);
+
+    // Fetch team circumstance and its description
+  useEffect(() => {
+    const fetchCircumstance = async () => {
+      try {
+        // Get team's circumstance name from room data
+        const roomRes = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        if (!roomRes.ok) return;
+
+        const roomData = await roomRes.json();
+        const team = roomData.teams.find(t => t.team_name === teamname);
+
+        if (team?.circumstance) {
+          // Fetch all circumstances to get the description
+          const circumstancesRes = await fetch(`${API_BASE}/circumstances`);
+          if (circumstancesRes.ok) {
+            const circumstances = await circumstancesRes.json();
+            const found = circumstances.find(c => c.title === team.circumstance);
+
+            setCircumstance({
+              name: team.circumstance,
+              description: found?.description || ''
+            });
+          } else {
+            setCircumstance({ name: team.circumstance, description: '' });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch circumstance:", err);
+      }
+    };
+
+    fetchCircumstance();
+  }, [gamecode, teamname]);
 
   const updatingPoints = (change = -1) => {
     fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`, {
@@ -392,7 +454,7 @@ useEffect(() => {
   }, []);
 
   // Render text on curved path
-  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId) => {
+  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId, isTitleTile = false) => {
     const midRadius = (innerRadius + outerRadius) / 2;
     const angleRad = (endAngleDeg - startAngleDeg) * (Math.PI / 180);
 
@@ -462,8 +524,8 @@ useEffect(() => {
               startOffset="50%"
               textAnchor="middle"
               fill="#000"
-              fontSize="20"
-              fontWeight="600"
+              fontSize={isTitleTile ? "32" : "20"}
+              fontWeight={isTitleTile ? "700" : "600"}
             >
               {line}
             </textPath>
@@ -526,7 +588,7 @@ if (!isInitialized) {
         <div style={{
           position: 'fixed',
           left: '20px',
-          top: '3.5rem',
+          top: '20rem',
           border: 'none',
           color: '#dfd4d4',
           fontWeight: 'bold',
@@ -537,7 +599,7 @@ if (!isInitialized) {
           Spectating: {teamname}
         </div>
       )}
-      <div className="energypoints" data-testid="energypoints" style={isSpectator ? { top: '3.5rem' } : {}}>
+      <div className="game-energypoints" data-testid="energypoints" style={isSpectator ? { top: '3.5rem' } : {}}>
         Remaining energypoints: {points}
       </div>
       <div className="instructions">
@@ -583,51 +645,63 @@ if (!isInitialized) {
                       />
                     </filter>
                   </defs>
-                  {/* Render rings from innermost to outermost */}     
-                  {gameConfig?.ringData?.map((ring) => {
-                    const numSlices = ring.labels.length;
-                    const rotation = rotations[ring.id] || 0;
-                    const anglePerSlice = 360 / numSlices;
-                    
-                    return (
-                      <g
-                        data-testid={`ring-group-${ring.id}`}
-                        key={ring.id}
-                        transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
-                      >
-                        
-                        {/* Render slices */}
-                        {ring.labels.map((label, i) => {
-                          const startAngle = i * anglePerSlice;
-                          const endAngle = (i + 1) * anglePerSlice;
-                          const color = label.color;
-                          
-                          return (
-                            <g key={`${ring.id}-slice-${i}`}>
-                              {/* Slice shape */}
-                              <path
-                                data-testid={`slice-${label.id}`}
-                                className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
-                                d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
-                                fill={color}
-                                stroke="#f5f5f3ff"
-                                strokeWidth={whiteLineThickness}
-                                onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
-                                onClick={(e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
-                                onMouseEnter={(e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
-                                onMouseLeave={handleSliceMouseLeave}
-                                onMouseMove={handleSliceMouseMove}
-                                style={{ cursor: "pointer" }}
-                                filter="url(#whiteShadow)"
-                              />
-                              {/* Render Text */}
-                              {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
-                            </g>
-                          );
-                        })}
-                      </g>
-                    );
-                  })}
+                    {/* Render rings from innermost to outermost */}     
+                    {gameConfig?.ringData?.map((ring) => {
+                      const rotation = rotations[ring.id] || 0;
+
+                      // Count title tiles as 2 units, normal tiles as 1
+                      const totalAngleUnits = ring.labels.reduce((acc, label) => {
+                        return acc + (label.tileType === 'ring_title' ? 2 : 1);
+                      }, 0);
+
+                      const baseAnglePerUnit = 360 / totalAngleUnits;
+                      let cumulativeAngle = 0; // start at 0 for each ring
+
+                      return (
+                        <g
+                          data-testid={`ring-group-${ring.id}`}
+                          key={ring.id}
+                          transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
+                        >
+                          {/* Render slices */}
+                          {ring.labels.map((label, i) => {
+                            const isTitleSlice = label.tileType === 'ring_title';
+                            const sliceAngle = isTitleSlice ? baseAnglePerUnit * 2 : baseAnglePerUnit;
+
+                            const startAngle = cumulativeAngle;
+                            const endAngle = cumulativeAngle + sliceAngle;
+
+                            cumulativeAngle += sliceAngle; // increment for next slice
+
+                            const color = label.color;
+
+                            return (
+                              <g key={`${ring.id}-slice-${i}`}>
+                                {/* Slice shape */}
+                                <path
+                                  data-testid={`slice-${label.id}`}
+                                  d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
+                                  fill={color}
+                                  stroke={"#f5f5f3ff"}
+                                  strokeWidth={whiteLineThickness}
+                                  className={isTitleSlice ? "title-tile" : "slice-path"}
+                                  onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
+                                  onClick={isTitleSlice ? undefined : (e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
+                                  onMouseEnter={isTitleSlice ? undefined : (e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
+                                  onMouseLeave={isTitleSlice ? undefined : handleSliceMouseLeave}
+                                  onMouseMove={isTitleSlice ? undefined : handleSliceMouseMove}
+                                  style={{cursor: isTitleSlice ? "grab" : "pointer"}}
+                                  filter="url(#whiteShadow)"
+                                />
+                                {/* Render Text */}
+                                {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id, isTitleSlice)}
+                              </g>
+                            );
+                          })}
+                        </g>
+                      );
+                    })}
+
                 {/* Separator Circles */}
                   {gameConfig?.ringData?.map((ring) => (
                     <circle
@@ -704,14 +778,17 @@ if (!isInitialized) {
           </div>
         )}
 
-        {/* Color Guide */}
+        {/* Circumstance View */}
         <div style={{
           position: 'fixed',
           bottom: '120px',
           left: '20px',
           zIndex: 100
         }}>
-          <ColorGuide />
+          <CircumstanceView
+            name={circumstance.name}
+            description={circumstance.description}
+          />
         </div>
         <Instructions
         show={showInstructions}
