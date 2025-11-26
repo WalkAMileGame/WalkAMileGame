@@ -2,7 +2,7 @@
 from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData, Circumstance, RenewRequest
+from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData, Circumstance, RenewRequest, GenerateCodeRequest
 from .db import db
 from datetime import datetime, timedelta, timezone
 from typing import Dict
@@ -193,8 +193,8 @@ def renew_access(form_data: RenewRequest):
 
 
 @router.post("/generate_access_code")
-def generate_access_code(valid_for=6):
-
+def generate_access_code(data: GenerateCodeRequest):
+    valid_for = data.valid_for
     while True:
         new_code = generate_new_access_code(valid_for)
 
@@ -694,23 +694,24 @@ def add_user(data: AcceptUser):
 def delete_board(data: DenyUser):
     db.users.delete_one({"email": data.email})
     
-@router.get("/load_users")
+@router.get("/load_user_data")
 def load_users():
-    users = list(db.users.find(projection={"_id": False}))
-    return users
+    users = list(db.users.find(projection={"_id": False, "password": False}))
+    codes = list(db.codes.find(projection={"_id": False}))
+    return {"users": users, "codes": codes}
 
 @router.put("/save_circumstance/{cid}")
 def save_edited_circumstance(cid: str, data: Circumstance):
     db.circumstance.update_one(
         {"_id": ObjectId(cid)},
         {"$set": {
-            "name": data.name,
+            "title": data.title,
             "description": data.description
         }}
     )
 @router.post("/save_circumstance")
 def save_new_circumstance(data: Circumstance):
-    new_note = db.circumstance.insert_one({"name": data.name, "description": data.description})
+    new_note = db.circumstance.insert_one({"title": data.title, "description": data.description})
     fetch_new_note = db.circumstance.find_one({"_id": new_note.inserted_id})
     fetch_new_note["_id"] = str(fetch_new_note["_id"])
     return fetch_new_note

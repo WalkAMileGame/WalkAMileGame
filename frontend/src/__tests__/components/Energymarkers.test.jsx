@@ -225,10 +225,59 @@ describe("EnergyMarkers", () => {
       </svg>
     );
 
-    expect(screen.getByTestId("energy-marker-1").getAttribute('href')).toContain('energy1.png');
-    expect(screen.getByTestId("energy-marker-2").getAttribute('href')).toContain('energy2.png');
-    expect(screen.getByTestId("energy-marker-3").getAttribute('href')).toContain('energy3.png');
-    expect(screen.getByTestId("energy-marker-4").getAttribute('href')).toContain('energy4.png');
-    expect(screen.getByTestId("energy-marker-5").getAttribute('href')).toContain('energy4.png');
+    expect(screen.getByTestId("energy-marker-1").getAttribute('href')).toContain('energy01.png');
+    expect(screen.getByTestId("energy-marker-2").getAttribute('href')).toContain('energy02.png');
+    expect(screen.getByTestId("energy-marker-3").getAttribute('href')).toContain('energy03.png');
+    expect(screen.getByTestId("energy-marker-4").getAttribute('href')).toContain('energy04.png');
+    expect(screen.getByTestId("energy-marker-5").getAttribute('href')).toContain('energyEmpty.png');
+  });
+
+  it.each([
+    [-1, '-1'],
+    [0, '0'],
+    [10, '10'],
+  ])("displays number overlay on energyEmpty icon for energyvalue %i", (energyvalue, expectedText) => {
+    const config = {
+      ringData: [{
+        id: 1,
+        innerRadius: 200,
+        outerRadius: 350,
+        labels: [{ id: 1, text: "Test", color: "#ffc072", energyvalue }]
+      }]
+    };
+
+    const { container } = render(
+      <svg>
+        <EnergyMarkers
+          gameConfig={config}
+          rotations={mockRotations}
+          activeMarkers={new Set(["1-1"])}
+          centerX={centerX}
+          centerY={centerY}
+        />
+      </svg>
+    );
+
+    expect(screen.getByTestId("energy-marker-1").getAttribute('href')).toContain('energyEmpty.png');
+    const textElement = container.querySelector('text');
+    expect(textElement).toBeInTheDocument();
+    expect(textElement.textContent).toBe(expectedText);
+  });
+
+  it("does not display number overlay for energy values 1-4", () => {
+    const { container } = render(
+      <svg>
+        <EnergyMarkers
+          gameConfig={mockGameConfig}
+          rotations={mockRotations}
+          activeMarkers={new Set(["1-1"])}
+          centerX={centerX}
+          centerY={centerY}
+        />
+      </svg>
+    );
+
+    expect(screen.getByTestId("energy-marker-1").getAttribute('href')).toContain('energy01.png');
+    expect(container.querySelector('text')).not.toBeInTheDocument();
   });
 });

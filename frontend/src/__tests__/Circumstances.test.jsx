@@ -13,8 +13,8 @@ vi.mock('../context/AuthContext', () => ({
 }));
 
 const mockNotes = [
-  {_id: '1', name: 'circumstance 1',description: 'this is circumstance 1',},
-  {_id: '2', name: 'circumstance 2', description: 'this is circumstance 2',},
+  {_id: '1', title: 'circumstance 1',description: 'this is circumstance 1',},
+  {_id: '2', title: 'circumstance 2', description: 'this is circumstance 2',},
 ];
 
 beforeEach(() => {
@@ -30,8 +30,8 @@ beforeEach(() => {
         json: () =>
           Promise.resolve({
             _id: '1',
-            name: 'Updated Title',
-            description: 'Updated Content',
+            title: 'Updated Title',
+            description: 'Updated Description',
           }),
       });
     }
@@ -40,8 +40,8 @@ beforeEach(() => {
         json: () =>
           Promise.resolve({
             _id: '3',
-            name: 'New Circumstance',
-            description: 'New Content',
+            title: 'New Circumstance',
+            description: 'New Description',
           }),
       });
     }
@@ -100,17 +100,17 @@ test('editing circumstance', async () => {
   await user.click(editBtn);
 
   const titleInput = screen.getByLabelText('Title');
-  const contentInput = screen.getByLabelText('Content');
+  const descriptionInput = screen.getByLabelText('Description');
 
   await user.clear(titleInput);
   await user.type(titleInput, 'Updated Title');
 
-  await user.clear(contentInput);
-  await user.type(contentInput, 'Updated Content');
+  await user.clear(descriptionInput);
+  await user.type(descriptionInput, 'Updated Description');
 
   global.fetch = vi.fn(() =>
     Promise.resolve({
-      json: () => Promise.resolve({ _id: '1', name: 'Updated Title', description: 'Updated Content' }),
+      json: () => Promise.resolve({ _id: '1', id: '', title: 'Updated Title', description: 'Updated Description' }),
     })
   );
 
@@ -119,7 +119,7 @@ test('editing circumstance', async () => {
 
   await waitFor(() => {
     expect(screen.getByText('Updated Title')).toBeInTheDocument();
-    expect(screen.getByText('Updated Content')).toBeInTheDocument();
+    expect(screen.getByText('Updated Description')).toBeInTheDocument();
   });
 
   expect(global.fetch).toHaveBeenCalledWith(
@@ -127,7 +127,7 @@ test('editing circumstance', async () => {
     expect.objectContaining({
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Updated Title', description: 'Updated Content' }),
+      body: JSON.stringify({ id: '', title: 'Updated Title', description: 'Updated Description' }),
     })
   );
 });
@@ -172,20 +172,20 @@ test('adding a new circumstance saves correctly', async () => {
   await user.click(screen.getByTitle('Add new circumstance'));
 
     const titleInput = screen.getByLabelText('Title');
-    const contentInput = screen.getByLabelText('Content');
+    const descriptionInput = screen.getByLabelText('Description');
 
     await user.type(titleInput, 'new circumstance')
-    await user.type(contentInput, 'here is new content for new circumstance')
+    await user.type(descriptionInput, 'here is new description for new circumstance')
 
   global.fetch = vi.fn(() =>
     Promise.resolve({
-      json: () => Promise.resolve({ _id: '3', name: 'new circumstance', description: 'here is new content for new circumstance' })
+      json: () => Promise.resolve({ _id: '3', title: 'new circumstance', description: 'here is new description for new circumstance' })
     })
   );
 
   await user.click(screen.getByText('Save'));
 
   expect(screen.getByText('new circumstance')).toBeInTheDocument();
-  expect(screen.getByText('here is new content for new circumstance')).toBeInTheDocument();
+  expect(screen.getByText('here is new description for new circumstance')).toBeInTheDocument();
 });
 

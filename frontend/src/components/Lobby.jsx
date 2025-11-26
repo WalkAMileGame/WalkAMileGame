@@ -23,7 +23,7 @@ export default function Lobby() {
   const inviteCode = (location.state?.inviteCode || gamecode || '').trim();
   const isGamemaster = location.state?.isGamemaster || false;
   const boardConfig = location.state?.boardConfig;
-  const availableCircumstances = boardConfig?.circumstances;
+  const availableCircumstances = boardConfig?.circumstances || [];
 
   // --- Restore team join state on reload ---
   useEffect(() => {
@@ -324,7 +324,7 @@ export default function Lobby() {
               }}
               className="time-input"
             />
-            <button onClick={updateTime} className="btn btn-primary">
+            <button onClick={updateTime} className="btn btn-updatetime">
               Update Time
             </button>
           </div>
@@ -347,11 +347,11 @@ export default function Lobby() {
                               <input
                                 type="radio"
                                 name="choice"
-                                value={circumstance.name}
-                                checked={editCircumstance === circumstance.name}
+                                value={circumstance.title}
+                                checked={editCircumstance === circumstance.title}
                                 onChange={(e) => setEditCircumstance(e.target.value)}
                               />
-                            {circumstance.name}
+                            {circumstance.title}
                             </label>
                           ))}
                           <div style={{ display: 'flex', gap: '8px' }}>
@@ -363,7 +363,7 @@ export default function Lobby() {
                             >
                               Save
                             </button>
-                            <button onClick={cancelEditingCircumstance} className="btn">
+                            <button onClick={cancelEditingCircumstance} className="btn btn-cancel">
                               Cancel
                             </button>
                           </div>

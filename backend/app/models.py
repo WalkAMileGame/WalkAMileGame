@@ -16,7 +16,8 @@ class TileType(str, Enum):
 
 
 class Circumstance(BaseModel):
-    name: str
+    id: str
+    title: str
     description: str
     
 class LabelData(BaseModel):
@@ -51,6 +52,9 @@ class AccessCode(BaseModel):
     activationTime: datetime = None
     isUsed: bool = False
     usedByUser: EmailStr = None
+
+class GenerateCodeRequest(BaseModel):
+    valid_for: int
 
 class LoginRequest(BaseModel):
     email: EmailStr

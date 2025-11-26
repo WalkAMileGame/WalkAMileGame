@@ -73,8 +73,8 @@ const mockRoomData = {
 };
 
 const mockCircumstances = [
-  { name: 'Test Circumstance', description: 'This is a test circumstance description' },
-  { name: 'Other Circumstance', description: 'Another circumstance description' }
+  { title: 'Test Circumstance', description: 'This is a test circumstance description' },
+  { title: 'Other Circumstance', description: 'Another circumstance description' }
 ];
 
 beforeEach(() => {

@@ -131,7 +131,8 @@ const GameBoard = () => {
 
 // Settings
 
-  const [showSettings, setShowSettings] = useState(false);
+  const initialState = location.state?.settings || false;
+  const [showSettings, setShowSettings] = useState(initialState);
 
   // Helper function to create annular sector path (donut slice)
   const createAnnularSectorPath = (innerRadius, outerRadius, startAngleDeg, endAngleDeg) => {
@@ -440,7 +441,7 @@ const GameBoard = () => {
 
   return (
     <>
-      <div className="energypoints">
+      <div className="energypoints-gameboard">
         Remaining energypoints: {points}
       </div>
       <div className="game-layout">
@@ -525,8 +526,8 @@ const GameBoard = () => {
                                 className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''} ${isTitleTile ? 'title-tile' : ''}`}
                                 d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
                                 fill={color}
-                                stroke={isTitleTile ? "none" : "#f5f5f3ff"}
-                                strokeWidth={isTitleTile ? 0 : whiteLineThickness}
+                                stroke={"#f5f5f3ff"}
+                                strokeWidth={whiteLineThickness}
                                 onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
                                 onClick={isTitleTile ? undefined : (e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
                                 onMouseEnter={isTitleTile ? undefined : (e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}

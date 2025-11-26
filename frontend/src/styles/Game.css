@@ -1,9 +1,9 @@
 
 
-.energypoints {
+.game-energypoints {
   position: fixed;
-  left: -5px;
-  top: 2rem;
+  left: 18px;
+  top: 4rem;
   border: none;
   color: #dfd4d4; 
   font-weight: bold;
@@ -124,6 +124,7 @@
   font-family: "Montserrat", sans-serif;
   position: fixed;
   right: 5rem;
-  top: 3rem;
+  top: 4rem;
   z-index: 100;
+  color: white;
 }
