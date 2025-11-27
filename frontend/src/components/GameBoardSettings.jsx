@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/GameboardSettings.css';
 import Snackbar from "./ui/snackbar"
-import { API_BASE } from "../api";
+import { useAuth } from '../context/AuthContext';
 
         {/* Available colors */}
 const ColorPicker = ({ onChange, colors = [] }) => {
@@ -79,6 +79,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
+  const { authFetch } = useAuth();
+  
   useEffect(() => {
     setLocalConfig(gameConfig);
   }, [gameConfig]);
@@ -92,7 +94,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const loadGameboards = async () => {
     setIsLoading(true);
     console.log("loading gamebords")
-    fetch(`${API_BASE}/load_all`)
+    authFetch(`/load_all`)
       .then((res) => res.json())
       .then((data) => setTemplates(data));
     setIsLoading(false);
@@ -287,9 +289,8 @@ const handleSave = async () => {
 
 {/* Make sure saveGameboard RETURNS the fetch result */ }
 const saveGameboard = () => {
-  return fetch(`${API_BASE}/save`, {
+  return authFetch(`/save`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
       name: localConfig.name?.trim(), 
       ringData: localConfig.ringData,
@@ -357,9 +358,8 @@ const handleDelete = async () => {
 };
 
 const deleteGameboard = () => {
-  return fetch(`${API_BASE}/delete`, {
+  return authFetch(`/delete`, {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
       name: localConfig.name?.trim(),
     }),

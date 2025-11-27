@@ -3,7 +3,7 @@ import '../styles/Circumstancess.css';
 import editIcon from '../styles/icons/editicon.png';
 import deleteIcon from '../styles/icons/deleteicon.png';
 import addIcon from '../styles/icons/addicon.png';
-import { API_BASE } from "../api";
+import { useAuth } from '../context/AuthContext';
 
 const CircumstanceCard = ({ title, description, onEdit, onDelete }) => {
   return (
@@ -35,12 +35,12 @@ const Circumstances = () => {
   const [editDescription, setEditDescription] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  
+  const { authFetch } = useAuth();
 
   useEffect(() => {
     const loadCircumstances = async () => {
       try {
-        const res = await fetch(`${API_BASE}/circumstances`);
+        const res = await authFetch('/circumstances');
         const data = await res.json();
         
         const formatted = data.map(c => ({
@@ -68,9 +68,8 @@ const saveEdit = async () => {
   if (isAdding) {
     // Create new note
     try {
-      const res = await fetch(`${API_BASE}/save_circumstance`, {
+      const res = await authFetch('/save_circumstance', {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: '',
           title: editTitle,
@@ -95,9 +94,8 @@ const saveEdit = async () => {
     setNotes(updated);
 
     try {
-      await fetch(`${API_BASE}/save_circumstance/${notes[editingIndex].id}`, {
+      await authFetch(`/save_circumstance/${notes[editingIndex].id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: '',
           title: editTitle,
@@ -118,7 +116,7 @@ const handleDelete = async (note) => {
   if (!window.confirm(`Are you sure you want to delete circumstance "${note.title}"?`)) return;
 
   try {
-    await fetch(`${API_BASE}/circumstance/${note.id}`, { method: "DELETE" });
+    await authFetch(`/circumstance/${note.id}`, { method: "DELETE" });
     setNotes(prev => prev.filter(n => n.id !== note.id));
   } catch (err) {
     console.error("Failed to delete circumstance:", err);

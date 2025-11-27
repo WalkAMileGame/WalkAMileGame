@@ -34,7 +34,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = now + expires_delta
     else:
         expire = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -78,7 +77,7 @@ def get_current_active_user(response: Response, token: str = Depends(oauth2_sche
 
     user_doc = db.users.find_one({"email": email}, {"_id": 0, "password": 0})
     if not user_doc:
-        print("not found")
+        print("User not found")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, 
             detail="User not found"

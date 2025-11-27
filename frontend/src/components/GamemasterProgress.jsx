@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/GamemasterProgress.css';
 import Timer from './ui/Timer';
-import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const GamemasterProgress = () => {
   const { gamecode } = useParams();
@@ -12,10 +12,12 @@ const GamemasterProgress = () => {
   const [error, setError] = useState(null);
   const [timeAdjustment, setTimeAdjustment] = useState('');
 
+  const { authFetch } = useAuth();
+
   useEffect(() => {
     const fetchRoomData = async () => {
       try {
-        const response = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        const response = await authFetch(`/rooms/${gamecode}`);
         if (!response.ok) {
           throw new Error('Failed to fetch room data');
         }
@@ -41,7 +43,7 @@ const GamemasterProgress = () => {
   const handlePauseResume = async () => {
     try {
       const endpoint = roomData.game_paused ? 'resume' : 'pause';
-      const response = await fetch(`${API_BASE}/rooms/${gamecode}/${endpoint}`, {
+      const response = await authFetch(`/rooms/${gamecode}/${endpoint}`, {
         method: 'POST',
       });
       if (!response.ok) {
@@ -57,7 +59,7 @@ const GamemasterProgress = () => {
       return;
     }
     try {
-      const response = await fetch(`${API_BASE}/rooms/${gamecode}/end`, {
+      const response = await authFetch(`/rooms/${gamecode}/end`, {
         method: 'POST',
       });
       if (!response.ok) {
@@ -110,9 +112,8 @@ const GamemasterProgress = () => {
         newTimeRemaining = Math.max(0, Math.ceil(currentRemainingMinutes + minutes));
       }
 
-      const response = await fetch(`${API_BASE}/rooms/${gamecode}/time`, {
+      const response = await authFetch(`/rooms/${gamecode}/time`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           time_remaining: newTimeRemaining,
           reset_timer: !!roomData.game_started_at  // Only reset timer if game has started

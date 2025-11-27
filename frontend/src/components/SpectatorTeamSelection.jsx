@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 import '../styles/SpectatorTeamSelection.css';
 
 const SpectatorTeamSelection = () => {
@@ -10,10 +10,12 @@ const SpectatorTeamSelection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const { authFetch } = useAuth();
+
   useEffect(() => {
     const fetchRoomData = async () => {
       try {
-        const response = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        const response = await authFetch(`/rooms/${gamecode}`);
         if (!response.ok) {
           throw new Error('Room not found');
         }
