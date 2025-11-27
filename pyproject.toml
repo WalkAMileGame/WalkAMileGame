@@ -20,7 +20,6 @@ dotenv = ">=0.9.9,<0.10.0"
 invoke = ">=2.2.0,<3.0.0"
 # ...other runtime libs
 playwright = "^1.56.0"
-python-dateutil = "^2.9.0.post0"
 
 [tool.poetry.dev-dependencies]
 pytest = ">=8.4.2,<9.0.0"
@@ -29,5 +28,4 @@ coverage = ">=7.10.6,<8.0.0"
 autopep8 = ">=2.3.2,<3.0.0"
 invoke = ">=2.2.0,<3.0.0"
 robot = ">=20071211,<20071212"
-playwright = "^1.56.0"
-nanoid = ">=2.0.0,<=3.0.0"
+# ...other dev tools
