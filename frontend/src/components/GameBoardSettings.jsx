@@ -93,13 +93,28 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   }, [isVisible]);
 
   const loadGameboards = async () => {
-    setIsLoading(true);
-    console.log("loading gamebords")
-    fetch(`${API_BASE}/load_all`)
-      .then((res) => res.json())
-      .then((data) => setTemplates(data));
-    setIsLoading(false);
-    console.log("loading complete")
+    try {
+      setIsLoading(true);
+      console.log("loading gamebords");
+      const res = await fetch(`${API_BASE}/load_boards`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch boards");
+      }
+      
+      const data = await res.json();
+      setTemplates(data ?? []);
+      
+      console.log("loading complete");
+    } catch (err) {
+      console.error("Error loading gameboards:", err);
+    } finally {
+      setIsLoading(false);
+    }
+    
   };
 
   const handleCircumstances = () => {
