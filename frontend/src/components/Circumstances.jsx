@@ -4,6 +4,8 @@ import editIcon from '../styles/icons/editicon.png';
 import deleteIcon from '../styles/icons/deleteicon.png';
 import addIcon from '../styles/icons/addicon.png';
 import { API_BASE } from "../api";
+import Snackbar from "./ui/snackbar"
+
 
 const CircumstanceCard = ({ title, description, onEdit, onDelete }) => {
   return (
@@ -34,6 +36,8 @@ const Circumstances = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   
 
@@ -65,6 +69,19 @@ const Circumstances = () => {
   };
 
 const saveEdit = async () => {
+  const CheckIfTitleExists = notes.find(
+    (note,index) => 
+      note.title.trim().toLowerCase() === editTitle.trim().toLowerCase() &&
+      index !== editingIndex
+  );
+  if (CheckIfTitleExists) {
+    setSnackbarMessage(`Note with a title ${CheckIfTitleExists.title} already exists`);
+    setShowSnackbar(true);     
+    return;
+  }
+
+
+
   if (isAdding) {
     // Create new note
     try {
@@ -128,7 +145,13 @@ const handleDelete = async (note) => {
 
 
   return (
+    
     <div className="circumstance-page">
+        <Snackbar
+        message={snackbarMessage}
+        show={showSnackbar}
+        onClose={() => setShowSnackbar(false)}
+    />
       <div className="circumstance-header">
         <h1>EDIT CIRCUMSTANCES</h1>
       </div>
