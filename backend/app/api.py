@@ -694,9 +694,14 @@ def add_user(data: AcceptUser):
 @router.delete("/remove_user")
 def delete_board(data: DenyUser):
     db.users.delete_one({"email": data.email})
-    
-@router.get("/load_user_data")
+
+@router.get("/load_users")
 def load_users():
+    users = list(db.users.find(projection={"_id": False}))
+    return users
+
+@router.get("/load_user_data")
+def load_user_data():
     users = list(db.users.find(projection={"_id": False, "password": False}))
     codes = list(db.codes.find(projection={"_id": False}))
     return {"users": users, "codes": codes}
