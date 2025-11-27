@@ -1,5 +1,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
 
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 300px;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    max-height: 300px;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .circumstance-view-container {
   background-color: #3F695D;
   border-radius: 12px;
@@ -8,13 +52,20 @@
   flex-direction: column;
   gap: 10px;
   max-width: 250px;
+  width: 250px;
   border: 3px solid #86B18A;
-  transition: all 0.3s ease;
+  overflow: hidden;
+  transition: padding 0.8s ease-out, gap 0.8s ease-out, width 0.8s ease-out;
+}
+
+.circumstance-view-container.expanded {
+  max-height: 500px;
 }
 
 .circumstance-view-container.minimized {
-  max-width: 250px;
-  padding: 10px 20px;
+  width: 220px;
+  padding: 10px 15px;
+  gap: 0;
 }
 
 .circumstance-view-header-wrapper {
@@ -22,6 +73,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+  min-height: 30px;
 }
 
 .circumstance-view-header {
@@ -33,6 +85,24 @@
   text-align: left;
   margin: 5px 10px 5px 10px;
   flex: 1;
+  white-space: nowrap;
+}
+
+.circumstance-view-container.minimized .circumstance-view-header {
+  margin: 0;
+  font-size: 12px;
+}
+
+.circumstance-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  animation: slideDown 0.8s ease-out forwards;
+}
+
+.circumstance-content.hidden {
+  animation: slideUp 0.8s ease-out forwards;
 }
 
 .circumstance-toggle-btn {
@@ -49,6 +119,8 @@
   font-size: 16px;
   transition: background-color 0.2s ease;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .circumstance-toggle-btn:hover {
@@ -63,7 +135,6 @@
   letter-spacing: 1px;
   text-align: left;
   margin: 5px 10px 5px 10px;
-
 }
 
 .circumstance-view-description {

@@ -782,7 +782,7 @@ if (!isInitialized) {
         {/* Circumstance View */}
         <div style={{
           position: 'fixed',
-          bottom: '120px',
+          top: '10rem',
           left: '20px',
           zIndex: 100
         }}>
