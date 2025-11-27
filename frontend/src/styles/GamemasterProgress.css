@@ -4,6 +4,7 @@
   margin: 0 auto;
   background-color: #3F695D;
   min-height: 100vh;
+  margin-top: 10vh;
 }
 
 .progress-header {
@@ -16,7 +17,7 @@
 }
 
 .progress-header h1 {
-  margin: 0 0 1rem 0;
+  margin: 1rem 0 2rem 0;
   color: #3F695D;
   font-size: 2.5rem;
   font-weight: bold;
@@ -25,7 +26,6 @@
 
 .game-info {
   display: flex;
-  gap: 2rem;
   font-size: 1.1rem;
   justify-content: center;
   flex-wrap: wrap;
@@ -47,6 +47,7 @@
   padding: 8px 16px;
   border-radius: 8px;
   border: 2px solid #E9C46A;
+  margin-right: 8vw;
 }
 
 .timer.paused {
