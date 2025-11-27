@@ -56,11 +56,16 @@ class DeleteBoard(BaseModel):
 def delete_board(data: DeleteBoard):
     db.boards.delete_one({"name": data.name})
 
+class LoadBoard(BaseModel):
+    email: str
 
-@router.get("/load_all")
-def load_boards():
+@router.post("/load_boards")
+def load_boards(data: LoadBoard):
     boards = list(db.boards.find(projection={"_id": False}))
-    return boards
+    user = db.users.find_one({"email": data.email}, {"_id": 0, "boards": 1})
+    if not user["boards"]:
+        return boards
+    return boards + user["boards"]
 
 
 @router.get("/health", tags=["health"])
