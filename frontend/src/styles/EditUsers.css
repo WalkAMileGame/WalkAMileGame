@@ -19,14 +19,14 @@ body:has(.edit-page) #root {
 .header h1 {
   font-family: "Lilita One", sans-serif;
   margin-top: 6vh;
-  margin-bottom: 2px;
+  margin-bottom: 1vh;
 }
 
 .header h3 {
   font-size: 1.2rem;
   font-weight: 400;
   text-align: center;
-  max-width: 800px; /* keeps the description from stretching too much */
+  max-width: 90vw; /* keeps the description from stretching too much */
 }
 
 
@@ -61,7 +61,7 @@ body:has(.edit-page) #root {
   text-align: left;
 }
 .table-wrapper h2 {
-  margin: 0 0 20px 0; 
+  margin: 0 0 2vh 0; 
   color: white;
 }
 
@@ -77,10 +77,10 @@ body:has(.edit-page) #root {
 
 /* Table alignment */
 th, td {
-  padding: 10px 8px 10px 25px; /* smaller right padding, larger left */
+  padding: 10px 20px 10px 20px; /* smaller right padding, larger left */
   vertical-align: middle;
   text-align: left;
-  font-size: 20px;
+  font-size: 1vw;
 }
 
 th {
@@ -92,13 +92,13 @@ th {
 /* Right-align the last column header */
 th:last-child {
   text-align: right;
-  padding-right: 25px; /* match the left padding for balance */
+  padding-right: 20px; /* match the left padding for balance */
 }
 
 /* Also right-align the corresponding cell content */
 td:last-child {
   text-align: right;
-  padding-right: 25px;
+  padding-right: 30px;
 }
 
 tr:hover {background-color: #E9C46A}
@@ -241,7 +241,7 @@ tr:hover {background-color: #E9C46A}
 .user-icon {
   width: 25px;
   height: 25px;
-  margin-right: 10px;
+  margin-right: 0.4vw;
 }
 
 .demote-icon {

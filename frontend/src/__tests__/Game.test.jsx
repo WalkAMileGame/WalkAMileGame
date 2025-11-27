@@ -344,3 +344,54 @@ test('does not render CircumstanceView when team has no circumstance', async () 
   await waitFor(() => expect(screen.getByTestId('energypoints')).toBeInTheDocument());
   expect(screen.queryByText('YOUR CIRCUMSTANCE')).not.toBeInTheDocument();
 });
+
+test('CircumstanceView is shown by default in expanded state', async () => {
+  renderWithRouter();
+
+  await waitFor(() => {
+    expect(screen.getByText('YOUR CIRCUMSTANCE')).toBeInTheDocument();
+  });
+
+  // Check that the container has the expanded class
+  const circumstanceContainer = document.querySelector('.circumstance-view-container');
+  expect(circumstanceContainer).toHaveClass('expanded');
+  expect(circumstanceContainer).not.toHaveClass('minimized');
+
+  // Check that circumstance details are visible
+  expect(screen.getByText('Test Circumstance')).toBeInTheDocument();
+  expect(screen.getByText('This is a test circumstance description')).toBeInTheDocument();
+});
+
+test('when CircumstanceView is minimized, only "YOUR CIRCUMSTANCE" text is rendered', async () => {
+  const user = userEvent.setup();
+  renderWithRouter();
+
+  // Wait for the component to load
+  await waitFor(() => {
+    expect(screen.getByText('YOUR CIRCUMSTANCE')).toBeInTheDocument();
+  });
+
+  // Verify initial state - all content visible
+  expect(screen.getByText('Test Circumstance')).toBeInTheDocument();
+  expect(screen.getByText('This is a test circumstance description')).toBeInTheDocument();
+
+  // Find and click the toggle button to minimize
+  const toggleButton = screen.getByRole('button', { name: /minimize circumstance/i });
+  await user.click(toggleButton);
+
+  // Check that the container is now minimized
+  const circumstanceContainer = document.querySelector('.circumstance-view-container');
+  expect(circumstanceContainer).toHaveClass('minimized');
+
+  // Check that "YOUR CIRCUMSTANCE" is still visible
+  expect(screen.getByText('YOUR CIRCUMSTANCE')).toBeInTheDocument();
+
+  // Wait for animation to complete (800ms) before checking if content is removed
+  await waitFor(() => {
+    expect(screen.queryByText('Test Circumstance')).not.toBeInTheDocument();
+    expect(screen.queryByText('This is a test circumstance description')).not.toBeInTheDocument();
+  }, { timeout: 1000 });
+
+  // Verify the toggle button now shows the expand icon
+  expect(toggleButton).toHaveAttribute('aria-label', 'Expand circumstance');
+});

@@ -21,6 +21,14 @@ const SpectatorTeamSelection = () => {
         }
         const data = await response.json();
 
+        // If comparison mode is active, redirect to comparison page
+        if (data.comparison_mode) {
+          navigate(`/comparison/${gamecode}`, {
+            state: { isSpectator: true }
+          });
+          return;
+        }
+
         // If game hasn't started, redirect to waiting room
         if (!data.game_started) {
           navigate(`/waiting/${gamecode}`);
@@ -36,7 +44,12 @@ const SpectatorTeamSelection = () => {
       }
     };
 
+    // Initial fetch
     fetchRoomData();
+
+    // Poll every 2 seconds to check for comparison mode
+    const interval = setInterval(fetchRoomData, 2000);
+    return () => clearInterval(interval);
   }, [gamecode, navigate]);
 
   const handleSelectTeam = (teamName) => {

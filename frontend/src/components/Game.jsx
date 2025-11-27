@@ -23,6 +23,7 @@ const Game = () => {
   const [circumstance, setCircumstance] = useState({ name: '', description: '' });
   const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
   const [timeLeft, setTimeLeft] = useState(null); // Timer state
+  const [isCircumstanceMinimized, setIsCircumstanceMinimized] = useState(false);
   
   const { authFetch } = useAuth();
 
@@ -124,6 +125,32 @@ useEffect(() => {
       return () => clearInterval(interval);
     }
   }, [gamecode, teamname, isSpectator, isGamemasterViewing]);
+
+    // Poll for comparison mode and redirect when activated
+  useEffect(() => {
+    const checkComparisonMode = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.comparison_mode) {
+            navigate(`/comparison/${gamecode}`, {
+              state: {
+                isGamemaster: isGamemasterViewing,
+                isSpectator: isSpectator
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check comparison mode:", err);
+      }
+    };
+
+    // Poll every 2 seconds
+    const interval = setInterval(checkComparisonMode, 2000);
+    return () => clearInterval(interval);
+  }, [gamecode, navigate, isGamemasterViewing, isSpectator]);
 
     // Fetch team circumstance and its description
   useEffect(() => {
@@ -779,13 +806,15 @@ if (!isInitialized) {
         {/* Circumstance View */}
         <div style={{
           position: 'fixed',
-          bottom: '120px',
+          top: '10rem',
           left: '20px',
           zIndex: 100
         }}>
           <CircumstanceView
             name={circumstance.name}
             description={circumstance.description}
+            isMinimized={isCircumstanceMinimized}
+            onToggle={() => setIsCircumstanceMinimized(!isCircumstanceMinimized)}
           />
         </div>
         <Instructions
