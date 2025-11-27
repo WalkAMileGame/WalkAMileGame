@@ -1,28 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
 
 @keyframes slideDown {
-  from {
+  0% {
     opacity: 0;
     max-height: 0;
-    transform: translateY(-10px);
+    transform: translateY(-20px);
   }
-  to {
+  100% {
     opacity: 1;
-    max-height: 300px;
+    max-height: 400px;
     transform: translateY(0);
   }
 }
 
 @keyframes slideUp {
-  from {
+  0% {
     opacity: 1;
-    max-height: 300px;
+    max-height: 400px;
     transform: translateY(0);
   }
-  to {
+  100% {
     opacity: 0;
     max-height: 0;
-    transform: translateY(-10px);
+    transform: translateY(-20px);
   }
 }
 
@@ -55,7 +55,7 @@
   width: 250px;
   border: 3px solid #86B18A;
   overflow: hidden;
-  transition: padding 0.8s ease-out, gap 0.8s ease-out, width 0.8s ease-out;
+  transition: padding 0.8s ease-out, gap 0.8s ease-out, width 0.8s ease-out, max-height 0.8s ease-out;
 }
 
 .circumstance-view-container.expanded {
@@ -66,6 +66,7 @@
   width: 220px;
   padding: 10px 15px;
   gap: 0;
+  max-height: 60px;
 }
 
 .circumstance-view-header-wrapper {
@@ -98,10 +99,13 @@
   flex-direction: column;
   gap: 10px;
   overflow: hidden;
+}
+
+.circumstance-content.showing {
   animation: slideDown 0.8s ease-out forwards;
 }
 
-.circumstance-content.hidden {
+.circumstance-content.hiding {
   animation: slideUp 0.8s ease-out forwards;
 }
 
