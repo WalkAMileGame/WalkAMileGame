@@ -126,6 +126,32 @@ useEffect(() => {
     }
   }, [gamecode, teamname, isSpectator, isGamemasterViewing]);
 
+    // Poll for comparison mode and redirect when activated
+  useEffect(() => {
+    const checkComparisonMode = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.comparison_mode) {
+            navigate(`/comparison/${gamecode}`, {
+              state: {
+                isGamemaster: isGamemasterViewing,
+                isSpectator: isSpectator
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check comparison mode:", err);
+      }
+    };
+
+    // Poll every 2 seconds
+    const interval = setInterval(checkComparisonMode, 2000);
+    return () => clearInterval(interval);
+  }, [gamecode, navigate, isGamemasterViewing, isSpectator]);
+
     // Fetch team circumstance and its description
   useEffect(() => {
     const fetchCircumstance = async () => {

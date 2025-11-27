@@ -491,6 +491,94 @@ def end_game(room_code: str):
     return {"message": "Game ended successfully"}
 
 
+@router.post("/rooms/{room_code}/start_comparison")
+def start_comparison(room_code: str):
+    """Enable comparison mode for a room"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$set": {"comparison_mode": True}}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    return {"message": "Comparison mode started"}
+
+
+@router.delete("/rooms/{room_code}")
+def delete_room(room_code: str):
+    """Delete a room and free the game code"""
+    result = db.rooms.delete_one({"room_code": room_code.upper()})
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    return {"message": "Room deleted successfully"}
+
+
+@router.get("/rooms/{room_code}/teams/{team_name}/mistakes")
+def get_team_mistakes(room_code: str, team_name: str):
+    """Get a list of mistakes (missing required tiles) for a team based on their circumstance"""
+    room = db.rooms.find_one({"room_code": room_code.upper()}, {"_id": 0})
+    if not room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    # Find the team
+    team = next((t for t in room.get("teams", []) if t["team_name"] == team_name), None)
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Team not found"
+        )
+
+    # Get the team's circumstance
+    circumstance_name = team.get("circumstance")
+    if not circumstance_name:
+        return {"mistakes": []}
+
+    # Get the board configuration to find required tiles
+    board_config = room.get("board_config", {})
+    ring_data = board_config.get("ringData", [])
+
+    # Get team's current board state
+    team_board = team.get("gameboard_state", {}).get("ringData", [])
+
+    # Find all tiles required for this circumstance
+    mistakes = []
+    for ring_idx, ring in enumerate(ring_data):
+        for label_idx, label in enumerate(ring.get("labels", [])):
+            # Check if this tile is required for the team's circumstance
+            if circumstance_name in label.get("required_for", []):
+                # Check if team has placed energy on this tile
+                has_energy = False
+                if ring_idx < len(team_board):
+                    team_ring = team_board[ring_idx]
+                    if label_idx < len(team_ring.get("labels", [])):
+                        team_label = team_ring["labels"][label_idx]
+                        has_energy = team_label.get("energypoint", False)
+
+                # If required but no energy placed, it's a mistake
+                if not has_energy:
+                    mistakes.append({
+                        "ring_id": ring.get("id"),
+                        "label_id": label.get("id"),
+                        "tile_text": label.get("text"),
+                        "ring_index": ring_idx,
+                        "label_index": label_idx
+                    })
+
+    return {"mistakes": mistakes}
+
+
 # Team Board and Energy Management Endpoints
 
 class UpdateTeamBoard(BaseModel):
@@ -606,9 +694,14 @@ def add_user(data: AcceptUser):
 @router.delete("/remove_user")
 def delete_board(data: DenyUser):
     db.users.delete_one({"email": data.email})
-    
-@router.get("/load_user_data")
+
+@router.get("/load_users")
 def load_users():
+    users = list(db.users.find(projection={"_id": False}))
+    return users
+
+@router.get("/load_user_data")
+def load_user_data():
     users = list(db.users.find(projection={"_id": False, "password": False}))
     codes = list(db.codes.find(projection={"_id": False}))
     return {"users": users, "codes": codes}
