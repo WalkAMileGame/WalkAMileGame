@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/GameboardSettings.css';
 import Snackbar from "./ui/snackbar"
 import { API_BASE } from "../api";
+import { useAuth } from "../context/AuthContext";
 
         {/* Available colors */}
 const ColorPicker = ({ onChange, colors = [] }) => {
@@ -78,6 +79,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+
+  const { user } = useAuth();
 
   useEffect(() => {
     setLocalConfig(gameConfig);
@@ -287,13 +290,17 @@ const handleSave = async () => {
 
 {/* Make sure saveGameboard RETURNS the fetch result */ }
 const saveGameboard = () => {
-  return fetch(`${API_BASE}/save`, {
+  const boardContent = {
+    name: localConfig.name?.trim(),
+    ringData: localConfig.ringData,
+    circumstances: localConfig.circumstances
+  }
+  return fetch(`${API_BASE}/save_board`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
-      name: localConfig.name?.trim(), 
-      ringData: localConfig.ringData,
-      circumstances: localConfig.circumstances
+    body: JSON.stringify({
+      email: user.email,
+      board: boardContent
     }),
   });
 };

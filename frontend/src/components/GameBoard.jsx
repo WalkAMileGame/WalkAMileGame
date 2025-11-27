@@ -8,6 +8,7 @@ import ZoomControls from './ui/ZoomControls';
 
 const defaultGameData = {
 name: 'Default Gameboard',
+circumstances: [],
     ringData: [
       {
         id: 1,

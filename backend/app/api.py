@@ -37,11 +37,16 @@ def update_points(data: ChangePoints):
     updated_points = db.points.find_one({"id": "0"}, {"_id": 0})
     return updated_points
 
-@router.put("/save")
-def save_board(data: Boards):
-    db.boards.update_one({"name": data.name},
-                         {"$set": data.model_dump()},
-                         upsert=True)
+class SaveBoard(BaseModel):
+    email: str
+    board: Boards
+
+@router.put("/save_board")
+def save_board(data: SaveBoard):
+    db.users.update_one(
+        {"email": data.email},
+        {"$push": {"boards": data.board.model_dump()}},
+    )
 
 class DeleteBoard(BaseModel):
     name: str

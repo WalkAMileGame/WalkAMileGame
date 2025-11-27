@@ -44,6 +44,8 @@ class UserData(BaseModel):
     email: EmailStr
     password: str
     role: str = "gamemaster"
+    boards: List[Boards] = []
+    circumstances: List[Circumstance] = []
 
 class AccessCode(BaseModel):
     code: str
