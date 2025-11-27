@@ -7,6 +7,7 @@ body:has(.circumstance-page) #root {
 .circumstance-page {
   width: 100%;
   background-color: #86B18A;
+  min-height: 100vh;
 }
 
 .circumstance-header {
@@ -21,16 +22,16 @@ body:has(.circumstance-page) #root {
 .description {
   display: flex;
   justify-content: center;
-  padding-top: 30px;
+  padding-top: 3vh;
 }
 
 .note-area {
   display: grid;
   grid-template-columns: repeat(3, minmax(260px, 1fr));
-  gap: 30px;
+  gap: 1.5vw;
   width: 80%; /* keeps notes centered */
   margin: 0 auto;
-  margin-bottom: 40px;
+  margin-bottom: 3vh;
 }
 
 /* Card styling */
@@ -38,7 +39,7 @@ body:has(.circumstance-page) #root {
   position: relative;
   background: #e7e7e7;
   border-radius: 10px;
-  padding: 15px;
+  padding: 1vw;
   height: 26vh;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   border: 2px solid black;
@@ -72,14 +73,16 @@ body:has(.circumstance-page) #root {
 
 .note-title {
   margin: 20px 20px 10px;
-  font-size: 20px;
   color: #E76F51;
+  font-size: 1.1vw;
+
 }
 
 .note-description {
   margin: 0 20px;
-  font-size: 16px;
   color: #444;
+  font-size: 0.8vw;
+  /* font-size: clamp(16px, 0.8vw, 12px) */
 }
 
 /* Modal */
@@ -106,7 +109,7 @@ body:has(.circumstance-page) #root {
 }
 
 .modal input {
-  width: 100%;
+  width: 98%;
   margin-bottom: 15px;
   padding: 8px;
   font-size: 16px;

@@ -57,8 +57,8 @@ h1 {
   background: #FAF9F6;
   border: 3px solid black;
   border-radius: 16px;
-  width: 11vw;
-  min-height: 26vh;
+  width: 15vw;
+  min-height: 35vh;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -74,13 +74,13 @@ h1 {
 }
 
 .card-icon {
-  font-size: 2vw;
+  font-size: 3vw;
   margin-bottom: 10px;
 }
 
 .card h3 {
   font-family: "Lilita One", sans-serif;
-  font-size: 1.1vw;
+  font-size: 1.4vw;
   margin: 10px 0;
   color: #3F695D;
 }
@@ -88,6 +88,7 @@ h1 {
 .card p {
   color: #333;
   flex-grow: 1;
+  font-size: 0.8vw;
 }
 
 .card button {
@@ -97,7 +98,7 @@ h1 {
   border-radius: 8px;
   padding: 0.8em 1.5em;
   cursor: pointer;
-  font-size: clamp(12px, 0.8vw, 18px);
+  font-size: 0.8vw;
   font-family: "Montserrat", sans-serif;
   margin-bottom: 1vh;
   margin-top: auto;
