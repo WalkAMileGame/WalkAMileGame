@@ -16,7 +16,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     testTimeout: 7000,
-    setupFiles: './src/setupTests.js',     
+    setupFiles: './src/setupTests.js',
+    clearMocks: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

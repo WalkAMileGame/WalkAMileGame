@@ -26,6 +26,7 @@ vi.mock('react-router-dom', async () => {
 const mockTemplates = [
   {
     name: 'Default Gameboard',
+    circumstances: [{title: "Circumstance A"}, {title: "Circumstance B"}],
     ringData: [
       {
         id: 1,
@@ -180,7 +181,7 @@ describe("GameBoardSettings", () => {
     await act(async () => {
     fireEvent.change(sliceInput, { target: { value: "Changed button text" } });
     })
-    expect(onConfigChangeMock).toHaveBeenCalled();
+    expect(onConfigChangeMock).toHaveBeenCalledTimes(1);
   });
 
   test("change gameboard name", async () => {
@@ -195,7 +196,7 @@ describe("GameBoardSettings", () => {
     await act(async () => {
       fireEvent.change(gameboardname, {target: {value: "New gameboard"}});
     })
-    expect(onConfigChangeMock).toHaveBeenCalled();
+    expect(onConfigChangeMock).toHaveBeenCalledTimes(1);
   });
 
   test("change button colors", async () => {
@@ -213,7 +214,29 @@ describe("GameBoardSettings", () => {
     await act(async () => {
       fireEvent.click(firstColorButton);
     })
-    expect(onConfigChangeMock).toHaveBeenCalled();
+    expect(onConfigChangeMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("change label circumstances", async () => {
+    render (
+        <GameBoardSettings
+        gameConfig={mockConfig}
+        onConfigChange={onConfigChangeMock}
+        isVisible={true}
+        />
+    );
+    const circumstanceButtons = screen.getAllByRole("checkbox", { name: "Circumstance A" }); 
+    const firstCircumstanceButton = circumstanceButtons[0]
+    
+    await act(async () => {
+      fireEvent.click(firstCircumstanceButton);
+    })
+    expect(onConfigChangeMock).toHaveBeenCalledTimes(1);
+    
+    await act(async () => {
+      fireEvent.click(firstCircumstanceButton);
+    })
+    expect(onConfigChangeMock).toHaveBeenCalledTimes(2);
   });
 
 
