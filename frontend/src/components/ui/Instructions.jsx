@@ -43,7 +43,7 @@ const Instructions = ({ show, onClose, apiUrl = `${API_BASE}/instructions` }) =>
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
           font-family: "Montserrat", sans-serif;
           position: relative;
-          font-size: 20px;
+          font-size: 0.8vw;
           white-space: pre-line;
           font-style: bold;
           overflow-y: auto; 
@@ -54,9 +54,9 @@ const Instructions = ({ show, onClose, apiUrl = `${API_BASE}/instructions` }) =>
 
         .instructions-box h2 {
           margin-top: 0;
-          margin-bottom: 4px;
+          margin-bottom: 1vh;
           font-family: "Lilita One", sans-serif;
-          font-size: 40px;
+          font-size: 2vw;
           color: #E76F51;
           text-align: center;
         }
@@ -64,11 +64,11 @@ const Instructions = ({ show, onClose, apiUrl = `${API_BASE}/instructions` }) =>
 
         .instructions-close {
           position: absolute;
-          top: 15px;
-          right: 20px;
+          top: 1.5vh;
+          right: 1vw;
           background: none;
           border: none;
-          font-size: 24px;
+          font-size: 1.2vw;
           cursor: pointer;
           color: #333;
         }

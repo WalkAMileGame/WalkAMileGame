@@ -4,6 +4,8 @@ import editIcon from '../styles/icons/editicon.png';
 import deleteIcon from '../styles/icons/deleteicon.png';
 import addIcon from '../styles/icons/addicon.png';
 import { API_BASE } from "../api";
+import Snackbar from "./ui/snackbar"
+
 
 const CircumstanceCard = ({ title, description, onEdit, onDelete }) => {
   return (
@@ -34,6 +36,10 @@ const Circumstances = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const MaxTitle = 60
+  const MaxDescription = 450
 
   
 
@@ -65,6 +71,30 @@ const Circumstances = () => {
   };
 
 const saveEdit = async () => {
+  const CheckIfTitleExists = notes.find(
+    (note,index) => 
+      note.title.trim().toLowerCase() === editTitle.trim().toLowerCase() &&
+      index !== editingIndex
+  );
+  if (CheckIfTitleExists) {
+    setSnackbarMessage(`Note with a title ${CheckIfTitleExists.title} already exists`);
+    setShowSnackbar(true);     
+    return;
+  }
+
+  if (editTitle.length > 60) {
+    setSnackbarMessage("Title must be less than 60 characters");
+    setShowSnackbar(true);     
+    return;
+  }
+
+    if (editDescription.length > 450) {
+    setSnackbarMessage("Description must be less than 450 characters");
+    setShowSnackbar(true);     
+    return;
+  }
+
+
   if (isAdding) {
     // Create new note
     try {
@@ -128,7 +158,13 @@ const handleDelete = async (note) => {
 
 
   return (
+    
     <div className="circumstance-page">
+        <Snackbar
+        message={snackbarMessage}
+        show={showSnackbar}
+        onClose={() => setShowSnackbar(false)}
+    />
       <div className="circumstance-header">
         <h1>EDIT CIRCUMSTANCES</h1>
       </div>
@@ -158,7 +194,7 @@ const handleDelete = async (note) => {
           ))}
         </div>
       </div>
-
+        
         {(editingIndex !== null || isAdding) && (
         <div className="modal-backdrop">
             <div className="modal">
@@ -170,14 +206,22 @@ const handleDelete = async (note) => {
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
+                maxLength={MaxTitle}
             />
+            <div className={`char-counter ${editTitle.length > MaxTitle - 5 ? "warning" : ""}`}>
+              {editTitle.length}/{MaxTitle}
+            </div>
 
             <label htmlFor="edit-description">Description</label>
             <textarea
                 id="edit-description"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
+                maxLength={MaxDescription}
             />
+            <div className={`char-counter ${editDescription.length > MaxDescription - 5 ? "warning" : ""}`}>
+              {editDescription.length}/{MaxDescription}
+              </div>
 
             <div className="modal-buttons">
                 <button className="savebtn" onClick={saveEdit}>Save</button>
