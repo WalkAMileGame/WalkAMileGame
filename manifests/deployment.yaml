@@ -21,6 +21,10 @@ spec:
           image: walkamile/walkamile-backend:staging
           ports:
             - containerPort: 8000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
           env:
             - name: MONGO_URI
               #to be set:
