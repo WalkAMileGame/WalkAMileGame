@@ -57,6 +57,13 @@ const defaultGameConfig =  {
       ]
     }
 
+vi.mock('../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { email: 'admin@test.com', role: 'admin' },
+    authFetch: vi.fn((...args) => global.fetch(...args)),
+  }),
+}));
+
 vi.stubGlobal('fetch', vi.fn(() =>
   Promise.resolve({
     ok: true,
@@ -169,11 +176,10 @@ test('clicking a slice twice calls the update funciton and returns the deducted 
 
   await user.click(firstSlice);
 
-  expect(fetchSpy).toHaveBeenCalledWith("http://localhost:8000/rooms/ABC123/teams/team1/energy", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ change: 1 }),
-  });
+  expect(fetchSpy).toHaveBeenCalledWith("/rooms/ABC123/teams/team1/energy", expect.objectContaining({
+  method: "PUT",
+  body: JSON.stringify({ change: 1 }),
+  }));
 
   await waitFor(() => {expect(energyDisplay).toHaveTextContent(/Remaining energypoints:\s*100/i);});
 });

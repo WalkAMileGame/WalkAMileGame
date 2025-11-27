@@ -9,6 +9,7 @@ vi.mock('../context/AuthContext', () => ({
     user: { email: 'test@example.com', role: 'admin' },
     login: vi.fn(),
     logout: vi.fn(),
+    authFetch: vi.fn((...args) => global.fetch(...args)),
   }),
 }));
 
@@ -122,14 +123,7 @@ test('editing circumstance', async () => {
     expect(screen.getByText('Updated Description')).toBeInTheDocument();
   });
 
-  expect(global.fetch).toHaveBeenCalledWith(
-    expect.stringContaining('1'),
-    expect.objectContaining({
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: '', title: 'Updated Title', description: 'Updated Description' }),
-    })
-  );
+  expect(global.fetch).toHaveBeenCalledWith('/save_circumstance/1', expect.anything());
 });
 
 

@@ -25,6 +25,18 @@ app.include_router(router)
 
 client = TestClient(app)
 
+def mock_get_current_active_user():
+    return {
+        "email": "admin@test.com", 
+        "role": "admin",
+    }
+
+@pytest.fixture(autouse=True)
+def override_auth():
+    app.dependency_overrides[get_current_active_user] = mock_get_current_active_user
+    yield
+    app.dependency_overrides = {}
+
 
 def test_read_root():
     """Test the root endpoint"""
@@ -501,25 +513,35 @@ def test_remove_user_success(mock_db_instance):
 def test_load_users_success(mock_db_instance):
     """Test successfully loading all users"""
     mock_users = [
-        {"email": "user1@example.com", "role": "admin", "pending": False},
-        {"email": "user2@example.com", "role": "gamemaster", "pending": True}
+        {"email": "user1@example.com", "role": "admin"},
+        {"email": "user2@example.com", "role": "gamemaster"}
     ]
+    mock_codes = ["mock_code_1", "mock_code_2"]
     mock_db_instance.users.find.return_value = mock_users
+    mock_db_instance.codes.find.return_value = mock_codes
 
-    response = client.get("/load_users")
+    response = client.get("/load_user_data")
 
     assert response.status_code == 200
-    assert response.json() == mock_users
+
+    expected_response = {
+        "users": mock_users,
+        "codes": mock_codes
+    }
+    assert response.json() == expected_response
+
     mock_db_instance.users.find.assert_called_once()
+    mock_db_instance.codes.find.assert_called_once()
 
 
 @patch('backend.app.api.db')
 def test_load_users_empty(mock_db_instance):
     """Test loading users when none exist"""
     mock_db_instance.users.find.return_value = []
+    mock_db_instance.codes.find.return_value = []
 
-    response = client.get("/load_users")
+    response = client.get("/load_user_data")
 
     assert response.status_code == 200
-    assert response.json() == []
+    assert response.json() == {'codes': [], 'users': []}
 

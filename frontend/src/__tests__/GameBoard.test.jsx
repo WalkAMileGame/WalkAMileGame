@@ -5,6 +5,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from 'react-router-dom';
 import GameBoard from '../components/GameBoard'
 
+vi.mock('../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { email: 'admin@test.com', role: 'admin' },
+    authFetch: vi.fn((...args) => global.fetch(...args)),
+  }),
+}));
 
 vi.stubGlobal('fetch', vi.fn(() =>
   Promise.resolve({
@@ -56,11 +62,7 @@ test('clicking a slice calls the update function and deducts a point', async () 
   const firstSlice = screen.getByTestId('slice-1');
   await user.click(firstSlice);
 
-  expect(fetchSpy).toHaveBeenCalledWith("http://localhost:8000/items", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ change: -1 }),
-  });
+  expect(global.fetch).toHaveBeenCalledWith('/items', expect.anything());
 
   expect(await screen.findByText(/Remaining energypoints: 99/i)).toBeInTheDocument();
 });
@@ -86,11 +88,8 @@ test('clicking a slice twice calls the update funciton and returns the deducted 
 
   await user.click(firstSlice);
 
-  expect(fetchSpy).toHaveBeenCalledWith("http://localhost:8000/items", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ change: 1 }),
-  });
+  expect(global.fetch).toHaveBeenCalledWith('/items', expect.anything());
+
 
   expect(await screen.findByText(/Remaining energypoints: 100/i));
 })

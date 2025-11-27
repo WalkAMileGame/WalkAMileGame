@@ -5,6 +5,8 @@ import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from datetime import datetime, timezone
+from backend.app.security import get_current_active_user
+
 
 os.environ['TESTING'] = 'true'
 
@@ -18,6 +20,17 @@ with patch("backend.app.api.db") as mock_db:
 
 client = TestClient(app)
 
+def mock_get_current_active_user():
+    return {
+        "email": "admin@test.com", 
+        "role": "admin",
+    }
+
+@pytest.fixture(autouse=True)
+def override_auth():
+    app.dependency_overrides[get_current_active_user] = mock_get_current_active_user
+    yield
+    app.dependency_overrides = {}
 
 # Room Creation Tests
 

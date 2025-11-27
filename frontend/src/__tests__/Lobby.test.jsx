@@ -3,6 +3,14 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import Lobby from '../components/Lobby';
 
+
+vi.mock('../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { email: 'admin@test.com', role: 'admin' },
+    authFetch: vi.fn((...args) => global.fetch(...args)),
+  }),
+}));
+
 // Mock the API_BASE
 vi.mock('../api', () => ({
   API_BASE: 'http://localhost:8000/api'
