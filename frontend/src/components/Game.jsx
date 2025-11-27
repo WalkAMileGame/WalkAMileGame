@@ -23,6 +23,7 @@ const Game = () => {
   const [circumstance, setCircumstance] = useState({ name: '', description: '' });
   const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
   const [timeLeft, setTimeLeft] = useState(null); // Timer state
+  const [isCircumstanceMinimized, setIsCircumstanceMinimized] = useState(false);
   
   
 
@@ -814,6 +815,8 @@ if (!isInitialized) {
           <CircumstanceView
             name={circumstance.name}
             description={circumstance.description}
+            isMinimized={isCircumstanceMinimized}
+            onToggle={() => setIsCircumstanceMinimized(!isCircumstanceMinimized)}
           />
         </div>
         <Instructions
