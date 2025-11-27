@@ -10,6 +10,7 @@ import AboutUs from './components/AboutUs';
 import GamemasterProgress from './components/GamemasterProgress';
 import SelectCircumstances from './components/SelectCircumstances'
 import SpectatorTeamSelection from './components/SpectatorTeamSelection';
+import GameComparison from './components/GameComparison';
 
 import { useNavigate, BrowserRouter as Router, Routes, Route, Link, useLocation} from "react-router-dom"
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -75,6 +76,7 @@ function AppContent() {
           <Route path="/waiting/:gamecode" element={<Lobby />} />
           <Route path="/spectate/:gamecode" element={<SpectatorTeamSelection />} />
           <Route path="/game/:gamecode/:teamname" element={<Game />} />
+          <Route path="/comparison/:gamecode" element={<GameComparison />} />
 
           <Route element={<ProtectedRoute allowedRoles={['admin', 'gamemaster']} />}>
             <Route path="/gameboard" element={<GameBoard />} />
