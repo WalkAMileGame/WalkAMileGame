@@ -754,7 +754,7 @@ version = "2.0.0"
 description = "A tiny, secure, URL-friendly, unique string ID generator for Python"
 optional = false
 python-versions = "*"
-groups = ["dev"]
+groups = ["main"]
 files = [
     {file = "nanoid-2.0.0-py3-none-any.whl", hash = "sha256:90aefa650e328cffb0893bbd4c236cfd44c48bc1f2d0b525ecc53c3187b653bb"},
     {file = "nanoid-2.0.0.tar.gz", hash = "sha256:5a80cad5e9c6e9ae3a41fa2fb34ae189f7cb420b2a5d8f82bd9d23466e4efa68"},
@@ -1383,4 +1383,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "07e03e2c9f774c1f07acf8c31fa5e82796bb8877095e1f8d6ebf261f9d2fa729"
+content-hash = "82567ab731d6f602bab64032cf2f9f76c872fd44cf15f9868b93e6e2b60352e0"
