@@ -57,6 +57,13 @@ const defaultGameConfig =  {
       ]
     }
 
+vi.mock('../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { email: 'admin@test.com', role: 'admin' },
+    authFetch: vi.fn((...args) => global.fetch(...args)),
+  }),
+}));
+
 vi.stubGlobal('fetch', vi.fn(() =>
   Promise.resolve({
     ok: true,
@@ -169,11 +176,10 @@ test('clicking a slice twice calls the update funciton and returns the deducted 
 
   await user.click(firstSlice);
 
-  expect(fetchSpy).toHaveBeenCalledWith("http://localhost:8000/rooms/ABC123/teams/team1/energy", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ change: 1 }),
-  });
+  expect(fetchSpy).toHaveBeenCalledWith("/rooms/ABC123/teams/team1/energy", expect.objectContaining({
+  method: "PUT",
+  body: JSON.stringify({ change: 1 }),
+  }));
 
   await waitFor(() => {expect(energyDisplay).toHaveTextContent(/Remaining energypoints:\s*100/i);});
 });
@@ -337,4 +343,55 @@ test('does not render CircumstanceView when team has no circumstance', async () 
   renderWithRouter();
   await waitFor(() => expect(screen.getByTestId('energypoints')).toBeInTheDocument());
   expect(screen.queryByText('YOUR CIRCUMSTANCE')).not.toBeInTheDocument();
+});
+
+test('CircumstanceView is shown by default in expanded state', async () => {
+  renderWithRouter();
+
+  await waitFor(() => {
+    expect(screen.getByText('YOUR CIRCUMSTANCE')).toBeInTheDocument();
+  });
+
+  // Check that the container has the expanded class
+  const circumstanceContainer = document.querySelector('.circumstance-view-container');
+  expect(circumstanceContainer).toHaveClass('expanded');
+  expect(circumstanceContainer).not.toHaveClass('minimized');
+
+  // Check that circumstance details are visible
+  expect(screen.getByText('Test Circumstance')).toBeInTheDocument();
+  expect(screen.getByText('This is a test circumstance description')).toBeInTheDocument();
+});
+
+test('when CircumstanceView is minimized, only "YOUR CIRCUMSTANCE" text is rendered', async () => {
+  const user = userEvent.setup();
+  renderWithRouter();
+
+  // Wait for the component to load
+  await waitFor(() => {
+    expect(screen.getByText('YOUR CIRCUMSTANCE')).toBeInTheDocument();
+  });
+
+  // Verify initial state - all content visible
+  expect(screen.getByText('Test Circumstance')).toBeInTheDocument();
+  expect(screen.getByText('This is a test circumstance description')).toBeInTheDocument();
+
+  // Find and click the toggle button to minimize
+  const toggleButton = screen.getByRole('button', { name: /minimize circumstance/i });
+  await user.click(toggleButton);
+
+  // Check that the container is now minimized
+  const circumstanceContainer = document.querySelector('.circumstance-view-container');
+  expect(circumstanceContainer).toHaveClass('minimized');
+
+  // Check that "YOUR CIRCUMSTANCE" is still visible
+  expect(screen.getByText('YOUR CIRCUMSTANCE')).toBeInTheDocument();
+
+  // Wait for animation to complete (800ms) before checking if content is removed
+  await waitFor(() => {
+    expect(screen.queryByText('Test Circumstance')).not.toBeInTheDocument();
+    expect(screen.queryByText('This is a test circumstance description')).not.toBeInTheDocument();
+  }, { timeout: 1000 });
+
+  // Verify the toggle button now shows the expand icon
+  expect(toggleButton).toHaveAttribute('aria-label', 'Expand circumstance');
 });

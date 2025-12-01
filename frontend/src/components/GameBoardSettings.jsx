@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/GameboardSettings.css';
 import Snackbar from "./ui/snackbar"
-import { API_BASE } from "../api";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../context/AuthContext';
 
         {/* Available colors */}
 const ColorPicker = ({ onChange, colors = [] }) => {
@@ -80,8 +79,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
-  const { user } = useAuth();
-
+  const { user, authFetch } = useAuth();
+  
   useEffect(() => {
     setLocalConfig(gameConfig);
   }, [gameConfig]);
@@ -96,7 +95,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     try {
       setIsLoading(true);
       console.log("loading gamebords");
-      const res = await fetch(`${API_BASE}/load_boards`, {
+      const res = await authFetch(`/load_boards`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: user.email })
@@ -310,7 +309,7 @@ const saveGameboard = () => {
     ringData: localConfig.ringData,
     circumstances: localConfig.circumstances
   }
-  return fetch(`${API_BASE}/save_board`, {
+  return authFetch(`/save_board`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -379,9 +378,8 @@ const handleDelete = async () => {
 };
 
 const deleteGameboard = () => {
-  return fetch(`${API_BASE}/delete`, {
+  return authFetch(`/delete`, {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
       name: localConfig.name?.trim(),
     }),

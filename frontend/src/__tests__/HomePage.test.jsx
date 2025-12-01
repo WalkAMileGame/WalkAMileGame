@@ -3,6 +3,14 @@ import HomePage from '../components/HomePage'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 
+
+vi.mock('../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { email: 'admin@test.com', role: 'admin' },
+    authFetch: vi.fn((...args) => global.fetch(...args)),
+  }),
+}));
+
 test('renders content', () => {
 
     render(

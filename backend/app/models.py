@@ -97,6 +97,7 @@ class Room(BaseModel):
     game_paused: bool = False
     paused_at: Optional[str] = None
     accumulated_pause_time: int = 0
+    comparison_mode: bool = False
 
     @field_validator('room_code')
     def code_must_be_valid(cls, v):

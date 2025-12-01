@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
 import '../styles/Gameboard.css';
 import GameBoardSettings from "./GameBoardSettings";
-import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
 
@@ -100,16 +100,17 @@ const GameBoard = () => {
   const [activeMarkers, setActiveMarkers] = useState(new Set());
   const [points, setPoints] = useState(0)
 
+  const { authFetch } = useAuth();
+  
   useEffect(() => {
-  fetch(`${API_BASE}/items`)
+  authFetch(`/items`)
     .then((res) => res.json())
     .then((data) => setPoints(data.values));
   }, []);
 
   const updatingPoints = (change = -1) => { // takes input number now
-    fetch(`${API_BASE}/items`, {
+    authFetch(`/items`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ change }), 
     })
       .then((res) => res.json())

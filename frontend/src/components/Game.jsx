@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import '../styles/Game.css';
-import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
 import CircumstanceView from './ui/CircumstanceView';
@@ -23,8 +23,9 @@ const Game = () => {
   const [circumstance, setCircumstance] = useState({ name: '', description: '' });
   const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
   const [timeLeft, setTimeLeft] = useState(null); // Timer state
+  const [isCircumstanceMinimized, setIsCircumstanceMinimized] = useState(false);
   
-  
+  const { authFetch } = useAuth();
 
   const [rotations, setRotations] = useState({
     ring0: 0,
@@ -40,7 +41,7 @@ const Game = () => {
     const initializeBoard = async () => {
       try {
         console.log("Fetching board from backend...");
-        const res = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`);
+        const res = await authFetch(`/rooms/${gamecode}/teams/${teamname}/board`);
         if (!res.ok) throw new Error("No board found for team");
         const data = await res.json();
         console.log("Fetched board data:", data);
@@ -109,7 +110,7 @@ useEffect(() => {
     if (teamname === "Gamemaster") return;
 
     const fetchEnergy = () => {
-      fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`)
+      authFetch(`/rooms/${gamecode}/teams/${teamname}/energy`)
         .then((res) => res.json())
         .then((data) => setPoints(data.current_energy))
         .catch((err) => console.error("Failed to fetch energy:", err));
@@ -125,12 +126,38 @@ useEffect(() => {
     }
   }, [gamecode, teamname, isSpectator, isGamemasterViewing]);
 
+    // Poll for comparison mode and redirect when activated
+  useEffect(() => {
+    const checkComparisonMode = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.comparison_mode) {
+            navigate(`/comparison/${gamecode}`, {
+              state: {
+                isGamemaster: isGamemasterViewing,
+                isSpectator: isSpectator
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check comparison mode:", err);
+      }
+    };
+
+    // Poll every 2 seconds
+    const interval = setInterval(checkComparisonMode, 2000);
+    return () => clearInterval(interval);
+  }, [gamecode, navigate, isGamemasterViewing, isSpectator]);
+
     // Fetch team circumstance and its description
   useEffect(() => {
     const fetchCircumstance = async () => {
       try {
         // Get team's circumstance name from room data
-        const roomRes = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        const roomRes = await authFetch(`/rooms/${gamecode}`);
         if (!roomRes.ok) return;
 
         const roomData = await roomRes.json();
@@ -138,7 +165,7 @@ useEffect(() => {
 
         if (team?.circumstance) {
           // Fetch all circumstances to get the description
-          const circumstancesRes = await fetch(`${API_BASE}/circumstances`);
+          const circumstancesRes = await authFetch(`/circumstances`);
           if (circumstancesRes.ok) {
             const circumstances = await circumstancesRes.json();
             const found = circumstances.find(c => c.title === team.circumstance);
@@ -160,9 +187,8 @@ useEffect(() => {
   }, [gamecode, teamname]);
 
   const updatingPoints = (change = -1) => {
-    fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`, {
+    authFetch(`/rooms/${gamecode}/teams/${teamname}/energy`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ change }),
     })
       .then((res) => res.json())
@@ -223,9 +249,8 @@ useEffect(() => {
         ),
       };
 
-      fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`, {
+      authFetch(`/rooms/${gamecode}/teams/${teamname}/board`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ board_state: updated }),
       }).catch((err) => console.error("Failed to update board:", err));
 
@@ -781,13 +806,15 @@ if (!isInitialized) {
         {/* Circumstance View */}
         <div style={{
           position: 'fixed',
-          bottom: '120px',
+          top: '10rem',
           left: '20px',
           zIndex: 100
         }}>
           <CircumstanceView
             name={circumstance.name}
             description={circumstance.description}
+            isMinimized={isCircumstanceMinimized}
+            onToggle={() => setIsCircumstanceMinimized(!isCircumstanceMinimized)}
           />
         </div>
         <Instructions

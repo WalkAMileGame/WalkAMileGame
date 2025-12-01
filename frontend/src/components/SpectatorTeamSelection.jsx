@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 import '../styles/SpectatorTeamSelection.css';
 
 const SpectatorTeamSelection = () => {
@@ -10,14 +10,24 @@ const SpectatorTeamSelection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const { authFetch } = useAuth();
+
   useEffect(() => {
     const fetchRoomData = async () => {
       try {
-        const response = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        const response = await authFetch(`/rooms/${gamecode}`);
         if (!response.ok) {
           throw new Error('Room not found');
         }
         const data = await response.json();
+
+        // If comparison mode is active, redirect to comparison page
+        if (data.comparison_mode) {
+          navigate(`/comparison/${gamecode}`, {
+            state: { isSpectator: true }
+          });
+          return;
+        }
 
         // If game hasn't started, redirect to waiting room
         if (!data.game_started) {
@@ -34,7 +44,12 @@ const SpectatorTeamSelection = () => {
       }
     };
 
+    // Initial fetch
     fetchRoomData();
+
+    // Poll every 2 seconds to check for comparison mode
+    const interval = setInterval(fetchRoomData, 2000);
+    return () => clearInterval(interval);
   }, [gamecode, navigate]);
 
   const handleSelectTeam = (teamName) => {

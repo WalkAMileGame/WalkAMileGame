@@ -42,7 +42,7 @@ class SaveBoard(BaseModel):
     board: Boards
 
 @router.put("/save_board")
-def save_board(data: SaveBoard):
+def save_board(data: SaveBoard, current_user: dict = Depends(get_current_active_user)):
     db.users.update_one(
         {"email": data.email},
         {"$push": {"boards": data.board.model_dump()}},
@@ -53,14 +53,14 @@ class DeleteBoard(BaseModel):
 
 
 @router.delete("/delete")
-def delete_board(data: DeleteBoard):
+def delete_board(data: DeleteBoard, current_user: dict = Depends(get_current_active_user)):
     db.boards.delete_one({"name": data.name})
 
 class LoadBoard(BaseModel):
     email: str
 
 @router.post("/load_boards")
-def load_boards(data: LoadBoard):
+def load_boards(data: LoadBoard, current_user: dict = Depends(get_current_active_user)):
     boards = list(db.boards.find(projection={"_id": False}))
     user = db.users.find_one({"email": data.email}, {"_id": 0, "boards": 1})
     if not user["boards"]:
@@ -102,13 +102,8 @@ def load_instructions():
 
 @router.post("/login")
 def login(form_data: LoginRequest):
-    print("login function called!")
     user_in_db = db.users.find_one({"email": form_data.email})
     user_access_code = db.codes.find_one({"usedByUser": form_data.email})
-    #print("Users:", list(db.users.find({})))
-    #print("Codes:", list(db.codes.find({})))
-    #db.codes.update_one({"code": ""},
-    #                    {"$set": {"expirationTime": datetime.now(timezone.utc) + timedelta(days=90)}}, upsert=True)
 
     if not user_in_db:
         raise HTTPException(
@@ -204,7 +199,10 @@ def renew_access(form_data: RenewRequest):
 
 
 @router.post("/generate_access_code")
-def generate_access_code(data: GenerateCodeRequest):
+def generate_access_code(
+    data: GenerateCodeRequest,
+    current_user: dict = Depends(get_current_active_user)
+):
     valid_for = data.valid_for
     while True:
         new_code = generate_new_access_code(valid_for)
@@ -223,6 +221,7 @@ def generate_access_code(data: GenerateCodeRequest):
 
 @router.get("/users/me", tags=["auth"])
 def read_current_user(current_user: dict = Depends(get_current_active_user)):
+    print(current_user)
     return current_user
 
 
@@ -250,7 +249,7 @@ def get_time(site: str ="game"):
 # Room Management Endpoints
 
 @router.post("/rooms/create")
-def create_room(room: Room):
+def create_room(room: Room, current_user: dict = Depends(get_current_active_user)):
     """Create a new game room"""
     try:
         print("=== CREATE ROOM REQUEST ===")
@@ -342,7 +341,8 @@ def add_team(room_code: str, team: Team):
 
 
 @router.delete("/rooms/{room_code}/teams/{team_name}")
-def delete_team(room_code: str, team_name: str):
+def delete_team(room_code: str, team_name: str,
+                current_user: dict = Depends(get_current_active_user)):
     """Delete a team from a room"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
@@ -363,7 +363,8 @@ class CircumstanceUpdate(BaseModel):
 
 
 @router.put("/rooms/{room_code}/teams/{team_name}/circumstance")
-def update_team_circumstance(room_code: str, team_name: str, update: CircumstanceUpdate):
+def update_team_circumstance(room_code: str, team_name: str, update: CircumstanceUpdate,
+                             current_user: dict = Depends(get_current_active_user)):
     """Update a team's circumstance"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper(), "teams.team_name": team_name},
@@ -385,7 +386,8 @@ class TimeUpdate(BaseModel):
 
 
 @router.post("/rooms/{room_code}/time")
-def update_time(room_code: str, time_update: TimeUpdate):
+def update_time(room_code: str, time_update: TimeUpdate,
+                current_user: dict = Depends(get_current_active_user)):
     """Update time remaining for a room"""
     update_fields = {"time_remaining": time_update.time_remaining}
 
@@ -412,7 +414,7 @@ def update_time(room_code: str, time_update: TimeUpdate):
 
 
 @router.post("/rooms/{room_code}/start")
-def start_game(room_code: str):
+def start_game(room_code: str, current_user: dict = Depends(get_current_active_user)):
     """Start the game for a room"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
@@ -431,7 +433,7 @@ def start_game(room_code: str):
 
 
 @router.post("/rooms/{room_code}/pause")
-def pause_game(room_code: str):
+def pause_game(room_code: str, current_user: dict = Depends(get_current_active_user)):
     """Pause the game timer for a room"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
@@ -451,7 +453,7 @@ def pause_game(room_code: str):
 
 
 @router.post("/rooms/{room_code}/resume")
-def resume_game(room_code: str):
+def resume_game(room_code: str, current_user: dict = Depends(get_current_active_user)):
     """Resume the game timer for a room"""
     room = db.rooms.find_one({"room_code": room_code.upper()})
 
@@ -481,7 +483,7 @@ def resume_game(room_code: str):
 
 
 @router.post("/rooms/{room_code}/end")
-def end_game(room_code: str):
+def end_game(room_code: str, current_user: dict = Depends(get_current_active_user)):
     """End the game for a room"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
@@ -499,6 +501,94 @@ def end_game(room_code: str):
         )
 
     return {"message": "Game ended successfully"}
+
+
+@router.post("/rooms/{room_code}/start_comparison")
+def start_comparison(room_code: str):
+    """Enable comparison mode for a room"""
+    result = db.rooms.update_one(
+        {"room_code": room_code.upper()},
+        {"$set": {"comparison_mode": True}}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    return {"message": "Comparison mode started"}
+
+
+@router.delete("/rooms/{room_code}")
+def delete_room(room_code: str):
+    """Delete a room and free the game code"""
+    result = db.rooms.delete_one({"room_code": room_code.upper()})
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    return {"message": "Room deleted successfully"}
+
+
+@router.get("/rooms/{room_code}/teams/{team_name}/mistakes")
+def get_team_mistakes(room_code: str, team_name: str):
+    """Get a list of mistakes (missing required tiles) for a team based on their circumstance"""
+    room = db.rooms.find_one({"room_code": room_code.upper()}, {"_id": 0})
+    if not room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Room not found"
+        )
+
+    # Find the team
+    team = next((t for t in room.get("teams", []) if t["team_name"] == team_name), None)
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Team not found"
+        )
+
+    # Get the team's circumstance
+    circumstance_name = team.get("circumstance")
+    if not circumstance_name:
+        return {"mistakes": []}
+
+    # Get the board configuration to find required tiles
+    board_config = room.get("board_config", {})
+    ring_data = board_config.get("ringData", [])
+
+    # Get team's current board state
+    team_board = team.get("gameboard_state", {}).get("ringData", [])
+
+    # Find all tiles required for this circumstance
+    mistakes = []
+    for ring_idx, ring in enumerate(ring_data):
+        for label_idx, label in enumerate(ring.get("labels", [])):
+            # Check if this tile is required for the team's circumstance
+            if circumstance_name in label.get("required_for", []):
+                # Check if team has placed energy on this tile
+                has_energy = False
+                if ring_idx < len(team_board):
+                    team_ring = team_board[ring_idx]
+                    if label_idx < len(team_ring.get("labels", [])):
+                        team_label = team_ring["labels"][label_idx]
+                        has_energy = team_label.get("energypoint", False)
+
+                # If required but no energy placed, it's a mistake
+                if not has_energy:
+                    mistakes.append({
+                        "ring_id": ring.get("id"),
+                        "label_id": label.get("id"),
+                        "tile_text": label.get("text"),
+                        "ring_index": ring_idx,
+                        "label_index": label_idx
+                    })
+
+    return {"mistakes": mistakes}
 
 
 # Team Board and Energy Management Endpoints
@@ -608,23 +698,24 @@ def update_team_energy(room_code: str, team_name: str, data: UpdateTeamEnergy):
 
 
 @router.put("/accept_user")
-def add_user(data: AcceptUser):
+def add_user(data: AcceptUser, current_user: dict = Depends(get_current_active_user)):
     db.users.update_one({"email": data.email},
                         {"$set": {"role": data.role, "pending": False}},
                         upsert=True)
     
 @router.delete("/remove_user")
-def delete_board(data: DenyUser):
+def delete_board(data: DenyUser, current_user: dict = Depends(get_current_active_user)):
     db.users.delete_one({"email": data.email})
     
 @router.get("/load_user_data")
-def load_users():
+def load_users(current_user: dict = Depends(get_current_active_user)):
     users = list(db.users.find(projection={"_id": False, "password": False}))
     codes = list(db.codes.find(projection={"_id": False}))
     return {"users": users, "codes": codes}
 
 @router.put("/save_circumstance/{cid}")
-def save_edited_circumstance(cid: str, data: Circumstance):
+def save_edited_circumstance(cid: str, data: Circumstance,
+                             current_user: dict = Depends(get_current_active_user)):
     db.circumstance.update_one(
         {"_id": ObjectId(cid)},
         {"$set": {
@@ -633,7 +724,7 @@ def save_edited_circumstance(cid: str, data: Circumstance):
         }}
     )
 @router.post("/save_circumstance")
-def save_new_circumstance(data: Circumstance):
+def save_new_circumstance(data: Circumstance, current_user: dict = Depends(get_current_active_user)):
     new_note = db.circumstance.insert_one({"title": data.title, "description": data.description})
     fetch_new_note = db.circumstance.find_one({"_id": new_note.inserted_id})
     fetch_new_note["_id"] = str(fetch_new_note["_id"])
@@ -647,5 +738,6 @@ def get_circumstances():
     return circumstances
 
 @router.delete("/circumstance/{circumstance_id}")
-def delete_circumstance(circumstance_id: str):
+def delete_circumstance(circumstance_id: str,
+                        current_user: dict = Depends(get_current_active_user)):
     db.circumstance.delete_one({"_id": ObjectId(circumstance_id)})

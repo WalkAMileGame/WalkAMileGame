@@ -3,6 +3,14 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import GamemasterProgress from '../components/GamemasterProgress';
 
+
+vi.mock('../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { email: 'admin@test.com', role: 'admin' },
+    authFetch: vi.fn((...args) => global.fetch(...args)),
+  }),
+}));
+
 // Mock the API_BASE
 vi.mock('../api', () => ({
   API_BASE: 'http://localhost:8000/api'
@@ -33,6 +41,21 @@ describe('GamemasterProgress Component', () => {
     room_code: 'TEST123',
     board_config: mockBoardConfig,
     time_remaining: 30,
+    game_started: true,
+    game_started_at: new Date().toISOString(),
+    game_paused: false,
+    accumulated_pause_time: 0,
+    teams: [
+      { team_name: 'Team Alpha', circumstance: 'Test circumstance' },
+      { team_name: 'Team Beta', circumstance: 'Another circumstance' }
+    ]
+  };
+
+  const mockRoomDataNotStarted = {
+    room_code: 'TEST123',
+    board_config: mockBoardConfig,
+    time_remaining: 30,
+    game_started: false,
     game_started_at: null,
     game_paused: false,
     accumulated_pause_time: 0,
@@ -171,7 +194,7 @@ describe('GamemasterProgress Component', () => {
   test('adjusts time with positive number', async () => {
     setupFetchMock({
       '/rooms/TEST123/time': { ok: true, json: async () => ({}) },
-      '/rooms/TEST123': { ok: true, json: async () => mockRoomData }
+      '/rooms/TEST123': { ok: true, json: async () => mockRoomDataNotStarted }
     });
 
 
@@ -205,7 +228,7 @@ describe('GamemasterProgress Component', () => {
   test('adjusts time with negative number', async () => {
     setupFetchMock({
       '/rooms/TEST123/time': { ok: true, json: async () => ({}) },
-      '/rooms/TEST123': { ok: true, json: async () => mockRoomData }
+      '/rooms/TEST123': { ok: true, json: async () => mockRoomDataNotStarted }
     });
 
 

@@ -1,0 +1,276 @@
+/* Global Comparison Page Reset */
+.comparison-page {
+  min-height: 100vh;
+  background-color: #3F695D;
+  color: #dfd4d4;
+  font-family: "Montserrat", sans-serif;
+  padding: 1rem 0 6rem 0;
+  overflow-x: hidden;
+}
+
+/* Header Styles */
+.comparison-header {
+  text-align: center;
+  padding: 1rem;
+  margin: 0 auto;
+}
+
+.comparison-header h1 {
+  font-size: 2rem;
+  color: #F3A261;
+  margin: 0;
+}
+
+/* Controls Section */
+.comparison-controls {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  height: 22vh;
+  padding: 1rem 2rem;
+  margin-bottom: 1rem;
+  margin: 0 auto 1rem auto;
+}
+
+.comparison-team-selector {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 3px solid #86B18A;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  flex: 1;
+  max-width: 30vw;
+}
+
+.comparison-team-selector label {
+  display: block;
+  font-weight: 600;
+  color: #3F695D;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.comparison-team-selector select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #86B18A;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: white;
+  color: #3F695D;
+  cursor: pointer;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+}
+
+.comparison-team-selector select:focus {
+  outline: none;
+  border-color: #3F695D;
+}
+
+.comparison-team-stats {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid #86B18A;
+}
+
+.comparison-team-stats span {
+  color: #3F695D;
+  font-size: 0.95rem;
+}
+
+.comparison-team-stats .mistakes {
+  color: #E76F51;
+  font-weight: bold;
+}
+
+/* MAIN LAYOUT CONTAINER */
+.comparison-boards-container {
+  display: flex;
+  gap: 0;
+  justify-content: center;
+  align-items: flex-start;
+  
+  /* REVERTED: Changed back to 100% to fit parent container naturally */
+  width: 100%; 
+  padding: 0;
+  margin: 0;
+  
+  position: relative;
+}
+
+/* The Center Dividing Line */
+.comparison-boards-container::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background-color: #86B18A;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.comparison-board-section {
+  flex: 1;
+  width: 50%; 
+  max-width: 50%;
+  
+  overflow: hidden; 
+  position: relative;
+  
+  height: calc(80vh); 
+  
+  /* Debug Border (Remove this when done) */
+  border: 1px solid red; 
+}
+
+.comparison-gameboard-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  font-family: "Sour Gummy", sans-serif;
+  position: relative;
+  z-index: 0;
+}
+
+/* Zoom Controls Positioning */
+.comparison-board-section:first-child .zoom-controls-container {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: auto;
+}
+
+.comparison-board-section:last-child .zoom-controls-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  left: auto;
+}
+
+/* the board */
+.comparison-board-wrapper {
+  width: 100%;       /* Fill the window */
+  aspect-ratio: 1/1; /* Keep it square */
+  height: auto;
+  
+  margin: 0 auto;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* the wheel */
+.comparison-wheel-inner {
+  width: 100%;       /* Match wrapper */
+  height: 100%;      /* Match wrapper */
+  
+  margin: 0 auto;
+  position: relative;
+  border-radius: 50%;
+  background-color: #3F695D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  padding: 1rem;
+}
+
+.comparison-start-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #f00;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: 11px;
+  border: 48px solid #f5f5f3ff;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.comparison-slice-path {
+  transition: opacity 0.2s ease;
+}
+
+.comparison-mistake-overlay {
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+/* Actions / Buttons */
+.comparison-actions {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  z-index: 100;
+}
+
+.comparison-close-button,
+.comparison-home-button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Montserrat", sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.comparison-close-button:hover,
+.comparison-home-button:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+}
+
+.comparison-home-button {
+  background-color: #3498db;
+}
+
+.comparison-home-button:hover {
+  background-color: #2980b9;
+  box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+}
+
+.comparison-loading,
+.comparison-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.5rem;
+  color: white;
+  font-family: "Montserrat", sans-serif;
+  background-color: #3F695D;
+}
+
+.comparison-error {
+  color: #E76F51;
+}

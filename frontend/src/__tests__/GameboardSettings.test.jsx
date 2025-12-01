@@ -3,6 +3,14 @@ import { render, screen, fireEvent, act } from '@testing-library/react'
 import { vi } from 'vitest';
 import GameBoardSettings from '../components/GameBoardSettings'
 
+
+vi.mock('../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { email: 'admin@test.com', role: 'admin' },
+    authFetch: vi.fn((...args) => global.fetch(...args)),
+  }),
+}));
+
 vi.mock('../components/ui/snackbar', () => {
   return {
     default: ({ message, show }) => {

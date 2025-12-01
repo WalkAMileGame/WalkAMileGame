@@ -11,6 +11,7 @@ vi.mock('../context/AuthContext', () => ({
     user: { email: 'admin@test.com', role: 'admin' },
     login: vi.fn(),
     logout: vi.fn(),
+	authFetch: vi.fn((...args) => global.fetch(...args)),
   }),
 }));
 

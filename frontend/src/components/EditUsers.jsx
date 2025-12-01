@@ -31,7 +31,7 @@ const EditUsers = () => {
   const [codeSortConfig, setCodeSortConfig] = useState({ key: null, direction: 'asc' });
   const [codeDuration, setCodeDuration] = useState(6);
 
-  const { user } = useAuth();
+const { user, authFetch } = useAuth();
 
   useEffect(() => {
     loadUsers();
@@ -40,8 +40,7 @@ const EditUsers = () => {
   const loadUsers = async () => {
     try {
       console.log("loading users");
-      const res = await fetch(`${API_BASE}/load_user_data`);
-
+      const res = await authFetch('/load_user_data');
       if (!res.ok) {
         console.error("Failed to fetch data");
         return;
@@ -76,9 +75,8 @@ const EditUsers = () => {
   const handleGenerateCode = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch(`${API_BASE}/generate_access_code`, {
+      const response = await authFetch('/generate_access_code', {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ valid_for: codeDuration })
       });
       
@@ -105,9 +103,8 @@ const EditUsers = () => {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`${API_BASE}/remove_access_code`, { 
+      const response = await authFetch('/remove_access_code', { 
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: codeStr }) 
       });
 
@@ -321,9 +318,8 @@ const EditUsers = () => {
 
 
   const removeUser = (userEmail) => {
-    return fetch(`${API_BASE}/remove_user`, {
+    return authFetch('/remove_user', {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email: userEmail,
       }),
@@ -331,9 +327,8 @@ const EditUsers = () => {
   };
 
     const changeUserRole = (email, newrole) => {
-    return fetch(`${API_BASE}/accept_user`, {
+    return authFetch('/accept_user', {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email: email,
         role: newrole,
@@ -343,9 +338,8 @@ const EditUsers = () => {
   };
   
     const acceptUser = () => {
-    return fetch(`${API_BASE}/accept_user`, {
+    return authFetch('/accept_user', {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email: selectedUser,
         role: selectedOption,
