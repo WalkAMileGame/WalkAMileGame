@@ -1,16 +1,53 @@
 """run uvicorn app"""
 import os
 import uvicorn
+import logging
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from apscheduler.schedulers.background import BackgroundScheduler
 from backend.app.api import router
 from backend.app.db import initialize_database
+from backend.app.cleanup import cleanup_old_games, create_cleanup_index
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+# Create scheduler instance
+scheduler = BackgroundScheduler()
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle startup and shutdown events"""
+    # Startup
+    if os.getenv('TESTING') != 'true':
+        initialize_database()
+        create_cleanup_index()
 
-if os.getenv('TESTING') != 'true':
-    initialize_database()
+        # Schedule cleanup task to run every 2 hours
+        scheduler.add_job(
+            cleanup_old_games,
+            'interval',
+            hours=2,
+            id='cleanup_old_games',
+            replace_existing=True
+        )
+        scheduler.start()
+        logging.info("Scheduler started: cleanup runs every 2 hours")
+
+    yield
+
+    # Shutdown
+    if scheduler.running:
+        scheduler.shutdown()
+        logging.info("Scheduler shut down")
+
+
+app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost:5173",
