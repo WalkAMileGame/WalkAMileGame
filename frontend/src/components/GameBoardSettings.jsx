@@ -99,7 +99,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
       const res = await fetch(`${API_BASE}/load_boards`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email }),
+        body: JSON.stringify({ email: user.email })
       });
       if (!res.ok) {
         throw new Error("Failed to fetch boards");
