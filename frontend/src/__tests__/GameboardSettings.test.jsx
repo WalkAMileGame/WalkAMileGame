@@ -253,13 +253,13 @@ describe("GameBoardSettings", () => {
     
     // Mock fetch to handle both load_all and save endpoints
     global.fetch = vi.fn((url) => {
-        if (url.includes('load_all')) {
+        if (url.includes('load_boards')) {
         return Promise.resolve({ 
             ok: true, 
             json: () => Promise.resolve(mockTemplates) 
         });
         }
-        if (url.includes('save')) {
+        if (url.includes('save_board')) {
         return Promise.resolve({ 
             ok: true, 
             json: () => Promise.resolve({}) 
@@ -307,13 +307,13 @@ describe("GameBoardSettings", () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
     global.fetch = vi.fn((url) => {
-      if (url.includes('load_all')) {
+      if (url.includes('load_boards')) {
         return Promise.resolve({ 
           ok: true, 
           json: () => Promise.resolve(mockTemplates) 
         });
       }
-      if (url.includes('save')) {
+      if (url.includes('save_board')) {
         return Promise.resolve({
           ok: false,
           json: () => Promise.resolve({}), 
@@ -342,13 +342,13 @@ describe("GameBoardSettings", () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
     global.fetch = vi.fn((url) => {
-      if (url.includes('load_all')) {
+      if (url.includes('load_boards')) {
         return Promise.resolve({ 
           ok: true, 
           json: () => Promise.resolve(mockTemplates) 
         });
       }
-      if (url.includes('save')) {
+      if (url.includes('save_board')) {
         return Promise.resolve({ 
           ok: true, 
           json: () => Promise.resolve({}) 
@@ -388,13 +388,13 @@ test("user confirmation when switching to different template after making change
   const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => false);
 
   global.fetch = vi.fn((url) => {
-    if (url.includes('load_all')) {
+    if (url.includes('load_boards')) {
       return Promise.resolve({ 
         ok: true, 
         json: () => Promise.resolve(mockTemplates) 
       });
     }
-    if (url.includes('save')) {
+    if (url.includes('save_board')) {
       return Promise.resolve({ 
         ok: true, 
         json: () => Promise.resolve({}) 
@@ -427,13 +427,13 @@ test("user confirmation when switching to different template after making change
     const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
     global.fetch = vi.fn((url) => {
-      if (url.includes('load_all')) {
+      if (url.includes('load_boards')) {
         return Promise.resolve({ 
           ok: true, 
           json: () => Promise.resolve(mockTemplates) 
         });
       }
-      if (url.includes('save')) {
+      if (url.includes('save_board')) {
         return Promise.resolve({ 
           ok: true, 
           json: () => Promise.resolve({}) 
@@ -484,7 +484,7 @@ test("user confirmation when switching to different template after making change
     const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
     global.fetch = vi.fn((url) => {
-        if (url.includes('load_all')) {
+        if (url.includes('load_boards')) {
         return Promise.resolve({ 
             ok: true, 
             json: () => Promise.resolve(mockTemplates) 
@@ -590,7 +590,7 @@ test("user confirmation when switching to different template after making change
     const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
     global.fetch = vi.fn((url) => {
-      if (url.includes('load_all')) {
+      if (url.includes('load_boards')) {
         return Promise.resolve({ 
           ok: true, 
           json: () => Promise.resolve(mockTemplates) 

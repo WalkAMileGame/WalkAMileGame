@@ -75,11 +75,7 @@ export default function HostGamePage() {
   const loadGameboards = async () => {
     setIsLoadingBoards(true);
     try {
-        const response = await authFetch(`/load_boards`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: user.email})
-        });
+        const response = await authFetch(`/load_boards`);
         const data = await response.json();
         console.log('Loaded boards:', data);
         setBoards(data);

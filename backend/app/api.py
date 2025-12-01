@@ -37,15 +37,13 @@ def update_points(data: ChangePoints):
     updated_points = db.points.find_one({"id": "0"}, {"_id": 0})
     return updated_points
 
-class SaveBoard(BaseModel):
-    email: str
-    board: Boards
 
 @router.put("/save_board")
-def save_board(data: SaveBoard, current_user: dict = Depends(get_current_active_user)):
+def save_board(data: Boards, current_user: dict = Depends(get_current_active_user)):
+    email = current_user["email"]
     db.users.update_one(
-        {"email": data.email},
-        {"$push": {"boards": data.board.model_dump()}},
+        {"email": email},
+        {"$push": {"boards": data.model_dump()}},
     )
 
 class DeleteBoard(BaseModel):
@@ -56,13 +54,12 @@ class DeleteBoard(BaseModel):
 def delete_board(data: DeleteBoard, current_user: dict = Depends(get_current_active_user)):
     db.boards.delete_one({"name": data.name})
 
-class LoadBoard(BaseModel):
-    email: str
 
-@router.post("/load_boards")
-def load_boards(data: LoadBoard, current_user: dict = Depends(get_current_active_user)):
+@router.get("/load_boards")
+def load_boards(current_user: dict = Depends(get_current_active_user)):
+    email = current_user["email"]
     boards = list(db.boards.find(projection={"_id": False}))
-    user = db.users.find_one({"email": data.email}, {"_id": 0, "boards": 1})
+    user = db.users.find_one({"email": email}, {"_id": 0, "boards": 1})
     if not user["boards"]:
         return boards
     return boards + user["boards"]

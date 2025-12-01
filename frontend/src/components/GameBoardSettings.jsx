@@ -95,11 +95,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     try {
       setIsLoading(true);
       console.log("loading gamebords");
-      const res = await authFetch(`/load_boards`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email })
-      });
+      const res = await authFetch(`/load_boards`);
       if (!res.ok) {
         throw new Error("Failed to fetch boards");
       }
@@ -304,17 +300,12 @@ const handleSave = async () => {
 
 {/* Make sure saveGameboard RETURNS the fetch result */ }
 const saveGameboard = () => {
-  const boardContent = {
-    name: localConfig.name?.trim(),
-    ringData: localConfig.ringData,
-    circumstances: localConfig.circumstances
-  }
   return authFetch(`/save_board`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email: user.email,
-      board: boardContent
+      name: localConfig.name?.trim(),
+      ringData: localConfig.ringData,
+      circumstances: localConfig.circumstances
     }),
   });
 };
