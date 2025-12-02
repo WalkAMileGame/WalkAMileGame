@@ -20,7 +20,7 @@ const CircumstanceCard = ({ title, description, onEdit, onDelete, selected, onSe
         alt="edit"
         className="edit-icon"
         onClick={(e) => { e.stopPropagation(); onEdit(); }}
-        title={selected ? "Selected" : "Select circumstance"}
+        title="Edit"
       />
       <img
         src={deleteIcon}
