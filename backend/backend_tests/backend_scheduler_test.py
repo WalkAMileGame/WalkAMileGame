@@ -1,8 +1,12 @@
 """Integration tests for the cleanup scheduler"""
 from unittest.mock import MagicMock, patch
 import time
-
+from backend.main import app
+from fastapi.testclient import TestClient
+import os
 import pytest
+from backend.main import scheduler
+from backend.app.cleanup import cleanup_old_games
 
 
 class TestSchedulerIntegration:
@@ -14,8 +18,7 @@ class TestSchedulerIntegration:
     def test_scheduler_starts_on_app_startup(
             self, mock_scheduler, mock_create_index, mock_init_db):
         """Test that scheduler starts when app starts (non-testing mode)"""
-        from backend.main import app
-        from fastapi.testclient import TestClient
+        os.environ["TESTING"] = "false"
 
         # Mock scheduler behavior
         mock_scheduler.running = False
@@ -48,8 +51,6 @@ class TestSchedulerIntegration:
     def test_scheduler_shuts_down_on_app_shutdown(
             self, mock_scheduler, mock_create_index, mock_init_db):
         """Test that scheduler shuts down when app stops"""
-        from backend.main import app
-        from fastapi.testclient import TestClient
 
         # Mock scheduler as running
         mock_scheduler.running = True
@@ -66,7 +67,6 @@ class TestSchedulerIntegration:
     def test_cleanup_job_configuration(
             self, mock_cleanup, mock_create_index, mock_init_db):
         """Test that cleanup job is configured with correct parameters"""
-        from backend.main import scheduler
 
         # Clear any existing jobs
         scheduler.remove_all_jobs()
@@ -97,7 +97,6 @@ class TestSchedulerManualExecution:
     @patch('backend.app.cleanup.db')
     def test_manual_trigger_cleanup(self, mock_db):
         """Test manually triggering the cleanup function as scheduler would"""
-        from backend.app.cleanup import cleanup_old_games
 
         # Setup mock
         mock_result = MagicMock()
@@ -114,7 +113,6 @@ class TestSchedulerManualExecution:
     @patch('backend.app.cleanup.db')
     def test_rapid_consecutive_cleanups(self, mock_db):
         """Test that cleanup can be called multiple times in succession"""
-        from backend.app.cleanup import cleanup_old_games
 
         mock_result = MagicMock()
         mock_result.deleted_count = 1
