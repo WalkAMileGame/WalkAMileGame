@@ -46,8 +46,7 @@ To lint one or the other, decorators --backend and --frontend can be used.
 invoke lint --frontend
 ```
 
-More detailed instrustions [here](https://github.com/WalkAMileGame/WalkAMileGame/wiki/Local-Development)
-Problems with installation? See this [document](https://github.com/WalkAMileGame/WalkAMileGame/wiki/Common-problems)
+More detailed [instructions](https://github.com/WalkAMileGame/WalkAMileGame/wiki/Local-Development). Problems with installation? See this [document](https://github.com/WalkAMileGame/WalkAMileGame/wiki/Common-problems).
 
 ## Dev practices & Documentation
 [Local developement and dev practices](https://github.com/WalkAMileGame/WalkAMileGame/wiki/Documentation) <br>
