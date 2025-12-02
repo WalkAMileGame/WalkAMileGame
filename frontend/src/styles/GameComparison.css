@@ -6,6 +6,13 @@
   font-family: "Montserrat", sans-serif;
   padding: 1rem 0 6rem 0;
   overflow-x: hidden;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  overflow-x: hidden; 
 }
 
 /* Header Styles */
@@ -40,6 +47,11 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   flex: 1;
   max-width: 30vw;
+}
+
+/* Single team selector should be wider */
+.comparison-controls > .comparison-team-selector:only-child {
+  max-width: 40vw;
 }
 
 .comparison-team-selector label {
@@ -86,22 +98,56 @@
   font-weight: bold;
 }
 
+/* Toggle Button Container */
+.comparison-mode-toggle {
+  display: flex;
+  justify-content: center;
+  margin: 1rem auto;
+}
+
+.comparison-toggle-button {
+  background-color: #F3A261;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Montserrat", sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.comparison-toggle-button:hover {
+  background-color: #E8944D;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(243, 162, 97, 0.5);
+}
+
 /* MAIN LAYOUT CONTAINER */
 .comparison-boards-container {
   display: flex;
   gap: 0;
   justify-content: center;
   align-items: flex-start;
-  
-  /* REVERTED: Changed back to 100% to fit parent container naturally */
-  width: 100%; 
+  width: 100%;
   padding: 0;
   margin: 0;
-  
   position: relative;
 }
 
-/* The Center Dividing Line */
+/* Single Board Mode - Center the board */
+.comparison-boards-container.single-board {
+  justify-content: center;
+}
+
+.comparison-boards-container.single-board .comparison-board-section {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* The Center Dividing Line - Only show in comparison mode */
 .comparison-boards-container::before {
   content: '';
   position: absolute;
@@ -112,6 +158,10 @@
   background-color: #86B18A;
   transform: translateX(-50%);
   z-index: 10;
+}
+
+.comparison-boards-container.single-board::before {
+  display: none;
 }
 
 .comparison-board-section {
@@ -154,12 +204,20 @@
   left: auto;
 }
 
+/* Single board mode - bottom right zoom controls */
+.comparison-boards-container.single-board .comparison-board-section .zoom-controls-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  left: auto;
+  transform: none;
+}
+
 /* the board */
 .comparison-board-wrapper {
-  width: 100%;       /* Fill the window */
+  width: 50%;       /* Fill the window */
   aspect-ratio: 1/1; /* Keep it square */
   height: auto;
-  
   margin: 0 auto;
   position: relative;
   transition: all 0.3s ease;
@@ -187,8 +245,8 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 48px;
-  height: 48px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   background-color: #f00;
   color: #fff;
@@ -198,9 +256,18 @@
   transform: translate(-50%, -50%);
   font-weight: bold;
   font-size: 11px;
-  border: 48px solid #f5f5f3ff;
+  border: 32px solid #f5f5f3ff;
   pointer-events: none;
   z-index: 10;
+  font-family: "Sour Gummy", sans-serif;
+}
+
+/* Larger start circle for single board mode to match standard Game/GameBoard ratio */
+.comparison-boards-container.single-board .comparison-start-circle {
+  width: 60px;
+  height: 60px;
+  font-size: 18px;
+  border: 68px solid #f5f5f3ff;
 }
 
 .comparison-slice-path {

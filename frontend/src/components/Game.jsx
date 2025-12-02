@@ -130,7 +130,7 @@ useEffect(() => {
   useEffect(() => {
     const checkComparisonMode = async () => {
       try {
-        const res = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        const res = await authFetch(`/rooms/${gamecode}`);
         if (res.ok) {
           const data = await res.json();
           if (data.comparison_mode) {
@@ -150,7 +150,7 @@ useEffect(() => {
     // Poll every 2 seconds
     const interval = setInterval(checkComparisonMode, 2000);
     return () => clearInterval(interval);
-  }, [gamecode, navigate, isGamemasterViewing, isSpectator]);
+  }, [gamecode, navigate, isGamemasterViewing, isSpectator, authFetch]);
 
     // Fetch team circumstance and its description
   useEffect(() => {
