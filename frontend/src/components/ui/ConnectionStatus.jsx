@@ -44,7 +44,7 @@ const ConnectionStatus = () => {
 
   const statusConfig = {
     connected: {
-      text: '✓ Backend Connected',
+      text: 'ᯤ Connected',
       color: '#22c55e'
     },
     unhealthy: {
@@ -71,7 +71,7 @@ const ConnectionStatus = () => {
     <div style={{
       position: 'fixed',
       bottom: '20px',
-      left: '20px',
+      left: '65px',
       padding: '10px 20px',
       backgroundColor: '#FFF4E6',
       border: `2px solid ${currentConfig.color}`,

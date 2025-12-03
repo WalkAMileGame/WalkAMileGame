@@ -15,19 +15,22 @@ const AboutUs = () => {
         <h1>ABOUT US</h1>
         <hr />
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-          quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-          consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-          cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
-          non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          Walk A Mile was created by four former International Student Advisors from the
+          University of Helsinki’s International Student Advice team. The game was originally
+          developed for a workshop at the Spring Forum for Higher Education International
+          Affairs 2025 in Finland, themed “Internationalisation as a Force for Change.”
         </p>
         <p>
-          Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
-          doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
-          veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim
-          ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia
-          consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+          As advisors, we listened to the stories of international students, learned about their
+          challenges, and helped them navigate life in a new country. Having all been
+          international students ourselves, we also understood these experiences on a personal level.
+        </p>
+        <p>
+          Together, we set out to design a game that could help our colleagues - especially those
+          who might not have lived these experiences - better understand what it’s like to move to
+          Finland as an international student. Through Walk A Mile, we aim to spark empathy, deepen
+          understanding, and foster greater cultural sensitivity among those who work with
+          international students.
         </p>
       </div>
     </div>

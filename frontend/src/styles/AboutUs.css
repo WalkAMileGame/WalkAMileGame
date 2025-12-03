@@ -18,14 +18,19 @@
 .about-us-container .content-container {
   position: relative;
   z-index: 2;
+  padding-bottom: 150px;
 }
 
 .about-us-container .decoration-element {
   position: absolute;
   opacity: 0.3;
-  z-index: 1;
   width: 150px;
   height: auto;
+}
+
+.about-us-container .element1-top,
+.about-us-container .element2-top {
+  z-index: 1;
 }
 
 .about-us-container .element1-top {
@@ -40,15 +45,17 @@
 }
 
 .about-us-container .element1-bottom {
-  bottom: 25%;
+  top: 760px;
   right: 10%;
   width: 130px;
+  z-index: 3;
 }
 
 .about-us-container .element2-bottom {
-  bottom: 20%;
+  top: 860px;
   left: 15%;
   width: 140px;
+  z-index: 3;
 }
 
 .about-us-container h1 {
@@ -64,6 +71,6 @@
 
 .about-us-container p {
   color: white;
-  line-height: 1.6;
-  font-size: 20px;
+  line-height: 1.8;
+  font-size: 24px;
 }

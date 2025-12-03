@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Lobby.css';
 
 export default function Lobby() {
@@ -24,6 +24,8 @@ export default function Lobby() {
   const isGamemaster = location.state?.isGamemaster || false;
   const boardConfig = location.state?.boardConfig;
   const availableCircumstances = boardConfig?.circumstances || [];
+
+  const { authFetch } = useAuth();
 
   // --- Restore team join state on reload ---
   useEffect(() => {
@@ -53,7 +55,7 @@ export default function Lobby() {
     const init = async () => {
       if (isGamemaster) {
         try {
-          const response = await fetch(`${API_BASE}/rooms/${inviteCode}`);
+          const response = await authFetch(`/rooms/${inviteCode}`);
           if (response.ok) {
             console.log('Room already exists, skipping creation');
             setRoomCreated(true);
@@ -102,9 +104,8 @@ export default function Lobby() {
       if (!savedTeamName) return;
 
       try {
-        await fetch(`${API_BASE}/rooms/${inviteCode}/teams/${savedTeamName}/board`, {
+        await authFetch(`/rooms/${inviteCode}/teams/${savedTeamName}/board`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ board_state: roomData.board_config }),
         });
 
@@ -145,9 +146,8 @@ export default function Lobby() {
     };
 
     try {
-      const response = await fetch(`${API_BASE}/rooms/create`, {
+      const response = await authFetch(`/rooms/create`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(roomPayload),
       });
 
@@ -168,7 +168,7 @@ export default function Lobby() {
   // --- Load room data ---
   const loadRoomData = async () => {
     try {
-      const response = await fetch(`${API_BASE}/rooms/${inviteCode}`);
+      const response = await authFetch(`/rooms/${inviteCode}`);
       if (response.ok) {
         const data = await response.json();
         setRoomData(data);
@@ -188,9 +188,8 @@ export default function Lobby() {
   const updateTime = async () => {
     const newTime = parseInt(timeInput) || 0;
     try {
-      await fetch(`${API_BASE}/rooms/${inviteCode}/time`, {
+      await authFetch(`/rooms/${inviteCode}/time`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ time_remaining: newTime }),
       });
       setTimeRemaining(newTime);
@@ -205,7 +204,7 @@ export default function Lobby() {
   // --- Team management ---
   const deleteTeam = async (teamName) => {
     try {
-      await fetch(`${API_BASE}/rooms/${inviteCode}/teams/${teamName}`, { method: 'DELETE' });
+      await authFetch(`/rooms/${inviteCode}/teams/${teamName}`, { method: 'DELETE' });
       loadRoomData();
     } catch (err) {
       console.error('Error deleting team:', err);
@@ -214,9 +213,8 @@ export default function Lobby() {
 
   const updateTeamCircumstance = async (teamName, circumstance) => {
     try {
-      await fetch(`${API_BASE}/rooms/${inviteCode}/teams/${teamName}/circumstance`, {
+      await authFetch(`/rooms/${inviteCode}/teams/${teamName}/circumstance`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ circumstance }),
       });
       setEditingTeam(null);
@@ -240,7 +238,7 @@ export default function Lobby() {
   // --- Start game ---
   const startGame = async () => {
     try {
-      await fetch(`${API_BASE}/rooms/${inviteCode}/start`, { method: 'POST' });
+      await authFetch(`/rooms/${inviteCode}/start`, { method: 'POST' });
       navigate(`/gamemaster/progress/${inviteCode}`, {
         state: {
           boardConfig,
@@ -261,9 +259,8 @@ export default function Lobby() {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/rooms/${inviteCode}/teams`, {
+      const response = await authFetch(`/rooms/${inviteCode}/teams`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: Date.now(),
           team_name: teamName,

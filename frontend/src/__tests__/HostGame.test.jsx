@@ -4,6 +4,14 @@ import { BrowserRouter } from 'react-router-dom';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import HostGamePage from '../components/HostGame';
 
+
+vi.mock('../context/AuthContext', () => ({
+  useAuth: () => ({
+    user: { email: 'admin@test.com', role: 'admin' },
+    authFetch: vi.fn((...args) => global.fetch(...args)),
+  }),
+}));
+
 // Mock useNavigate
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => ({
@@ -40,7 +48,7 @@ describe('HostGamePage - Core Functionality', () => {
     renderComponent();
     
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('http://localhost:8000/load_all');
+      expect(global.fetch).toHaveBeenCalledWith('/load_all');
       expect(screen.getByText('Classic Board')).toBeInTheDocument();
       expect(screen.getByText('Advanced Board')).toBeInTheDocument();
     });

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/HostGame.css';
-import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 
 // Simple SVG Icons as components
@@ -65,6 +65,8 @@ export default function HostGamePage() {
   const [isLoadingBoards, setIsLoadingBoards] = useState(false);
   const [isGamemaster] = useState(true);
 
+  const { authFetch } = useAuth();
+  
   // Load gameboards when component mounts
   useEffect(() => {
     loadGameboards();
@@ -73,7 +75,7 @@ export default function HostGamePage() {
   const loadGameboards = async () => {
     setIsLoadingBoards(true);
     try {
-        const response = await fetch(`${API_BASE}/load_all`);
+        const response = await authFetch(`/load_all`);
         const data = await response.json();
         console.log('Loaded boards:', data);
         setBoards(data);
