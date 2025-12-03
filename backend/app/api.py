@@ -52,7 +52,12 @@ class DeleteBoard(BaseModel):
 
 @router.delete("/delete")
 def delete_board(data: DeleteBoard, current_user: dict = Depends(get_current_active_user)):
-    db.boards.delete_one({"name": data.name})
+    email= current_user["email"]
+    db.users.update_one(
+        {"email": email},
+        {"$pull": {"boards": {"name": data.name}}}
+    )
+    return {"message": "Board deleted successfully"}
 
 
 @router.get("/load_boards")

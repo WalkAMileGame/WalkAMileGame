@@ -99,11 +99,10 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
       if (!res.ok) {
         throw new Error("Failed to fetch boards");
       }
-      
       const data = await res.json();
       setTemplates(data ?? []);
-      
-      console.log("loading complete");
+    
+      return data ?? [];
     } catch (err) {
       console.error("Error loading gameboards:", err);
     } finally {
@@ -124,7 +123,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   };
 
   const handleEnergyvalueChange = (layerIndex, labelIndex, energyvalue) => {
-    const updatedConfig = { ...localConfig };
+    const updatedConfig = structuredClone(localConfig);
     updatedConfig.ringData[layerIndex].labels[labelIndex].energyvalue = energyvalue;
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
@@ -132,7 +131,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   };
 
   const handleSliceTextChange = (layerIndex, labelIndex, text) => {
-    const updatedConfig = { ...localConfig };
+    const updatedConfig = structuredClone(localConfig);
     updatedConfig.ringData[layerIndex].labels[labelIndex].text = text;
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
@@ -140,7 +139,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   };
 
   const handleSliceColorChange = (layerIndex, labelIndex, color) => {
-    const updatedConfig = { ...localConfig };
+    const updatedConfig = structuredClone(localConfig);
     updatedConfig.ringData[layerIndex].labels[labelIndex].color = color;
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
@@ -148,7 +147,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   };
 
   const handleSliceCircumstanceChange = (layerIndex, labelIndex, required) => {
-    const updatedConfig = { ...localConfig };
+    const updatedConfig = structuredClone(localConfig);
     updatedConfig.ringData[layerIndex].labels[labelIndex].required_for = required;
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
@@ -156,7 +155,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   };
 
   const handleTileTypeChange = (layerIndex, labelIndex, isTitleTile) => {
-    const updatedConfig = { ...localConfig };
+    const updatedConfig = structuredClone(localConfig);
     const ring = updatedConfig.ringData[layerIndex];
 
     if (isTitleTile) {
@@ -264,11 +263,14 @@ const handleSave = async () => {
         t.name === localConfig.name?.trim()
           ? { ...t, ringData: localConfig.ringData } : t
         );
-        setTemplates(updatedTemplates)
+        setTemplates(updatedTemplates);
       } else {
         const updatedTemplates = [...templates, localConfig];
+        setLocalConfig({ ...localConfig })
         setTemplates(updatedTemplates);
+        
       }
+      setSelectedTemplateName(localConfig.name?.trim());
     }
 
     if (!response.ok) {
@@ -335,11 +337,6 @@ const handleDelete = async () => {
   setIsDeleting(true);
   try {
     const response = await deleteGameboard();
-    if (response.ok) {
-      setUnsavedChanges(false);
-      const updatedTemplates = templates.filter(t => t.name !== localConfig.name?.trim());
-      setTemplates(updatedTemplates);
-    }
 
     if (!response.ok) {
       let errorMsg = "Failed to delete gameboard.";
@@ -356,6 +353,16 @@ const handleDelete = async () => {
       return;
     }
 
+    const res = await authFetch(`/load_boards`);
+    if (!res.ok) throw new Error("Failed to load boards after delete");
+
+    const data = await res.json();
+    setTemplates(data ?? []);
+
+    if (data?.length > 0) onConfigChange(data[0]);
+    else onConfigChange(null);
+
+    setUnsavedChanges(false);
     setSnackbarMessage("Gameboard deleted successfully!");
     setShowSnackbar(true);
 
