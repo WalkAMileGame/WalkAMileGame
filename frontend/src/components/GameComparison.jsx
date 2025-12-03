@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../styles/GameComparison.css';
-import { API_BASE } from '../api';
+import { useAuth } from '../context/AuthContext';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
 
@@ -10,6 +10,7 @@ const GameComparison = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isGamemaster = location.state?.isGamemaster || false;
+  const { authFetch } = useAuth();
 
   const [roomData, setRoomData] = useState(null);
   const [currentTeam, setCurrentTeam] = useState(null);
@@ -52,6 +53,9 @@ const GameComparison = () => {
   const [leftRotations, setLeftRotations] = useState({ ring0: 0, ring1: 0, ring2: 0, ring3: 0 });
   const [rightRotations, setRightRotations] = useState({ ring0: 0, ring1: 0, ring2: 0, ring3: 0 });
 
+  // Comparison mode state
+  const [isComparisonMode, setIsComparisonMode] = useState(false);
+
   const leftContainerRef = useRef(null);
   const rightContainerRef = useRef(null);
 
@@ -80,7 +84,7 @@ const GameComparison = () => {
   useEffect(() => {
     const fetchRoomData = async () => {
       try {
-        const res = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        const res = await authFetch(`/rooms/${gamecode}`);
         if (res.ok) {
           const data = await res.json();
           setRoomData(data);
@@ -100,7 +104,7 @@ const GameComparison = () => {
     fetchRoomData();
     const interval = setInterval(fetchRoomData, 2000);
     return () => clearInterval(interval);
-  }, [gamecode, currentTeam]);
+  }, [gamecode, currentTeam, authFetch]);
 
   // Load left team's board and mistakes
   useEffect(() => {
@@ -108,14 +112,14 @@ const GameComparison = () => {
 
     const fetchLeftTeamData = async () => {
       try {
-        const boardRes = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${leftTeamName}/board`);
+        const boardRes = await authFetch(`/rooms/${gamecode}/teams/${leftTeamName}/board`);
         if (boardRes.ok) {
           const boardData = await boardRes.json();
           setLeftGameConfig(boardData);
           setLeftActiveMarkers(restoreEnergyMarkers(boardData));
         }
 
-        const mistakesRes = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${leftTeamName}/mistakes`);
+        const mistakesRes = await authFetch(`/rooms/${gamecode}/teams/${leftTeamName}/mistakes`);
         if (mistakesRes.ok) {
           const mistakesData = await mistakesRes.json();
           setLeftMistakes(mistakesData.mistakes || []);
@@ -126,7 +130,7 @@ const GameComparison = () => {
     };
 
     fetchLeftTeamData();
-  }, [leftTeamName, gamecode]);
+  }, [leftTeamName, gamecode, authFetch]);
 
   // Load right team's board and mistakes
   useEffect(() => {
@@ -134,14 +138,14 @@ const GameComparison = () => {
 
     const fetchRightTeamData = async () => {
       try {
-        const boardRes = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${rightTeamName}/board`);
+        const boardRes = await authFetch(`/rooms/${gamecode}/teams/${rightTeamName}/board`);
         if (boardRes.ok) {
           const boardData = await boardRes.json();
           setRightGameConfig(boardData);
           setRightActiveMarkers(restoreEnergyMarkers(boardData));
         }
 
-        const mistakesRes = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${rightTeamName}/mistakes`);
+        const mistakesRes = await authFetch(`/rooms/${gamecode}/teams/${rightTeamName}/mistakes`);
         if (mistakesRes.ok) {
           const mistakesData = await mistakesRes.json();
           setRightMistakes(mistakesData.mistakes || []);
@@ -152,7 +156,7 @@ const GameComparison = () => {
     };
 
     fetchRightTeamData();
-  }, [rightTeamName, gamecode]);
+  }, [rightTeamName, gamecode, authFetch]);
 
   const restoreEnergyMarkers = (boardData) => {
     if (!boardData?.ringData) return new Set();
@@ -348,7 +352,7 @@ const GameComparison = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/rooms/${gamecode}`, {
+      const res = await authFetch(`/rooms/${gamecode}`, {
         method: 'DELETE',
       });
 
@@ -577,7 +581,7 @@ const GameComparison = () => {
                               <path
                                 className="comparison-mistake-overlay"
                                 d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
-                                fill="rgba(255, 0, 0, 0.4)"
+                                fill="rgba(255, 0, 0, 1.0)"
                                 stroke="red"
                                 strokeWidth={3}
                                 style={{ pointerEvents: 'none' }}
@@ -661,46 +665,86 @@ const GameComparison = () => {
       </div>
 
       <div className="comparison-controls">
-        <div className="comparison-team-selector">
-          <label>Left Board:</label>
-          <select value={leftTeamName || ''} onChange={(e) => setLeftTeamName(e.target.value)}>
-            {roomData.teams.map((team) => (
-              <option key={team.team_name} value={team.team_name}>
-                {team.team_name}
-              </option>
-            ))}
-          </select>
-          <div className="comparison-team-stats">
-            <span>Circumstance: {leftTeam?.circumstance} Energy: {leftTeam?.current_energy}</span>
-            <span className="mistakes">Mistakes: {leftMistakes.length}</span>
+        {!isComparisonMode ? (
+          // Single board mode - show only your team
+          <div className="comparison-team-selector">
+            <label>Your Team:</label>
+            <select value={leftTeamName || ''} onChange={(e) => setLeftTeamName(e.target.value)}>
+              {roomData.teams.map((team) => (
+                <option key={team.team_name} value={team.team_name}>
+                  {team.team_name}
+                </option>
+              ))}
+            </select>
+            <div className="comparison-team-stats">
+              <span>
+              {leftTeam?.circumstance
+                ? `Circumstance: ${leftTeam.circumstance}, `
+                : `Circumstance: None, `
+              }
+              </span>
+              <span className="mistakes">Energy: {leftTeam?.current_energy}, Mistakes: {leftMistakes.length}</span>
+            </div>
           </div>
-        </div>
+        ) : (
+          // Comparison mode - show both teams
+          <>
+            <div className="comparison-team-selector">
+              <label>Left Board:</label>
+              <select value={leftTeamName || ''} onChange={(e) => setLeftTeamName(e.target.value)}>
+                {roomData.teams.map((team) => (
+                  <option key={team.team_name} value={team.team_name}>
+                    {team.team_name}
+                  </option>
+                ))}
+              </select>
+              <div className="comparison-team-stats">
+                <span>
+                {leftTeam?.circumstance
+                  ? `Circumstance: ${leftTeam.circumstance}, `
+                  : `Circumstance: None, `
+                }
+                </span>
+                <span className="mistakes">Energy: {leftTeam?.current_energy}, Mistakes: {leftMistakes.length}</span>
+              </div>
+            </div>
 
-        <div className="comparison-team-selector">
-          <label>Right Board:</label>
-          <select value={rightTeamName || ''} onChange={(e) => setRightTeamName(e.target.value)}>
-            {roomData.teams.map((team) => (
-              <option key={team.team_name} value={team.team_name}>
-                {team.team_name}
-              </option>
-            ))}
-          </select>
-          <div className="comparison-team-stats">
-            <span>
-            {leftTeam?.circumstance
-              ? `Circumstance: ${leftTeam.circumstance}, `
-              : `Circumstance: None,  `
-            }
-            Energy: {rightTeam?.current_energy}
-            </span>
-            <span className="mistakes">Mistakes: {rightMistakes.length}</span>
-          </div>
-        </div>
+            <div className="comparison-team-selector">
+              <label>Right Board:</label>
+              <select value={rightTeamName || ''} onChange={(e) => setRightTeamName(e.target.value)}>
+                {roomData.teams.map((team) => (
+                  <option key={team.team_name} value={team.team_name}>
+                    {team.team_name}
+                  </option>
+                ))}
+              </select>
+              <div className="comparison-team-stats">
+                <span>
+                {rightTeam?.circumstance
+                  ? `Circumstance: ${rightTeam.circumstance}, `
+                  : `Circumstance: None, `
+                }
+                </span>
+                <span className="mistakes">Energy: {rightTeam?.current_energy}, Mistakes: {rightMistakes.length}</span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      <div className="comparison-boards-container">
+      {/* Toggle button for comparison mode */}
+      <div className="comparison-mode-toggle">
+        <button
+          onClick={() => setIsComparisonMode(!isComparisonMode)}
+          className="comparison-toggle-button"
+        >
+          {isComparisonMode ? 'Show Only My Board' : 'Compare with Others'}
+        </button>
+      </div>
+
+      <div className={`comparison-boards-container ${!isComparisonMode ? 'single-board' : ''}`}>
         {renderBoard('left', leftGameConfig, leftActiveMarkers, leftMistakes, leftRotations, leftZoom, leftPan, leftContainerRef)}
-        {renderBoard('right', rightGameConfig, rightActiveMarkers, rightMistakes, rightRotations, rightZoom, rightPan, rightContainerRef)}
+        {isComparisonMode && renderBoard('right', rightGameConfig, rightActiveMarkers, rightMistakes, rightRotations, rightZoom, rightPan, rightContainerRef)}
       </div>
 
       <div className="comparison-actions">

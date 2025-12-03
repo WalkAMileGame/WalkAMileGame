@@ -73,7 +73,7 @@ const GamemasterProgress = () => {
 
   const handleShowComparison = async () => {
     try {
-      const response = await fetch(`${API_BASE}/rooms/${gamecode}/start_comparison`, {
+      const response = await authFetch(`/rooms/${gamecode}/start_comparison`, {
         method: 'POST',
       });
       if (!response.ok) {
