@@ -64,6 +64,19 @@ vi.stubGlobal('fetch', vi.fn(() =>
   })
 ));
 
+const mockRoomData = {
+  room_code: 'ABC123',
+  teams: [
+    { team_name: 'team1', circumstance: 'Test Circumstance', current_energy: 100 },
+    { team_name: 'team2', circumstance: 'Other Circumstance', current_energy: 100 }
+  ]
+};
+
+const mockCircumstances = [
+  { title: 'Test Circumstance', description: 'This is a test circumstance description' },
+  { title: 'Other Circumstance', description: 'Another circumstance description' }
+];
+
 beforeEach(() => {
   global.fetch = vi.fn((url) => {
     if (url.includes('/energy')) {
@@ -77,6 +90,20 @@ beforeEach(() => {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve(defaultGameConfig),
+      });
+    }
+
+    if (url.match(/\/rooms\/[^/]+$/) && !url.includes('/teams')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockRoomData),
+      });
+    }
+
+    if (url.includes('/circumstances')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockCircumstances),
       });
     }
 
@@ -105,12 +132,12 @@ const renderWithRouter = () => {
 };
 
 test('renders gameboard', async () => {
-    renderWithRouter();
+  renderWithRouter();
 
-    const linkElement = screen.getByText(/Start!/)
+  const linkElement = await screen.findByText(/Start!/);
+  expect(linkElement).toBeInTheDocument();
+});
 
-    expect(linkElement).toBeInTheDocument()
-})
 
 test('renders energypoints', async () => {
   renderWithRouter();
@@ -152,30 +179,35 @@ test('clicking a slice twice calls the update funciton and returns the deducted 
 });
 
 
-test('splits long labeltexts into multiple lines', async () =>{
+test('splits long labeltexts into multiple lines', async () => {
+  renderWithRouter();
+
+  // Wait for one of the slices to be rendered
+  await screen.findByTestId('slice-1');
+
+  const svg = document.querySelector('svg.wheel-svg');
+  const allText = svg.textContent;
+
+  expect(allText).toContain("This is a very");
+  expect(allText).toContain("long string of");
+  expect(allText).toContain("text that must");
+  expect(allText).toContain("be split into");
+  expect(allText).toContain("several lines");
+  expect(allText).toContain("to fit");
+});
 
 
-    renderWithRouter();
-
-    expect(screen.getByText("This is a very")).toBeInTheDocument();
-    expect(screen.getByText("long string of")).toBeInTheDocument();
-    expect(screen.getByText("text that must")).toBeInTheDocument();
-    expect(screen.getByText("be split into")).toBeInTheDocument();
-    expect(screen.getByText("several lines")).toBeInTheDocument();
-    expect(screen.getByText("to fit")).toBeInTheDocument();
-  })
-
-test('should rotate a ring when dragged with the mouse', async () =>{
+test('should rotate a ring when dragged with the mouse', async () => {
   const user = userEvent.setup();
   renderWithRouter();
 
-  const ringToDrag = await screen.getByTestId('ring-group-1');
-  const sliceToGrab = await screen.getByTestId('slice-1');
+  const sliceToGrab = await screen.findByTestId('slice-1');
+  const ringToDrag = sliceToGrab.closest('[data-testid^="ring-group-"]');
 
   const initialTransform = ringToDrag.getAttribute('transform');
 
   await user.pointer([
-    { keys: '[MouseLeft>]', target: sliceToGrab }, 
+    { keys: '[MouseLeft>]', target: sliceToGrab },
     { coords: { x: 900, y: 800 } },
     { keys: '[/MouseLeft]' },
   ]);
@@ -184,7 +216,8 @@ test('should rotate a ring when dragged with the mouse', async () =>{
 
   expect(finalTransform).not.toBe(initialTransform);
   expect(finalTransform).toContain('rotate');
-})
+});
+
 
 test('should pan the board when right-click dragging', async () => {
   renderWithRouter();
@@ -246,20 +279,62 @@ test('should update pan position continuously while dragging', async () => {
   expect(finalTransform).toContain('translate(100px, 150px)');
 });
 
-// Test ColorGuide component rendering
-test('renders ColorGuide component with all elements', () => {
-    renderWithRouter();
+// Test CircumstanceView component rendering
+test('renders CircumstanceView with team circumstance name and description', async () => {
+  renderWithRouter();
 
-    // Check container exists
-    const colorGuide = document.querySelector('.color-guide-container');
-    expect(colorGuide).toBeInTheDocument();
-
-    // Check all text labels are present
-    expect(screen.getByText('MOVING')).toBeInTheDocument();
-    expect(screen.getByText('ARRIVING')).toBeInTheDocument();
-    expect(screen.getByText('THRIVING')).toBeInTheDocument();
-
-    // Verify we have 3 rows
-    const rows = document.querySelectorAll('.color-guide-row');
-    expect(rows).toHaveLength(3);
+  await waitFor(() => {
+    expect(screen.getByText('YOUR CIRCUMSTANCE')).toBeInTheDocument();
   });
+
+  // Check container exists
+  const circumstanceContainer = document.querySelector('.circumstance-view-container');
+  expect(circumstanceContainer).toBeInTheDocument();
+
+  expect(screen.getByText('Test Circumstance')).toBeInTheDocument();
+  expect(screen.getByText('This is a test circumstance description')).toBeInTheDocument();
+});
+
+test('renders CircumstanceView for different team with different circumstance', async () => {
+  render(
+    <MemoryRouter initialEntries={[{
+      pathname: '/rooms/ABC123/teams/team2',
+      state: { boardConfig: defaultGameConfig }
+    }]}>
+      <Routes>
+        <Route path="/rooms/:gamecode/teams/:teamname" element={<Game />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+  await waitFor(() => {
+    expect(screen.getByText('YOUR CIRCUMSTANCE')).toBeInTheDocument();
+  });
+  expect(screen.getByText('Other Circumstance')).toBeInTheDocument();
+  expect(screen.getByText('Another circumstance description')).toBeInTheDocument();
+});
+
+test('does not render CircumstanceView when team has no circumstance', async () => {
+  global.fetch = vi.fn((url) => {
+    if (url.includes('/energy')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ current_energy: 100 }) });
+    }
+    if (url.includes('/board')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(defaultGameConfig) });
+    }
+    if (url.match(/\/rooms\/[^/]+$/) && !url.includes('/teams')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          room_code: 'ABC123',
+          teams: [{ team_name: 'team1', circumstance: '', current_energy: 100 }]
+        }),
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  });
+
+  renderWithRouter();
+  await waitFor(() => expect(screen.getByTestId('energypoints')).toBeInTheDocument());
+  expect(screen.queryByText('YOUR CIRCUMSTANCE')).not.toBeInTheDocument();
+});

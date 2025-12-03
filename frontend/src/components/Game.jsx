@@ -1,20 +1,30 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useLocation, useParams } from 'react-router-dom';
-import '../styles/Gameboard.css';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import '../styles/Game.css';
 import { API_BASE } from '../api';
 import EnergyMarkers from "./ui/EnergyMarkers";
 import ZoomControls from './ui/ZoomControls';
-import ColorGuide from './ui/ColorGuide';
+import CircumstanceView from './ui/CircumstanceView';
 import Timer from "./ui/Timer";
+import Instructions from "./ui/Instructions";
 
 
 
 const Game = () => {
   const location = useLocation();
-  const initialConfig = location.state?.boardConfig
-  const [gameConfig, setGameConfig] = useState(initialConfig || { ringData: [] })
+  const navigate = useNavigate();
+  const isGamemasterViewing = location.state?.isGamemaster || false;
+  const isSpectator = location.state?.isSpectator || false;
+  const [gameConfig, setGameConfig] = useState({ ringData: [] })
   const { gamecode, teamname } = useParams();
-
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [activeMarkers, setActiveMarkers] = useState(new Set());
+  const [points, setPoints] = useState(0)
+  const [circumstance, setCircumstance] = useState({ name: '', description: '' });
+  const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
+  const [timeLeft, setTimeLeft] = useState(null); // Timer state
+  
+  
 
   const [rotations, setRotations] = useState({
     ring0: 0,
@@ -23,134 +33,213 @@ const Game = () => {
     ring3: 0,
   });
 
-  const [activeMarkers, setActiveMarkers] = useState(new Set());
-  const [points, setPoints] = useState(0)
-
   // fetch board && display energymarkers if energypoint true
   useEffect(() => {
     if (teamname === "Gamemaster") return;
 
-    const fetchBoard = async () => {
+    const initializeBoard = async () => {
       try {
+        console.log("Fetching board from backend...");
         const res = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`);
         if (!res.ok) throw new Error("No board found for team");
         const data = await res.json();
-
-        // Restore energymarkers
-        const restored = restoreEnergyMarkers(data);
-        setActiveMarkers(restored);
-        setGameConfig(data);
+        console.log("Fetched board data:", data);
+        setGameConfig(data); 
+        setActiveMarkers(restoreEnergyMarkers(data)); 
+        setIsInitialized(true);
       } catch (err) {
-        console.warn("Board fetch skipped:", err.message);
+        console.error("Board fetch failed:", err);
       }
     };
 
-    fetchBoard();
-  }, [gamecode, teamname]); 
+    initializeBoard();
+  if (isSpectator || isGamemasterViewing) {
+    const interval = setInterval(initializeBoard, 2000);
+    return () => clearInterval(interval);
+  }
+}, [gamecode, teamname, isSpectator, isGamemasterViewing]);
 
 
-const restoreEnergyMarkers = (boardData) => {
-  if (!boardData?.ringData) return new Set();
+  const restoreEnergyMarkers = (boardData) => {
+    if (!boardData?.ringData) return new Set();
 
-  const restored = new Set();
-  boardData.ringData.forEach((ring) => {
-    ring.labels.forEach((label) => {
-      if (label.energypoint) {
-        restored.add(`${ring.id}-${label.id}`);
-      }
+    const restored = new Set();
+    boardData.ringData.forEach((ring) => {
+      ring.labels.forEach((label) => {
+        if (label.energypoint) {
+          restored.add(`${ring.id}-${label.id}`);
+        }
+      });
     });
-  });
-  return restored;
-};
+    return restored;
+  };
 
- // fetching points and updating poins
 
- useEffect(() => {
-  fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`)
-    .then((res) => res.json())
-    .then((data) => setPoints(data.current_energy));
-}, []);
+  // Fetch board && display energymarkers if energypoint true
+useEffect(() => {
+  if (teamname === "Gamemaster") return;
 
-  const updatingPoints = (change = -1) => { // takes input number now
+  const fetchBoard = async () => {
+    try {
+      console.log("Fetching board from backend...");
+      const res = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`);
+      if (!res.ok) throw new Error("No board found for team");
+      const data = await res.json();
+      console.log("Fetched board data:", data);
+      setGameConfig(data);
+      setActiveMarkers(restoreEnergyMarkers(data));
+      setIsInitialized(true);
+    } catch (err) {
+      console.error("Board fetch failed:", err);
+    }
+  };
+
+  // Initial fetch
+  fetchBoard();
+
+  // Poll every 2 seconds if spectator or gamemaster viewing to see updates
+  if (isSpectator || isGamemasterViewing) {
+    const interval = setInterval(fetchBoard, 2000);
+    return () => clearInterval(interval);
+  }
+}, [gamecode, teamname, isSpectator, isGamemasterViewing]);
+
+  // Fetching points
+  useEffect(() => {
+    if (teamname === "Gamemaster") return;
+
+    const fetchEnergy = () => {
+      fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`)
+        .then((res) => res.json())
+        .then((data) => setPoints(data.current_energy))
+        .catch((err) => console.error("Failed to fetch energy:", err));
+    };
+
+    // Initial fetch
+    fetchEnergy();
+
+    // Poll every 2 seconds if spectator or gamemaster viewing to see energy updates
+    if (isSpectator || isGamemasterViewing) {
+      const interval = setInterval(fetchEnergy, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [gamecode, teamname, isSpectator, isGamemasterViewing]);
+
+    // Fetch team circumstance and its description
+  useEffect(() => {
+    const fetchCircumstance = async () => {
+      try {
+        // Get team's circumstance name from room data
+        const roomRes = await fetch(`${API_BASE}/rooms/${gamecode}`);
+        if (!roomRes.ok) return;
+
+        const roomData = await roomRes.json();
+        const team = roomData.teams.find(t => t.team_name === teamname);
+
+        if (team?.circumstance) {
+          // Fetch all circumstances to get the description
+          const circumstancesRes = await fetch(`${API_BASE}/circumstances`);
+          if (circumstancesRes.ok) {
+            const circumstances = await circumstancesRes.json();
+            const found = circumstances.find(c => c.title === team.circumstance);
+
+            setCircumstance({
+              name: team.circumstance,
+              description: found?.description || ''
+            });
+          } else {
+            setCircumstance({ name: team.circumstance, description: '' });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch circumstance:", err);
+      }
+    };
+
+    fetchCircumstance();
+  }, [gamecode, teamname]);
+
+  const updatingPoints = (change = -1) => {
     fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/energy`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ change }), 
+      body: JSON.stringify({ change }),
     })
       .then((res) => res.json())
-      .then((data) => setPoints(data.current_energy));
+      .then((data) => setPoints(data.current_energy))
+      .catch((err) => console.error("Failed to update energy:", err));
   };
 
-    // Handle slice click
+  // Handle slice click
   const handleSliceClick = (e, label, ringId, energyvalue) => {
     e.stopPropagation();
-    
+
+    // Disable energy placement for spectators and gamemaster viewers
+    if (isSpectator || isGamemasterViewing) {
+      return;
+    }
+
+    // Prevent coin placement when timer is at zero
+    if (timeLeft !== null && timeLeft <= 0) {
+      return;
+    }
+
     if (dragState.current.isDragging || dragState.current.recentlyDragged) {
       return;
     }
+
     const compositeKey = `${ringId}-${label.id}`;
     const hasMarker = activeMarkers.has(compositeKey);
-    
+
     if (hasMarker) {
-      updatingPoints(energyvalue); // Remove marker - refund energy
-      setGameConfig((prev) => ({
-      ...prev,
-      rings: prev.ringData.map((ring) =>
-        ring.id === ringId
-          ? {
-              ...ring,
-              labels: ring.labels.map((l) =>
-                l.id === label.id ? { ...l, energypoint: false } : l
-              ),
-            }
-          : ring),
-    }));
-      setActiveMarkers(prev => {
+      // Remove marker - refund energy
+      updatingPoints(energyvalue);
+      setActiveMarkers((prev) => {
         const newSet = new Set(prev);
         newSet.delete(compositeKey);
         return newSet;
       });
     } else if (points >= energyvalue) {
-      updatingPoints(- energyvalue); // Add marker - spend energy
-      setGameConfig((prev) => ({
-      ...prev,
-      rings: prev.ringData.map((ring) =>
-        ring.id === ringId
-          ? {
-              ...ring,
-              labels: ring.labels.map((l) =>
-                l.id === label.id ? { ...l, energypoint: true } : l
-              ),
-            }
-          : ring),
-    }));
-      setActiveMarkers(prev => new Set([...prev, compositeKey]));
+      // Add marker - spend energy
+      updatingPoints(-energyvalue);
+      setActiveMarkers((prev) => new Set([...prev, compositeKey]));
+    } else {
+      return; // Not enough energy
     }
-    setGameConfig(prev => {
+
+    // Update gameConfig and persist to backend
+    setGameConfig((prev) => {
       const updated = {
         ...prev,
-        ringData: prev.ringData.map(ring => 
-          ring.id == ringId
-          ? {
-            ...ring,
-            labels: ring.labels.map(l =>
-              l.id ==label.id 
-              ? { ...l, energypoint: !hasMarker }
-              : l
-            ),
-          }
-          : ring
+        ringData: (prev.ringData || []).map((ring) =>
+          ring.id === ringId
+            ? {
+                ...ring,
+                labels: ring.labels.map((l) =>
+                  l.id === label.id ? { ...l, energypoint: !hasMarker } : l
+                ),
+              }
+            : ring
         ),
-      }
-    fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ board_state: updated }),
-  }).catch((err) => console.error("Failed to update board:", err));
-  return updated;
-})
-};
+      };
+
+      fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ board_state: updated }),
+      }).catch((err) => console.error("Failed to update board:", err));
+
+      return updated;
+    });
+  };
   
+  const openInstructions = (e) => {
+    e.preventDefault(); // prevent default link behavior
+    setShowInstructions(true);
+  };
+
+  
+// ------------------------------------- GAMEBOARD CONSTRUCTION -------------------------------------//
   const containerRef = useRef(null);
   
   const whiteLineThickness = 14; // Stroke width for slice borders
@@ -365,7 +454,7 @@ const restoreEnergyMarkers = (boardData) => {
   }, []);
 
   // Render text on curved path
-  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId) => {
+  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId, isTitleTile = false) => {
     const midRadius = (innerRadius + outerRadius) / 2;
     const angleRad = (endAngleDeg - startAngleDeg) * (Math.PI / 180);
 
@@ -435,8 +524,8 @@ const restoreEnergyMarkers = (boardData) => {
               startOffset="50%"
               textAnchor="middle"
               fill="#000"
-              fontSize="20"
-              fontWeight="600"
+              fontSize={isTitleTile ? "32" : "20"}
+              fontWeight={isTitleTile ? "700" : "600"}
             >
               {line}
             </textPath>
@@ -446,17 +535,84 @@ const restoreEnergyMarkers = (boardData) => {
     });
   };
 
+if (!isInitialized) {
+  return <div>Loading board…</div>;
+}
 
 
   return (
     <>
-      <div className="energypoints" data-testid="energypoints">
+      {isGamemasterViewing && (
+        <button
+          onClick={() => navigate(`/gamemaster/progress/${gamecode}`)}
+          style={{
+            position: 'fixed',
+            top: '1rem',
+            left: '1rem',
+            zIndex: 1000,
+            padding: '0.5rem 1rem',
+            backgroundColor: '#3F695D',
+            color: 'white',
+            border: '2px solid #86B18A',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '0.95rem'
+          }}
+        >
+          ← Back to Dashboard
+        </button>
+      )}
+      {isSpectator && (
+        <button
+          onClick={() => navigate(`/spectate/${gamecode}`)}
+          style={{
+            position: 'fixed',
+            top: '1rem',
+            left: '1rem',
+            zIndex: 1000,
+            padding: '0.5rem 1rem',
+            backgroundColor: '#3F695D',
+            color: 'white',
+            border: '2px solid #86B18A',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            fontSize: '0.95rem'
+          }}
+        >
+          ← Back to Team Selection
+        </button>
+      )}
+      {isSpectator && (
+        <div style={{
+          position: 'fixed',
+          left: '20px',
+          top: '20rem',
+          border: 'none',
+          color: '#dfd4d4',
+          fontWeight: 'bold',
+          fontSize: '25px',
+          fontFamily: '"Montserrat", sans-serif',
+          zIndex: 100
+        }}>
+          Spectating: {teamname}
+        </div>
+      )}
+      <div className="game-energypoints" data-testid="energypoints" style={isSpectator ? { top: '3.5rem' } : {}}>
         Remaining energypoints: {points}
+      </div>
+      <div className="instructions">
+        <button 
+        onClick={openInstructions}
+        >
+          Instructions
+        </button>
       </div>
       <div className="game-layout">
 
     <div className="clock">
-      <Timer gamecode={gamecode} />
+      <Timer gamecode={gamecode} onTimeUpdate={setTimeLeft} />
     </div>
 
         {/* Main Content Area */}
@@ -485,76 +641,88 @@ const restoreEnergyMarkers = (boardData) => {
                         dx="0" // horizontal offset
                         dy="0" // vertical offset
                         stdDeviation="10" // blur amount
-                        floodColor="#111010ff" // shadow color (white)
+                        floodColor="#555555ff" // shadow color (white)
                       />
                     </filter>
                   </defs>
-                  {/* Render rings from innermost to outermost */}     
-                  {gameConfig.ringData.map((ring) => {
-                    const numSlices = ring.labels.length;
-                    const rotation = rotations[ring.id] || 0;
-                    const anglePerSlice = 360 / numSlices;
-                    
-                    return (
-                      <g
-                        data-testid={`ring-group-${ring.id}`}
-                        key={ring.id}
-                        transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
-                      >
-                        
-                        {/* Render slices */}
-                        {ring.labels.map((label, i) => {
-                          const startAngle = i * anglePerSlice;
-                          const endAngle = (i + 1) * anglePerSlice;
-                          const color = label.color;
-                          
-                          return (
-                            <g key={`${ring.id}-slice-${i}`}>
-                              {/* Slice shape */}
-                              <path
-                                data-testid={`slice-${label.id}`}
-                                className={`slice-path ${dragState.current.ringId === ring.id ? 'dragging' : ''}`}
-                                d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
-                                fill={color}
-                                stroke="#f5f5f3ff"
-                                strokeWidth={whiteLineThickness}
-                                onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
-                                onClick={(e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
-                                onMouseEnter={(e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
-                                onMouseLeave={handleSliceMouseLeave}
-                                onMouseMove={handleSliceMouseMove}
-                                style={{ cursor: "pointer" }}
-                                filter="url(#whiteShadow)"
-                              />
-                              {/* Render Text */}
-                              {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
-                            </g>
-                          );
-                        })}
-                      </g>
-                    );
-                  })}
+                    {/* Render rings from innermost to outermost */}     
+                    {gameConfig?.ringData?.map((ring) => {
+                      const rotation = rotations[ring.id] || 0;
+
+                      // Count title tiles as 2 units, normal tiles as 1
+                      const totalAngleUnits = ring.labels.reduce((acc, label) => {
+                        return acc + (label.tileType === 'ring_title' ? 2 : 1);
+                      }, 0);
+
+                      const baseAnglePerUnit = 360 / totalAngleUnits;
+                      let cumulativeAngle = 0; // start at 0 for each ring
+
+                      return (
+                        <g
+                          data-testid={`ring-group-${ring.id}`}
+                          key={ring.id}
+                          transform={`rotate(${rotation} ${CENTER_X} ${CENTER_Y})`}
+                        >
+                          {/* Render slices */}
+                          {ring.labels.map((label, i) => {
+                            const isTitleSlice = label.tileType === 'ring_title';
+                            const sliceAngle = isTitleSlice ? baseAnglePerUnit * 2 : baseAnglePerUnit;
+
+                            const startAngle = cumulativeAngle;
+                            const endAngle = cumulativeAngle + sliceAngle;
+
+                            cumulativeAngle += sliceAngle; // increment for next slice
+
+                            const color = label.color;
+
+                            return (
+                              <g key={`${ring.id}-slice-${i}`}>
+                                {/* Slice shape */}
+                                <path
+                                  data-testid={`slice-${label.id}`}
+                                  d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
+                                  fill={color}
+                                  stroke={"#f5f5f3ff"}
+                                  strokeWidth={whiteLineThickness}
+                                  className={isTitleSlice ? "title-tile" : "slice-path"}
+                                  onMouseDown={(e) => handleRingMouseDown(e, ring.id)}
+                                  onClick={isTitleSlice ? undefined : (e) => handleSliceClick(e, label, ring.id, label.energyvalue)}
+                                  onMouseEnter={isTitleSlice ? undefined : (e) => handleSliceMouseEnter(e, label, ring.id, label.energyvalue)}
+                                  onMouseLeave={isTitleSlice ? undefined : handleSliceMouseLeave}
+                                  onMouseMove={isTitleSlice ? undefined : handleSliceMouseMove}
+                                  style={{cursor: isTitleSlice ? "grab" : "pointer"}}
+                                  filter="url(#whiteShadow)"
+                                />
+                                {/* Render Text */}
+                                {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id, isTitleSlice)}
+                              </g>
+                            );
+                          })}
+                        </g>
+                      );
+                    })}
+
                 {/* Separator Circles */}
-                  {gameConfig.ringData.map((ring) => (
+                  {gameConfig?.ringData?.map((ring) => (
                     <circle
                       key={`separator-inner-${ring.id}`}
                       cx={CENTER_X}
                       cy={CENTER_Y}
                       r={ring.innerRadius}
                       fill="none"
-                      stroke="black"
+                      stroke="#464646ff"
                       strokeWidth={blackLineThickness}
                       style={{ pointerEvents: 'none' }}
                     />
                   ))}
-                  {gameConfig.ringData.length > 0 && (
+                  {gameConfig?.ringData?.length > 0 && (
                     <circle
                       key="separator-outer"
                       cx={CENTER_X}
                       cy={CENTER_Y}
-                      r={gameConfig.ringData[gameConfig.ringData.length - 1].outerRadius}
+                      r={gameConfig?.ringData[gameConfig.ringData.length - 1].outerRadius}
                       fill="none"
-                      stroke="black"
+                      stroke="#464646ff"
                       strokeWidth={blackLineThickness}
                       style={{ pointerEvents: 'none' }}
                     />
@@ -610,15 +778,22 @@ const restoreEnergyMarkers = (boardData) => {
           </div>
         )}
 
-        {/* Color Guide */}
+        {/* Circumstance View */}
         <div style={{
           position: 'fixed',
           bottom: '120px',
           left: '20px',
           zIndex: 100
         }}>
-          <ColorGuide />
+          <CircumstanceView
+            name={circumstance.name}
+            description={circumstance.description}
+          />
         </div>
+        <Instructions
+        show={showInstructions}
+        onClose={() => setShowInstructions(false)}
+      />
       </div>
     </>
   );

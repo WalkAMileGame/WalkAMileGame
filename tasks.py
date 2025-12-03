@@ -167,30 +167,38 @@ def server(c, backend=False, frontend=False):
         signal_handler(signal.SIGINT, None)
 
 @task
-def test(c, backend=False, frontend=False):
-    """Run tests for frontend and/or backend pytest and vitest respectively"""
-    if not backend and not frontend:
-        backend = frontend = True
-    
+def test(c, backend=False, frontend=False, e2e=False):
+    """Run tests for frontend and/or backend pytest and vitest respectively, or e2e tests"""
+    if not backend and not frontend and not e2e:
+        backend = frontend = e2e = True
+
     if backend:
-        c.run("pytest", pty=False)
-    
+        c.run("pytest backend/backend_tests/", pty=False)
+
     if frontend:
         with c.cd('frontend'):
             c.run('npm test')
 
+    if e2e:
+        print("Running end-to-end tests...")
+        c.run("pytest backend/e2e_tests/", pty=False)
+
 @task
-def coverage(c, backend=False, frontend=False):
-    """Run coverage for frontend and/or backend pytest and vitest respectively"""
-    if not backend and not frontend:
+def coverage(c, backend=False, frontend=False, e2e=False):
+    """Run coverage for frontend and/or backend pytest and vitest respectively, or e2e tests"""
+    if not backend and not frontend and not e2e:
         backend = frontend = True
-    
+
     if backend:
-        c.run("coverage run --branch -m pytest; coverage html", pty=True)
-    
+        c.run("coverage run --branch -m pytest backend/backend_tests/; coverage html", pty=True)
+
     if frontend:
         with c.cd('frontend'):
             c.run('npm run test:coverage')
+
+    if e2e:
+        print("Running end-to-end test coverage...")
+        c.run("coverage run --branch -m pytest backend/e2e_tests/; coverage html", pty=True)
 
 
 @task

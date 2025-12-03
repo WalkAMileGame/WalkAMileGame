@@ -18,23 +18,31 @@ export default function Lobby() {
   const [editingTeam, setEditingTeam] = useState(null);
   const [editCircumstance, setEditCircumstance] = useState('');
   const [roomCreated, setRoomCreated] = useState(false);
+  const initializingRef = useRef(false);
 
   const inviteCode = (location.state?.inviteCode || gamecode || '').trim();
   const isGamemaster = location.state?.isGamemaster || false;
   const boardConfig = location.state?.boardConfig;
+  const availableCircumstances = boardConfig?.circumstances || [];
 
   // --- Restore team join state on reload ---
   useEffect(() => {
     if (process.env.NODE_ENV === 'test') return; // don't auto-restore in test env
-    const savedTeamName = sessionStorage.getItem('teamName');
+    const savedTeamName = sessionStorage.getItem(`teamName_${inviteCode}`);
     if (savedTeamName) {
       setTeamName(savedTeamName);
       setHasJoined(true);
     }
-  }, []);
+  }, [inviteCode]);
 
   // --- Gamemaster: create room or resume existing one ---
   useEffect(() => {
+    // Skip if room was already created or initialization already started
+    if (roomCreated || initializingRef.current) return;
+
+    // Mark that initialization has started
+    initializingRef.current = true;
+
     // Skip existence check entirely during automated tests
     if (process.env.NODE_ENV === 'test') {
       if (isGamemaster) createRoom();
@@ -63,6 +71,7 @@ export default function Lobby() {
     };
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- Poll room data after creation ---
@@ -86,15 +95,31 @@ export default function Lobby() {
 
   // --- Redirect players when game starts ---
   useEffect(() => {
-    if (roomData?.game_started && !isGamemaster) {
-      const savedTeamName = sessionStorage.getItem('teamName');
-      if (savedTeamName) {
+    if (!roomData?.game_started || isGamemaster) return;
+
+    const saveBoardAndNavigate = async () => {
+      const savedTeamName = sessionStorage.getItem(`teamName_${inviteCode}`);
+      if (!savedTeamName) return;
+
+      try {
+        await fetch(`${API_BASE}/rooms/${inviteCode}/teams/${savedTeamName}/board`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ board_state: roomData.board_config }),
+        });
+
         navigate(`/game/${inviteCode}/${savedTeamName}`, {
           state: { boardConfig: roomData.board_config, teamName: savedTeamName },
         });
+
+      } catch (err) {
+        console.error("Failed to save board:", err);
       }
-    }
-  }, [roomData?.game_started, isGamemaster]);
+    };
+
+    saveBoardAndNavigate();
+  }, [roomData?.game_started, isGamemaster, inviteCode, navigate, roomData?.board_config]);
+
 
   // --- Create room ---
   const createRoom = async () => {
@@ -216,12 +241,11 @@ export default function Lobby() {
   const startGame = async () => {
     try {
       await fetch(`${API_BASE}/rooms/${inviteCode}/start`, { method: 'POST' });
-      navigate(`/game/${inviteCode}/${teamName || 'Gamemaster'}`, {
+      navigate(`/gamemaster/progress/${inviteCode}`, {
         state: {
           boardConfig,
           isGamemaster: true,
           timeRemaining,
-          teamName: teamName || 'Gamemaster',
         },
       });
     } catch (err) {
@@ -256,7 +280,7 @@ export default function Lobby() {
         return;
       }
 
-      sessionStorage.setItem('teamName', teamName);
+      sessionStorage.setItem(`teamName_${inviteCode}`, teamName);
       setHasJoined(true);
       setTeamName('');
       await loadRoomData();
@@ -281,7 +305,11 @@ export default function Lobby() {
             <input
               type="number"
               value={timeInput}
-              onChange={(e) => setTimeInput(e.target.value)}
+              onChange={(e) => {
+                setTimeInput(e.target.value);
+                setIsEditingTime(true);
+                isEditingTimeRef.current = true;
+              }}
               onFocus={() => {
                 setIsEditingTime(true);
                 isEditingTimeRef.current = true;
@@ -296,7 +324,7 @@ export default function Lobby() {
               }}
               className="time-input"
             />
-            <button onClick={updateTime} className="btn btn-primary">
+            <button onClick={updateTime} className="btn btn-updatetime">
               Update Time
             </button>
           </div>
@@ -313,13 +341,19 @@ export default function Lobby() {
                       <div className="team-name">{team.team_name}</div>
                       {editingTeam === team.team_name ? (
                         <div className="edit-circumstance-section">
-                          <input
-                            type="text"
-                            value={editCircumstance}
-                            onChange={(e) => setEditCircumstance(e.target.value)}
-                            placeholder="Enter circumstance"
-                            className="form-input"
-                          />
+                          <p>Select a circumstance</p>
+                          {availableCircumstances.map((circumstance, i) => (
+                            <label key={i}>
+                              <input
+                                type="radio"
+                                name="choice"
+                                value={circumstance.title}
+                                checked={editCircumstance === circumstance.title}
+                                onChange={(e) => setEditCircumstance(e.target.value)}
+                              />
+                            {circumstance.title}
+                            </label>
+                          ))}
                           <div style={{ display: 'flex', gap: '8px' }}>
                             <button
                               onClick={() =>
@@ -329,7 +363,7 @@ export default function Lobby() {
                             >
                               Save
                             </button>
-                            <button onClick={cancelEditingCircumstance} className="btn">
+                            <button onClick={cancelEditingCircumstance} className="btn btn-cancel">
                               Cancel
                             </button>
                           </div>

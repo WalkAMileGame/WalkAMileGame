@@ -4,15 +4,14 @@ import '../styles/EditUsers.css';
 import Snackbar from "./ui/snackbar"
 import { API_BASE } from "../api";
 import { useAuth } from '../context/AuthContext';
+import searchIcon from '../styles/icons/searchicon.png';
+import deleteIcon from '../styles/icons/deleteicon.png';
+import promoteIcon from '../styles/icons/uparrow.png';
+import demoteIcon from '../styles/icons/downarrow.png';
+import userIcon from '../styles/icons/usericon.png';
+import acceptIcon from '../styles/icons/accepticon.png';
+import rejectIcon from '../styles/icons/rejecticon.png';
 
-const placeHolderUsers = [
-  { email: "pertti@testi.fi", role: "gamemaster" },
-  { email: "jaska@testi.fi", role: "gamemaster" },
-  { email: "pekka@testi.fi", role: "gamemaster" },
-  { email: "kalle@testi.fi", role: "gamemaster" },
-  { email: "janne@testi.fi", role: "gamemaster" },
-  { email: "sanna@testi.fi", role: "gamemaster" }
-]
 
 const EditUsers = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -24,6 +23,14 @@ const EditUsers = () => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [pendingUsers, setPendingUsers] = useState([])
   const [existingUsers, setExistingUsers] = useState([])
+  const [unActivatedCodes, setUnActivatedCodes] = useState([])
+  const [expiredCodes, setExpiredCodes] = useState([])
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' }); 
+  const [codeSortConfig, setCodeSortConfig] = useState({ key: null, direction: 'asc' });
+  const [codeDuration, setCodeDuration] = useState(6);
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -33,96 +40,93 @@ const EditUsers = () => {
   const loadUsers = async () => {
     try {
       console.log("loading users");
-      const res = await fetch(`${API_BASE}/load_users`);
+      const res = await fetch(`${API_BASE}/load_user_data`);
+
+      if (!res.ok) {
+        console.error("Failed to fetch data");
+        return;
+      }
+
       const data = await res.json();
-      setPendingUsers(data.filter(user => user.pending));
-      setExistingUsers(data.filter(user => !user.pending));
-    } finally {
-      console.log("loading complete");
+      
+      const rawUsers = data.users;
+      const codesList = data.codes;
+
+      const enrichedUsers = rawUsers.map(u => {
+        const userCode = codesList.find(c => c.usedByUser === u.email);
+        return {
+          ...u,
+          date_created: userCode ? userCode.creationTime : null,
+          expiration_date: userCode ? userCode.expirationTime : null
+        };
+      });
+
+      setPendingUsers(enrichedUsers.filter(user => user.pending));
+      setExistingUsers(enrichedUsers.filter(user => !user.pending));
+
+      const now = new Date();
+      setUnActivatedCodes(codesList.filter(code => !code.isUsed));
+      setExpiredCodes(codesList.filter(code => new Date(code.expirationTime) < now));
+
+    } catch (error) {
+      console.error("Error loading users:", error)
     }
   };
 
-  const handleAccept = async () => {
+  const handleGenerateCode = async () => {
     setIsSaving(true);
     try {
-      const response = await acceptUser();
+      const response = await fetch(`${API_BASE}/generate_access_code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ valid_for: codeDuration })
+      });
+      
       if (response.ok) {
-        setExistingUsers([...existingUsers, {email: selectedUser, role: selectedOption}]);
-        const updatedUsers = pendingUsers.filter(u => u.email !== selectedUser);
-        setPendingUsers(updatedUsers);
-      }
-
-      if (!response.ok) {
-        let errorMsg = "Failed to accept user.";
-        try {
-          const data = await response.json();
-          if (data?.error) {
-            errorMsg = ` ${data.error}`;
-          }
-        } catch {
-          // ignore JSON parse errors
-        }
-        setSnackbarMessage(errorMsg);
+        setSnackbarMessage("New access code generated!");
         setShowSnackbar(true);
-        return;
+        loadUsers();
+      } else {
+        setSnackbarMessage("Failed to generate code.");
+        setShowSnackbar(true);
       }
-
-      setSnackbarMessage("User accepted successfully!");
-      setShowSnackbar(true);
     } catch (err) {
-      console.error("Accept failed:", err);
-      setSnackbarMessage("Failed to accept user (network error).");
+      console.error(err);
+      setSnackbarMessage("Error generating code.");
       setShowSnackbar(true);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-    setShowPopup(false);
-    setSelectedUser("");
   };
 
-  const handleDeny = async (email) => {
-    const confirmBox = window.confirm(
-      `Are you sure you want to deny ${email}?`
-    )
-    if (!confirmBox) {
-      setSelectedUser("")
-      setSnackbarMessage("Deny canceled");
-      setShowSnackbar(true);
-      return;
-    }
-    setIsDeleting(true)
+  const handleDeleteCode = async (codeStr) => {
+    const confirmBox = window.confirm(`Delete access code ${codeStr}?`);
+    if (!confirmBox) return;
+
+    setIsDeleting(true);
     try {
-      const response = await removeUser(email);
+      const response = await fetch(`${API_BASE}/remove_access_code`, { 
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: codeStr }) 
+      });
+
       if (response.ok) {
-        const updatedUsers = pendingUsers.filter(u => u.email !== email);
-        setPendingUsers(updatedUsers);
-      }
-
-      if (!response.ok) {
-        let errorMsg = "Failed to deny user.";
-        try {
-          const data = await response.json();
-          if (data?.error) {
-            errorMsg = ` ${data.error}`;
-          }
-        } catch {
-          // ignore JSON parse errors
-        }
-        setSnackbarMessage(errorMsg);
+        setUnActivatedCodes(unActivatedCodes.filter(c => c.code !== codeStr));
+        setSnackbarMessage("Code deleted.");
         setShowSnackbar(true);
-        return;
+      } else {
+        setSnackbarMessage("Failed to delete code.");
+        setShowSnackbar(true);
       }
-
-      setSnackbarMessage("User denied successfully!");
-      setShowSnackbar(true);
     } catch (err) {
-      console.error("Deny failed:", err);
-      setSnackbarMessage("Failed to deny user (network error).");
+      console.error("Delete code failed:", err);
+      setSnackbarMessage("Failed to delete code (network error).");
       setShowSnackbar(true);
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   const handleRemove = async (email) => {
     const confirmBox = window.confirm(
@@ -229,7 +233,91 @@ const EditUsers = () => {
       setIsSaving(false);
     }
   };
+  
+  const handleAccept = async () => {
+    setIsSaving(true);
+    try {
+      const response = await acceptUser();
+      if (response.ok) {
+        const userToMove = pendingUsers.find(u => u.email === selectedUser);
+        if (userToMove) {
+             setExistingUsers([...existingUsers, { ...userToMove, role: selectedOption, pending: false }]);
+             const updatedUsers = pendingUsers.filter(u => u.email !== selectedUser);
+             setPendingUsers(updatedUsers);
+        }
+      }
 
+      if (!response.ok) {
+        let errorMsg = "Failed to accept user.";
+        try {
+          const data = await response.json();
+          if (data?.error) {
+            errorMsg = ` ${data.error}`;
+          }
+        } catch {
+          // ignore JSON parse errors
+        }
+        setSnackbarMessage(errorMsg);
+        setShowSnackbar(true);
+        return;
+      }
+
+      setSnackbarMessage("User accepted successfully!");
+      setShowSnackbar(true);
+    } catch (err) {
+      console.error("Accept failed:", err);
+      setSnackbarMessage("Failed to accept user (network error).");
+      setShowSnackbar(true);
+    } finally {
+      setIsSaving(false)
+    }
+    setShowPopup(false);
+    setSelectedUser("");
+  };
+
+  const handleDeny = async (email) => {
+    const confirmBox = window.confirm(
+      `Are you sure you want to deny ${email}?`
+    )
+    if (!confirmBox) {
+      setSelectedUser("")
+      setSnackbarMessage("Deny canceled");
+      setShowSnackbar(true);
+      return;
+    }
+    setIsDeleting(true)
+    try {
+      const response = await removeUser(email);
+      if (response.ok) {
+        const updatedUsers = pendingUsers.filter(u => u.email !== email);
+        setPendingUsers(updatedUsers);
+      }
+
+      if (!response.ok) {
+        let errorMsg = "Failed to deny user.";
+        try {
+          const data = await response.json();
+          if (data?.error) {
+            errorMsg = ` ${data.error}`;
+          }
+        } catch {
+          // ignore JSON parse errors
+        }
+        setSnackbarMessage(errorMsg);
+        setShowSnackbar(true);
+        return;
+      }
+
+      setSnackbarMessage("User denied successfully!");
+      setShowSnackbar(true);
+    } catch (err) {
+      console.error("Deny failed:", err);
+      setSnackbarMessage("Failed to deny user (network error).");
+      setShowSnackbar(true);
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
 
   const removeUser = (userEmail) => {
@@ -239,18 +327,6 @@ const EditUsers = () => {
       body: JSON.stringify({
         email: userEmail,
       }),
-    });
-  };
-
-  const acceptUser = () => {
-    return fetch(`${API_BASE}/accept_user`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: selectedUser,
-        role: selectedOption,
-        pending: false
-      })
     });
   };
 
@@ -265,123 +341,237 @@ const EditUsers = () => {
       })
     });
   };
+  
+    const acceptUser = () => {
+    return fetch(`${API_BASE}/accept_user`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: selectedUser,
+        role: selectedOption,
+        pending: false
+      })
+    });
+  };
+  
+//search bar
+  const filteredUsers = existingUsers.filter((u) =>
+    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.role.toLowerCase().includes(searchTerm.toLowerCase()) 
+  );
 
-return (
-  <>
-    <Snackbar
-      message={snackbarMessage}
-      show={showSnackbar}
-      onClose={() => setShowSnackbar(false)}
-    />
+// User Sorting Logic
+const sortedUsers = [...filteredUsers].sort((a, b) => {
+  if (!sortConfig.key) return 0;
 
+  const aVal = a[sortConfig.key] ? new Date(a[sortConfig.key]) : 0;
+  const bVal = b[sortConfig.key] ? new Date(b[sortConfig.key]) : 0;
+
+  if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+  if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+  return 0;
+});
+
+const handleSort = (key) => {
+  let direction = 'asc';
+  if (sortConfig.key === key && sortConfig.direction === 'asc') {
+    direction = 'desc';
+  }
+  setSortConfig({ key, direction });
+};
+
+// Access Code Sorting Logic
+const sortedCodes = [...unActivatedCodes].sort((a, b) => {
+  if (!codeSortConfig.key) return 0;
+  
+  const aVal = new Date(a[codeSortConfig.key]);
+  const bVal = new Date(b[codeSortConfig.key]);
+
+  if (aVal < bVal) return codeSortConfig.direction === 'asc' ? -1 : 1;
+  if (aVal > bVal) return codeSortConfig.direction === 'asc' ? 1 : -1;
+  return 0;
+});
+
+const handleCodeSort = (key) => {
+  let direction = 'asc';
+  if (codeSortConfig.key === key && codeSortConfig.direction === 'asc') {
+    direction = 'desc';
+  }
+  setCodeSortConfig({ key, direction });
+  };
+
+
+  return (
     <div className="edit-page">
       <div className="header">
-        <h1>User management</h1>
-        <h3>Manage all users in one place. Control roles and pending user requests. Pending user request will appear on top of the existing user table.</h3>
+        <h1>USER MANAGEMENT</h1>
+        <h3>Manage all users in one place. Control roles and manage activation codes. All unused codes are at the bottom of the active user table.</h3>
       </div>
       <div className="table-area">
-      {/* Pending Users */}
-      {pendingUsers.length > 0 && (
+        {/* Active Users */}
         <div className="table-wrapper">
-          <h2>Pending users</h2>
-          <table>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Accept / Deny</th>
-            </tr>
-          </thead>
+          <h2>Active users</h2>
+          <input
+            type="text"
+            id="myInput"
+            placeholder="Search for users..."
+            title="Type in an email"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              backgroundImage: `url(${searchIcon})`,
+              backgroundPosition: "15px 12px",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "18px 18px",
+              paddingLeft: "40px",
+              marginBottom: "12px",
+            }}
+          />
+
+          <table id="existing-users">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th onClick={() => handleSort('date_created')} style={{ cursor: 'pointer' }}>
+                  Date created{' '} {sortConfig.key === 'date_created' ? sortConfig.direction === 'asc' ? '▲' : '▼': '▼'}
+                </th>
+                <th onClick={() => handleSort('expiration_date')} style={{ cursor: 'pointer' }}>
+                  Expiration date{' '} {sortConfig.key === 'expiration_date' ? sortConfig.direction === 'asc' ? '▲' : '▼': '▼'}
+                </th>
+                <th>Actions</th>
+              </tr>
+            </thead>
             <tbody>
-              {pendingUsers.map((u, index) => (
+              {sortedUsers.map((u, index) => (
                 <tr key={index}>
-                  <td>👤 {u.email}</td>
+                  <td>                      <img
+                            src={userIcon}
+                            alt="user"
+                            className="user-icon"
+                              /> {u.email}</td>
+                  <td>{u.role}</td>
                   <td>
-                    <div className="requestbuttons">
-                    <button
-                      className="accept-button"
-                      title="Accept"
-                      onClick={() => {
-                        setSelectedUser(u.email);
-                        setShowPopup(true);
-    
-                      }}
-                    >
-                      ✅
-                    </button>
-                    <button
-                      className="remove-button"
-                      onClick={() => handleDeny(u.email)}
-                      title="Reject"
-                    >
-                      🗙
-                    </button>
-                    </div>
+                    {u.date_created
+                      ? new Date(u.date_created).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td>
+                    {u.expiration_date
+                      ? new Date(u.expiration_date).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td>
+                    {u.email !== user?.email && (
+                      <div className="editbuttons">
+                        {u.role === "gamemaster" && (
+                       <img
+                            src={promoteIcon}
+                            alt="promote"
+                            className="promote-icon"
+                                onClick={() => handlePromote(u.email)}
+                                title="Promote"
+                              />
+                        )}
+                        {u.role === "admin" && (
+                          <img
+                            src={demoteIcon}
+                            alt="demote"
+                            className="demote-icon"
+                                onClick={() => handleDemote(u.email)}
+                                title="Demote"
+                              />
+                        )}
+                          <img
+                            src={deleteIcon}
+                            alt="delete"
+                            className="remove-button"
+                                onClick={() => handleRemove(u.email)}
+                                title="Delete"
+                              />
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      )}
+        
+        <div className="table-wrapper">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <h2>Access codes</h2>
 
-      {/* Existing Users */}
-      <div className="table-wrapper">
-        <h2>Existing users</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {existingUsers.map((u, index) => (
-              <tr key={index}>
-                <td>👤 {u.email}</td>
-                <td>{u.role}</td>
-                <td>
-                  {u.email !== user?.email && (
-                    <div className="editbuttons">
-                    <>
-                    {u.role == "gamemaster" && (
-                      <button
-                        className="promote-button"
-                        onClick={() => handlePromote(u.email)}
-                        title= "Promote"
-                      >
-                        ⬆️
-                      </button>
-                    )}
-                      {u.role == "admin" && (
-                      <button
-                        className="demote-button"
-                        onClick={() => handleDemote(u.email)}
-                        title="Demote"
-                      >
-                        ⬇️
-                      </button>
-                      )}
-                                         <button
-                        className="remove-button"
-                        onClick={() => handleRemove(u.email)}
-                        title= "Delete"
-                      >
-                        🗙
-                      </button>
-                    </>
-                    </div>
-                  )}
-                </td>
+            <div className="generate-code-box">
+                <label style={{ fontFamily: "Montserrat", color: 'black', fontSize: "16px" }}>Valid for (months):</label>
+                <input 
+                  class="generate-code-input"
+                  type="number" 
+                  min="1" 
+                  max="24" 
+                  value={codeDuration} 
+                  onChange={(e) => setCodeDuration(parseInt(e.target.value) || 1)}
+                />
+                <button 
+                  className="generate-code-button"
+                  onClick={handleGenerateCode} 
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Generating..." : "Generate new code"}
+                </button>
+            </div>
+          </div>
+          
+          <table id="access-codes">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th onClick={() => handleCodeSort('creationTime')} style={{ cursor: 'pointer' }}>
+                  Date created{' '} {codeSortConfig.key === 'creationTime' ? (codeSortConfig.direction === 'asc' ? '▲' : '▼') : '▼'}
+                </th>
+                <th onClick={() => handleCodeSort('expirationTime')} style={{ cursor: 'pointer' }}>
+                  Expiration date{' '} {codeSortConfig.key === 'expirationTime' ? (codeSortConfig.direction === 'asc' ? '▲' : '▼') : '▼'}
+                </th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {sortedCodes.map((codeObj, index) => (
+                <tr key={index}>
+                  <td>{codeObj.code}</td>
+                  <td>
+                    {new Date(codeObj.creationTime).toLocaleDateString()}
+                  </td>
+                  <td>
+                    {new Date(codeObj.expirationTime).toLocaleDateString()}
+                  </td>
+                  <td>
+                    <div className="editbuttons">
+                      <img
+                        src={deleteIcon}
+                        alt="delete"
+                        className="remove-button"
+                        onClick={() => handleDeleteCode(codeObj.code)}
+                        title="Delete Code"
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {sortedCodes.length === 0 && (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: "center", padding: "20px" }}>
+                    No active codes available.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Popup */}
+   {/* Popup */}
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup">
@@ -428,7 +618,6 @@ return (
         </div>
       )}
     </div>
-  </>
 );
 };
 

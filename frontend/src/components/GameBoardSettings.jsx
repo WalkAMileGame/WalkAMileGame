@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/GameboardSettings.css';
 import Snackbar from "./ui/snackbar"
 import { API_BASE } from "../api";
@@ -26,6 +27,36 @@ const ColorPicker = ({ onChange, colors = [] }) => {
   );
 };
 
+const CircumstancePicker = ({ onChange, selected, circumstances = [] }) => {
+  const handleToggle = (name) => {
+    let updated;
+
+    if (selected.includes(name)) {
+      updated = selected.filter((item) => item !== name);
+    } else {
+      updated = [...selected, name]
+    }
+
+    onChange(updated)
+  }
+
+  return (
+    <div className="circumstance-picker">
+      {circumstances.map((circumstance) => (
+        <label key={circumstance.title} className="checkbox-option">
+          <input
+            type="checkbox"
+            className="circumstance-boxes"
+            checked={selected.includes(circumstance.title)}
+            onChange={() => handleToggle(circumstance.title)}
+          />
+          {circumstance.title}
+        </label>
+      ))}
+    </div>
+  );
+};
+
 const LayerColors = [
     ["#ffc072", "#ffb088"],
     ["#a3d7ff", "#d3eafc"],
@@ -36,6 +67,8 @@ const LayerColors = [
 const TitleNames = ["MOVING", "MOVING", "ARRIVING", "THRIVING"]
 
 const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
+  const navigate = useNavigate()
+
   const [localConfig, setLocalConfig] = useState(gameConfig);
   const [templates, setTemplates] = useState([]);
   const [selectedTemplateName, setSelectedTemplateName] = useState("");
@@ -66,6 +99,10 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     console.log("loading complete")
   };
 
+  const handleCircumstances = () => {
+    navigate("/select_circumstances", { state: { config: localConfig } });
+  };
+
   const handleNameChange = (value) => {
     const updatedConfig = { ...localConfig, name: value };
     setLocalConfig(updatedConfig);
@@ -79,7 +116,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
     onConfigChange(updatedConfig)
-  }
+  };
 
   const handleSliceTextChange = (layerIndex, labelIndex, text) => {
     const updatedConfig = { ...localConfig };
@@ -97,6 +134,42 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     onConfigChange(updatedConfig);
   };
 
+  const handleSliceCircumstanceChange = (layerIndex, labelIndex, required) => {
+    const updatedConfig = { ...localConfig };
+    updatedConfig.ringData[layerIndex].labels[labelIndex].required_for = required;
+    setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
+    onConfigChange(updatedConfig);
+  };
+
+  const handleTileTypeChange = (layerIndex, labelIndex, isTitleTile) => {
+    const updatedConfig = { ...localConfig };
+    const ring = updatedConfig.ringData[layerIndex];
+
+    if (isTitleTile) {
+      // Create a new title tile and insert at the beginning
+      const newTitleId = ring.labels.length > 0 ? Math.max(...ring.labels.map(s => s.id)) + 1 : 1;
+      const newTitleTile = {
+        id: newTitleId,
+        text: TitleNames[layerIndex],
+        color: '#FFFFFF',
+        energyvalue: 0,
+        energypoint: false,
+        tileType: 'ring_title'
+      };
+      ring.labels.unshift(newTitleTile);
+    } else {
+      // Remove the title tile (first tile if it's a title)
+      if (ring.labels[0]?.tileType === 'ring_title') {
+        ring.labels.shift();
+      }
+    }
+
+    setLocalConfig(updatedConfig);
+    setUnsavedChanges(true);
+    onConfigChange(updatedConfig);
+  };
+
   const addSlice = (layerIndex) => {
     const updatedConfig = { ...localConfig };
     const ring = updatedConfig.ringData[layerIndex];
@@ -108,7 +181,8 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
       text: `New Action ${newLabelId}`,
       color: '#6b7280',
       energyvalue: 1,
-      energypoint: false
+      energypoint: false,
+      tileType: 'action'
     });
     
     setLocalConfig(updatedConfig);
@@ -218,7 +292,8 @@ const saveGameboard = () => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
       name: localConfig.name?.trim(), 
-      ringData: localConfig.ringData 
+      ringData: localConfig.ringData,
+      circumstances: localConfig.circumstances
     }),
   });
 };
@@ -327,14 +402,20 @@ const deleteGameboard = () => {
           <select 
           value={selectedTemplateName}
           onChange={(e) => {
+
+            const newValue = e.target.value;
+
             if (unsavedChanges) {
               const confirmBox = window.confirm(
                 `Unsaved changes will be discarded. Are you sure you want to proceed?`
               )
-              if (!confirmBox) {return}
+              if (!confirmBox) {
+                e.target.value = selectedTemplateName;
+                return;
+              }
             }
-            setSelectedTemplateName(e.target.value)
-            const selectedTemplate = templates.find(t => t.name === e.target.value)
+            setSelectedTemplateName(newValue)
+            const selectedTemplate = templates.find(t => t.name === newValue)
             if (selectedTemplate) {
               const clonedTemplate = structuredClone(selectedTemplate);
               loadSavedGameboard(clonedTemplate);
@@ -349,6 +430,18 @@ const deleteGameboard = () => {
           </select>
         )}
         </div>
+        {/* Edit Circumstances */}
+
+        <div className="pt-4 border-t">
+          <button
+            onClick={() => {
+              handleCircumstances()
+            }}
+            className="edit-button"
+          >
+            Edit Circumstances
+          </button>
+        </div>
 
         {/* Layers */}
         <h3 className="layeredit-title">Edit layers and buttons</h3>
@@ -357,7 +450,7 @@ const deleteGameboard = () => {
               <hr></hr>
               <div className="layerinfo-container">
                 <h4 className="layerinfo-title">
-                  {TitleNames[ringIndex]} ({ring.labels.length} slices)
+                  {TitleNames[ringIndex]} ({ring.labels.filter(l => l.tileType !== 'ring_title').length} slices)
                 </h4>
                 <button
                   onClick={() => addSlice(ringIndex)}
@@ -367,39 +460,81 @@ const deleteGameboard = () => {
                 </button>
               </div>
 
-            <div className="space-y-3">
-              {ring.labels.map((label, labelIndex) => (
-                <div key={label.id} className="border rounded p-3 bg-gray-50">
-                  <div className="flex items-center gap-2 mb-2">
+            {/* Ring Title Section */}
+            {ring.labels[0] && (
+              <div className="ring-title-section">
+                <div className="flex items-center gap-2 mb-2">
+                  {ring.labels[0].tileType === 'ring_title' && (
                     <input
-                      value={label.text}
-                      onChange={(e) => handleSliceTextChange(ringIndex, labelIndex, e.target.value)}
+                      value={ring.labels[0].text}
+                      onChange={(e) => handleSliceTextChange(ringIndex, 0, e.target.value)}
                       className="labelname-input"
-                      placeholder="Slice text"
+                      placeholder="Ring title text"
                     />
-                    <span className="energypoint-text">
-                    Energypoint value:
-                    </span>
+                  )}
+                  <label className="flex items-center gap-1 cursor-pointer">
                     <input
-                      data-testid={`energyvalue-input-${label.id}`}
-                      value={label.energyvalue}
-                      onChange={(e) => handleEnergyvalueChange(ringIndex, labelIndex, e.target.value)}
-                      className="energyvalue-input"
+                      type="checkbox"
+                      checked={ring.labels[0].tileType === 'ring_title'}
+                      onChange={(e) => handleTileTypeChange(ringIndex, 0, e.target.checked)}
+                      className="cursor-pointer"
                     />
-                    <button
-                      onClick={() => removeSlice(ringIndex, labelIndex)}
-                      className="deleteslice-button"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <ColorPicker
-                    value={label.color}
-                    colors={LayerColors[ringIndex]}
-                    onChange={(color) => handleSliceColorChange(ringIndex, labelIndex, color)}
-                  />
+                    <span className="ring-title-label">Enable ring title</span>
+                  </label>
                 </div>
-              ))}
+                {ring.labels[0].tileType === 'ring_title' && (
+                  <ColorPicker
+                    value={ring.labels[0].color}
+                    colors={['#FFFFFF', ...LayerColors[ringIndex]]}
+                    onChange={(color) => handleSliceColorChange(ringIndex, 0, color)}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Regular Slices Section */}
+            <div className="space-y-3">
+              {ring.labels.map((label, labelIndex) => {
+                if (label.tileType === 'ring_title') return null;
+                return (
+                  <div key={label.id} className="border rounded p-3 bg-gray-50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        value={label.text}
+                        onChange={(e) => handleSliceTextChange(ringIndex, labelIndex, e.target.value)}
+                        className="labelname-input"
+                        placeholder="Slice text"
+                      />
+                      <span className="energypoint-text">
+                      Energypoint value:
+                      </span>
+                      <input
+                        data-testid={`energyvalue-input-${label.id}`}
+                        value={label.energyvalue}
+                        onChange={(e) => handleEnergyvalueChange(ringIndex, labelIndex, e.target.value)}
+                        className="energyvalue-input"
+                      />
+                      <button
+                        onClick={() => removeSlice(ringIndex, labelIndex)}
+                        className="deleteslice-button"
+                        title = "Remove this slice"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <ColorPicker
+                      value={label.color}
+                      colors={LayerColors[ringIndex]}
+                      onChange={(color) => handleSliceColorChange(ringIndex, labelIndex, color)}
+                    />
+                    <CircumstancePicker
+                      circumstances={localConfig.circumstances}
+                      selected={localConfig.ringData[ringIndex]?.labels[labelIndex]?.required_for ?? []}
+                      onChange={(required) => handleSliceCircumstanceChange(ringIndex, labelIndex, required)}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}

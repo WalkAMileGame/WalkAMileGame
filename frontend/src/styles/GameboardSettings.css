@@ -5,7 +5,7 @@
   gap: 1rem;
   margin-top: 0.5rem;
   margin: 1rem;
-  margin-bottom: 2em;
+  margin-bottom: 1em;
 }
 
 @media (max-width: 1400px) {
@@ -68,10 +68,11 @@
   font-size: 16px;
   border-radius: 50px;
   padding: 5px;
+  cursor: pointer;
 }
 
 .color.picker {
-  margin-left: 20%;
+  margin-left: 7%;
 }
 
 .colorbuttons {
@@ -108,6 +109,7 @@
 
 .layeredit-title {
   color: black;
+  margin-top:0px;
 }
 
 .layerinfo-container {
@@ -120,7 +122,7 @@
   color:black;
   font-size: 18px;
   margin-right: 20px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 
 .addslice-button {
@@ -143,9 +145,24 @@
   border: 2px solid white;
   font-size: 18px;
   border-radius: 50px;
+  margin-left: 50px;
+  margin-right: 10px;
+  margin-bottom: 20px;
+}
+
+.edit-button {
+  color: white;
+  background-color: rgb(98, 137, 196);
+  height: 40px;
+  width: 190px;
+  border: 2px solid white;
+  font-size: 18px;
+  border-radius: 50px;
   margin-left: 40px;
   margin-right: 40px;
-  margin-bottom: 20px;
+  margin-bottom:20px;
+  margin-top: 20px;
+  cursor: pointer;
 }
 
 .delete-button {
@@ -156,7 +173,7 @@
   border: 2px solid white;
   font-size: 18px;
   border-radius: 50px;
-  margin-left: 40px;
+  margin-left: 10px;
   margin-right: 40px;
   margin-bottom: 20px;
 }
@@ -176,4 +193,46 @@
   color:black;
   font-size: 18px;
   padding: 10px;
+}
+
+.ring-title-section {
+  padding: 0.75rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ring-title-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+}
+
+.ring-title-section input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.ring-title-section .color.picker {
+  margin-left: 16%;
+}
+.circumstance-picker {
+  color: black;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: 40px;
+  margin-bottom: 2em;
+  margin-right: 60px
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.circumstance-boxes {
+  margin-right: 4px;
 }

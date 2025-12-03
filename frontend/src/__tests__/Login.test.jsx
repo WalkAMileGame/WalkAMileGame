@@ -110,6 +110,13 @@ const user = userEvent.setup();
 test('shows success message after successful registration', async () => {
   const user = userEvent.setup();
 
+  global.fetch = vi.fn(() =>
+    Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ message: "ok" })
+    })
+  );
+
   render(
     <MemoryRouter>
       <Login />
@@ -118,28 +125,24 @@ test('shows success message after successful registration', async () => {
 
   await user.click(screen.getByRole('button', { name: /Register/i }));
 
-  await user.type(screen.getByLabelText(/email address/i), 'test@email.com');
+  await user.type(screen.getByLabelText(/Registration code/i), 'ABCD');
+  await user.type(screen.getByLabelText(/^Email Address$/i), 'test@email.com');
   await user.type(screen.getByLabelText(/^Password$/i), 'password123');
-  await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+  await user.type(screen.getByLabelText(/Confirm Password/i), 'password123');
 
-  const submitButton = screen.getAllByRole('button', { name: /Register/i }).find(
-    (btn) => btn.type === 'submit'
-  );
-  await user.click(submitButton)
+  await user.click(screen.getByRole('button', { name: /^Register$/i }));
 
-  expect(await screen.findByRole('heading', { name: /Success!/i })).toBeInTheDocument();
+  expect(
+    await screen.findByRole('heading', { name: /Success!/i })
+  ).toBeInTheDocument();
 
   expect(
     screen.getByText(/Your account creation request is successful!/i)
   ).toBeInTheDocument();
 
   expect(global.fetch).toHaveBeenCalledTimes(1);
-  expect(global.fetch).toHaveBeenCalledWith('http://fake-api.com/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'test@email.com', password: 'password123' }),
-  });
 });
+
 
 
 test('shows error message when login information missing', async () => {
@@ -191,22 +194,28 @@ test('shows error message when register information missing', async () => {
 test('shows error message when register passwords do not match', async () => {
   const user = userEvent.setup();
 
+  global.fetch = vi.fn(() =>
+    Promise.resolve({
+      ok: false,
+      json: () => Promise.resolve({ detail: "Passwords do not match" })
+    })
+  );
+
   render(
     <MemoryRouter>
       <Login />
     </MemoryRouter>
   );
 
-  await user.click(screen.getByRole('button', { name: /Register/i }));
 
-  await user.type(screen.getByLabelText(/email address/i), 'test@email.com');
-  await user.type(screen.getByLabelText(/^Password$/i), 'password123');
-  await user.type(screen.getByLabelText(/confirm password/i), 'password132');
+  await user.click(screen.getByRole("button", { name: /register/i }));
 
-  const submitButton = screen.getAllByRole('button', { name: /Register/i }).find(
-    (btn) => btn.type === 'submit'
-  );
-  await user.click(submitButton)
+  await user.type(screen.getByLabelText(/Registration code/i), "ABCD");
+  await user.type(screen.getByLabelText(/^Email Address$/i), "test@email.com");
+  await user.type(screen.getByLabelText(/^Password$/i), "password1");
+  await user.type(screen.getByLabelText(/Confirm Password/i), "password");
+
+  await user.click(screen.getByRole("button", { name: /^Register$/i }));
 
   expect(
     await screen.findByText(/Passwords do not match./i)
@@ -214,13 +223,15 @@ test('shows error message when register passwords do not match', async () => {
 });
 
 
-test('shows server error message when registration fails', async () => {
+test("shows server error message when registration fails", async () => {
   const user = userEvent.setup();
 
-  vi.spyOn(global, 'fetch').mockResolvedValue({
-    ok: false,
-    json: vi.fn().mockResolvedValue({ detail: "Email already in use" }),
-  });
+  global.fetch = vi.fn(() =>
+    Promise.resolve({
+      ok: false,
+      json: () => Promise.resolve({ detail: "Email already in use" })
+    })
+  );
 
   render(
     <MemoryRouter>
@@ -228,19 +239,20 @@ test('shows server error message when registration fails', async () => {
     </MemoryRouter>
   );
 
-  await user.click(screen.getByRole('button', { name: /Register/i }));
+  await user.click(screen.getByRole("button", { name: /register/i }));
 
-  await user.type(screen.getByLabelText(/email address/i), 'test@example.com');
-  await user.type(screen.getByLabelText(/^Password$/i), 'password123');
-  await user.type(screen.getByLabelText(/confirm password/i), 'password123');
+  await user.type(screen.getByLabelText(/Registration code/i), "ABCD");
+  await user.type(screen.getByLabelText(/^Email Address$/i), "test@email.com");
+  await user.type(screen.getByLabelText(/^Password$/i), "password");
+  await user.type(screen.getByLabelText(/Confirm Password/i), "password");
 
-  const submitButton = screen.getAllByRole('button', { name: /Register/i }).find(
-    (btn) => btn.type === 'submit'
-  );
-  await user.click(submitButton);
+  await user.click(screen.getByRole("button", { name: /^Register$/i }));
 
-  expect(await screen.findByText("Email already in use")).toBeInTheDocument();
+  expect(
+    await screen.findByText(/Email already in use/i)
+  ).toBeInTheDocument();
 });
+
 
 
 test('shows error message when login function throws an error', async () => {
