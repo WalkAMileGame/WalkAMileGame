@@ -91,9 +91,23 @@ const GameComparison = () => {
 
           // Set current team (the team viewing the comparison)
           if (!currentTeam && data.teams && data.teams.length > 0) {
-            setCurrentTeam(data.teams[0]);
-            setLeftTeamName(data.teams[0].team_name);
-            setRightTeamName(data.teams.length > 1 ? data.teams[1].team_name : data.teams[0].team_name);
+            // Try to get the user's team from sessionStorage
+            const savedTeamName = sessionStorage.getItem(`teamName_${gamecode}`);
+            let userTeam = data.teams[0]; // Default to first team
+
+            if (savedTeamName) {
+              const foundTeam = data.teams.find(team => team.team_name === savedTeamName);
+              if (foundTeam) {
+                userTeam = foundTeam;
+              }
+            }
+
+            setCurrentTeam(userTeam);
+            setLeftTeamName(userTeam.team_name);
+
+            // Set right team to a different team if available
+            const otherTeam = data.teams.find(t => t.team_name !== userTeam.team_name);
+            setRightTeamName(otherTeam ? otherTeam.team_name : userTeam.team_name);
           }
         }
       } catch (err) {
@@ -372,6 +386,58 @@ const GameComparison = () => {
     return mistakes.some(m => m.ring_id === ringId && m.label_id === labelId);
   };
 
+  // Check if correct placement (required tile with energy allocated)
+  const isCorrectPlacement = (activeMarkers, ringId, labelId, label, currentTeam) => {
+    if (!currentTeam?.circumstance || !label.required_for) return false;
+
+    const isRequired = label.required_for.includes(currentTeam.circumstance);
+    const hasEnergy = activeMarkers.has(`${ringId}-${labelId}`);
+
+    return isRequired && hasEnergy;
+  };
+
+  // Helper to get descriptive mistake information
+  const getMistakeDetails = (mistakes, gameConfig) => {
+    if (!mistakes || mistakes.length === 0) {
+      return <div className="no-mistakes-message">You made no mistakes ദ്ദി( ˶˃ ᗜ ˂) !</div>;
+    }
+
+    const mistakeDetails = mistakes.map(mistake => {
+      const ringIndex = mistake.ring_index;
+      const labelIndex = mistake.label_index;
+
+      if (ringIndex === undefined || labelIndex === undefined) return null;
+
+      const ring = gameConfig?.ringData?.[ringIndex];
+      if (!ring) return null;
+
+      const label = ring.labels?.[labelIndex];
+      if (!label) return null;
+
+      // Find the ring name from the title tile
+      const titleTile = ring.labels.find(l => l.tileType === 'ring_title');
+      const defaultRingNames = ['Moving', 'Moving', 'Arriving', 'Thriving'];
+      const ringName = titleTile ? titleTile.text : (defaultRingNames[ringIndex] || `Ring ${ringIndex + 1}`);
+
+      return `${ringName}: "${label.text}"`;
+    }).filter(Boolean);
+
+    if (mistakeDetails.length === 0) {
+      return <div className="no-mistakes-message">You made no mistakes ദ്ദി( ˶˃ ᗜ ˂) !</div>;
+    }
+
+    return (
+      <div style={{ marginTop: '0.5rem' }}>
+        <strong>Missed tiles ({mistakes.length}):</strong>
+        <ul style={{ margin: '0.25rem 0 0 0', paddingLeft: '1.5rem' }}>
+          {mistakeDetails.map((detail, idx) => (
+            <li key={idx} style={{ fontSize: '0.85rem', marginBottom: '0.2rem' }}>{detail}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
   // Board rendering functions
   const createAnnularSectorPath = (innerRadius, outerRadius, startAngleDeg, endAngleDeg) => {
     const startAngle = (startAngleDeg - 90) * Math.PI / 180;
@@ -479,7 +545,7 @@ const GameComparison = () => {
   };
 
   // Render a single board
-  const renderBoard = (side, gameConfig, activeMarkers, mistakes, rotations, zoom, pan, containerRef) => {
+  const renderBoard = (side, gameConfig, activeMarkers, mistakes, rotations, zoom, pan, containerRef, team) => {
     const handleZoomIn = () => {
       if (side === 'left') {
         setLeftZoom(prev => Math.min(prev + 0.2, 2));
@@ -562,6 +628,7 @@ const GameComparison = () => {
 
                         const color = label.color;
                         const isError = isMistake(mistakes, ring.id, label.id);
+                        const isCorrect = isCorrectPlacement(activeMarkers, ring.id, label.id, label, team);
 
                         return (
                           <g key={`${ring.id}-slice-${i}`}>
@@ -582,8 +649,15 @@ const GameComparison = () => {
                                 className="comparison-mistake-overlay"
                                 d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
                                 fill="rgba(255, 0, 0, 1.0)"
-                                stroke="red"
-                                strokeWidth={3}
+                                style={{ pointerEvents: 'none' }}
+                              />
+                            )}
+                            {/* Correct placement overlay */}
+                            {isCorrect && (
+                              <path
+                                className="comparison-correct-overlay"
+                                d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
+                                fill="rgba(34, 139, 34, 1.0)"
                                 style={{ pointerEvents: 'none' }}
                               />
                             )}
@@ -679,11 +753,14 @@ const GameComparison = () => {
             <div className="comparison-team-stats">
               <span>
               {leftTeam?.circumstance
-                ? `Circumstance: ${leftTeam.circumstance}, `
-                : `Circumstance: None, `
+                ? `Circumstance: ${leftTeam.circumstance}`
+                : `Circumstance: None`
               }
               </span>
-              <span className="mistakes">Energy: {leftTeam?.current_energy}, Mistakes: {leftMistakes.length}</span>
+              <span className="mistakes">
+                <div>Energy Used: {32 - (leftTeam?.current_energy || 0)}/32</div>
+                {getMistakeDetails(leftMistakes, leftGameConfig)}
+              </span>
             </div>
           </div>
         ) : (
@@ -701,11 +778,14 @@ const GameComparison = () => {
               <div className="comparison-team-stats">
                 <span>
                 {leftTeam?.circumstance
-                  ? `Circumstance: ${leftTeam.circumstance}, `
-                  : `Circumstance: None, `
+                  ? `Circumstance: ${leftTeam.circumstance}`
+                  : `Circumstance: None`
                 }
                 </span>
-                <span className="mistakes">Energy: {leftTeam?.current_energy}, Mistakes: {leftMistakes.length}</span>
+                <span className="mistakes">
+                  <div>Energy Used: {32 - (leftTeam?.current_energy || 0)}/32</div>
+                  {getMistakeDetails(leftMistakes, leftGameConfig)}
+                </span>
               </div>
             </div>
 
@@ -721,11 +801,14 @@ const GameComparison = () => {
               <div className="comparison-team-stats">
                 <span>
                 {rightTeam?.circumstance
-                  ? `Circumstance: ${rightTeam.circumstance}, `
-                  : `Circumstance: None, `
+                  ? `Circumstance: ${rightTeam.circumstance}`
+                  : `Circumstance: None`
                 }
                 </span>
-                <span className="mistakes">Energy: {rightTeam?.current_energy}, Mistakes: {rightMistakes.length}</span>
+                <span className="mistakes">
+                  <div>Energy Used: {32 - (rightTeam?.current_energy || 0)}/32</div>
+                  {getMistakeDetails(rightMistakes, rightGameConfig)}
+                </span>
               </div>
             </div>
           </>
@@ -743,8 +826,8 @@ const GameComparison = () => {
       </div>
 
       <div className={`comparison-boards-container ${!isComparisonMode ? 'single-board' : ''}`}>
-        {renderBoard('left', leftGameConfig, leftActiveMarkers, leftMistakes, leftRotations, leftZoom, leftPan, leftContainerRef)}
-        {isComparisonMode && renderBoard('right', rightGameConfig, rightActiveMarkers, rightMistakes, rightRotations, rightZoom, rightPan, rightContainerRef)}
+        {renderBoard('left', leftGameConfig, leftActiveMarkers, leftMistakes, leftRotations, leftZoom, leftPan, leftContainerRef, leftTeam)}
+        {isComparisonMode && renderBoard('right', rightGameConfig, rightActiveMarkers, rightMistakes, rightRotations, rightZoom, rightPan, rightContainerRef, rightTeam)}
       </div>
 
       <div className="comparison-actions">

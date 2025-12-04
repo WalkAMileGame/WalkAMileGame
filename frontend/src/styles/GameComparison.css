@@ -33,7 +33,6 @@
   display: flex;
   justify-content: center;
   gap: 2rem;
-  height: 22vh;
   padding: 1rem 2rem;
   margin-bottom: 1rem;
   margin: 0 auto 1rem auto;
@@ -47,6 +46,10 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   flex: 1;
   max-width: 30vw;
+  max-height: 30vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Single team selector should be wider */
@@ -86,6 +89,7 @@
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 2px solid #86B18A;
+  gap: 0.5rem;
 }
 
 .comparison-team-stats span {
@@ -94,8 +98,35 @@
 }
 
 .comparison-team-stats .mistakes {
+  color: #3F695D;
+  font-weight: normal;
+  display: block;
+}
+
+.comparison-team-stats .mistakes div {
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.comparison-team-stats .mistakes strong {
   color: #E76F51;
-  font-weight: bold;
+  font-weight: 700;
+}
+
+.comparison-team-stats .mistakes ul {
+  list-style-type: disc;
+  color: #3F695D;
+}
+
+.comparison-team-stats .mistakes li {
+  color: #E76F51;
+  line-height: 1.4;
+}
+
+.comparison-team-stats .no-mistakes-message {
+  color: #22c55e;
+  font-weight: 600;
+  margin-top: 0.5rem;
 }
 
 /* Toggle Button Container */
@@ -172,7 +203,7 @@
   overflow: hidden; 
   position: relative;
   
-  height: calc(80vh); 
+  height: calc(96vh); 
   
   /* Debug Border (Remove this when done) */
   border: 1px solid red; 
@@ -215,12 +246,16 @@
 
 /* the board */
 .comparison-board-wrapper {
-  width: 50%;       /* Fill the window */
+  width: 100%;       /* Fill the container for consistent size across views */
   aspect-ratio: 1/1; /* Keep it square */
   height: auto;
   margin: 0 auto;
   position: relative;
-  transition: all 0.3s ease;
+}
+
+/* Single board mode - reduce size to 50% for proper spacing */
+.comparison-boards-container.single-board .comparison-board-wrapper {
+  width: 50%;
 }
 
 /* the wheel */
@@ -245,8 +280,8 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 35px;
-  height: 35px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background-color: #f00;
   color: #fff;
@@ -255,19 +290,11 @@
   align-items: center;
   transform: translate(-50%, -50%);
   font-weight: bold;
-  font-size: 11px;
-  border: 32px solid #f5f5f3ff;
+  font-size: 18px;
+  border: 68px solid #f5f5f3ff;
   pointer-events: none;
   z-index: 10;
   font-family: "Sour Gummy", sans-serif;
-}
-
-/* Larger start circle for single board mode to match standard Game/GameBoard ratio */
-.comparison-boards-container.single-board .comparison-start-circle {
-  width: 60px;
-  height: 60px;
-  font-size: 18px;
-  border: 68px solid #f5f5f3ff;
 }
 
 .comparison-slice-path {
@@ -275,12 +302,21 @@
 }
 
 .comparison-mistake-overlay {
-  animation: pulse-red 2s infinite;
+  animation: pulse-red 1.0s infinite;
 }
 
 @keyframes pulse-red {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1.0; }
+}
+
+.comparison-correct-overlay {
+  animation: pulse-green 1.0s infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1.0; }
 }
 
 /* Actions / Buttons */
