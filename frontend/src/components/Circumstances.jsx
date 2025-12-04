@@ -128,7 +128,7 @@ const saveEdit = async () => {
   } else {
     // edit existing note
     const updated = [...notes];
-    updated[editingIndex] = { title: editTitle, description: editDescription, id: notes[editingIndex].id };
+    updated[editingIndex] = { title: editTitle, description: editDescription, author: notes[editingIndex].author, id: notes[editingIndex].id };
     setNotes(updated);
 
     try {
