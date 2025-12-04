@@ -9,26 +9,27 @@ import Snackbar from "./ui/snackbar"
 const CircumstanceCard = ({ title, description, user, author, onEdit, onDelete }) => {
   return (
     <div className="note-card">
+      <div className="icon-row">
+        {(user?.role === "admin" || user?.email === author) && (
+          <img
+            src={editIcon}
+            alt="edit"
+            className="edit-icon"
+            onClick={onEdit}
+            title="Edit"
+          />
+        )}
 
-      {(user?.role === "admin" || user?.email === author) && (
-        <img
-          src={editIcon}
-          alt="edit"
-          className="edit-icon"
-          onClick={onEdit}
-          title="Edit"
-        />
-      )}
-
-      {user?.email === author && (
-        <img
-          src={deleteIcon}
-          alt="delete"
-          className="delete-icon"
-          onClick={onDelete}
-          title="Delete"
-        />
-      )}
+        {user?.email === author && (
+          <img
+            src={deleteIcon}
+            alt="delete"
+            className="delete-icon"
+            onClick={onDelete}
+            title="Delete"
+          />
+        )}
+      </div>
 
       <h3 className="note-title">{title}</h3>
       <p className="note-description">{description}</p>
