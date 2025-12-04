@@ -342,6 +342,12 @@ const handleDelete = async () => {
     return; 
   }
 
+  if (localConfig.name?.trim() === "Original") {
+    setSnackbarMessage("You can't delete Original board")
+    setShowSnackbar(true);
+    return;
+  }
+
   if (!templates.find(t => t.name === localConfig.name?.trim())) {
     setSnackbarMessage("No board with given name exists.");
     setShowSnackbar(true);
