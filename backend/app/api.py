@@ -2,7 +2,7 @@
 from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData, Circumstance, RenewRequest, GenerateCodeRequest
+from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData, Circumstance, RenewRequest, GenerateCodeRequest, RemoveCodeRequest
 from .db import db
 from datetime import datetime, timedelta, timezone
 from typing import Dict
@@ -207,6 +207,13 @@ def generate_access_code(
             {"code": code_data_dict["code"]},
             {"$set": code_data_dict},
             upsert=True)
+
+@router.delete("/remove_access_code")
+def remove_access_code(
+    data: RemoveCodeRequest,
+    current_user: dict = Depends(get_current_active_user)
+):
+    db.codes.delete_one({"code": data.code})
 
 
 @router.get("/users/me", tags=["auth"])

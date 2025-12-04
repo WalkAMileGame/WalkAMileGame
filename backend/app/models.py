@@ -56,6 +56,9 @@ class AccessCode(BaseModel):
 class GenerateCodeRequest(BaseModel):
     valid_for: int
 
+class RemoveCodeRequest(BaseModel):
+    code: str
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
