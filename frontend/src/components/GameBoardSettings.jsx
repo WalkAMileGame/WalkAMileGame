@@ -242,6 +242,12 @@ const handleSave = async () => {
     return; 
   }
 
+  if (localConfig.name?.trim() === "Original" && user?.role !== "admin") {
+    setSnackbarMessage("You can't modify the Original board. Please rename the board to create a copy")
+    setShowSnackbar(true);
+    return;
+  }
+
   if (templates.find(t => t.name === localConfig.name?.trim())) {
     const confirmBox = window.confirm(
       `Are you sure you want to overwrite ${localConfig.name?.trim()}?`
@@ -253,25 +259,13 @@ const handleSave = async () => {
     }
   }
 
+  const savingDefault = localConfig.name?.trim() === "Original" && user?.role === "admin";
+
   setIsSaving(true);
   try {
-    const response = await saveGameboard();
-    if (response.ok) {
-      setUnsavedChanges(false);
-      if (templates.find(t => t.name === localConfig.name?.trim())) {
-        const updatedTemplates = templates.map(t =>
-        t.name === localConfig.name?.trim()
-          ? { ...t, ringData: localConfig.ringData } : t
-        );
-        setTemplates(updatedTemplates);
-      } else {
-        const updatedTemplates = [...templates, localConfig];
-        setLocalConfig({ ...localConfig })
-        setTemplates(updatedTemplates);
-        
-      }
-      setSelectedTemplateName(localConfig.name?.trim());
-    }
+    const response = savingDefault
+    ? await saveDefault()
+    : await saveGameboard();
 
     if (!response.ok) {
       let errorMsg = "Failed to save gameboard.";
@@ -288,6 +282,24 @@ const handleSave = async () => {
       return;
     }
 
+    if (!savingDefault) {
+        setUnsavedChanges(false);
+        if (templates.find(t => t.name === localConfig.name?.trim())) {
+          const updatedTemplates = templates.map(t =>
+          t.name === localConfig.name?.trim()
+            ? { ...t, ringData: localConfig.ringData } : t
+          );
+          setTemplates(updatedTemplates);
+        } else {
+          const updatedTemplates = [...templates, localConfig];
+          setLocalConfig({ ...localConfig })
+          setTemplates(updatedTemplates);
+          
+        }
+        setSelectedTemplateName(localConfig.name?.trim());
+    }
+
+
     setSnackbarMessage("Gameboard saved successfully!");
     setShowSnackbar(true);
 
@@ -303,6 +315,17 @@ const handleSave = async () => {
 {/* Make sure saveGameboard RETURNS the fetch result */ }
 const saveGameboard = () => {
   return authFetch(`/save_board`, {
+    method: "PUT",
+    body: JSON.stringify({
+      name: localConfig.name?.trim(),
+      ringData: localConfig.ringData,
+      circumstances: localConfig.circumstances
+    }),
+  });
+};
+
+const saveDefault = () => {
+  return authFetch(`/save_default_board`, {
     method: "PUT",
     body: JSON.stringify({
       name: localConfig.name?.trim(),

@@ -10,11 +10,13 @@ import { useAuth } from '../context/AuthContext';
 
 const CircumstanceCard = ({ title, description, onEdit, onDelete, selected, onSelect }) => {
   return (
+    
     <div
       className={`note-card-select-mode ${selected ? "selected" : ""}`}
       onClick={onSelect}
       title={selected ? "Selected" : "Select circumstance"}
     >
+      <div className="icon-row">
       <img
         src={editIcon}
         alt="edit"
@@ -29,6 +31,7 @@ const CircumstanceCard = ({ title, description, onEdit, onDelete, selected, onSe
         onClick={(e) => { e.stopPropagation(); onDelete(); }}
         title="Delete"
       />
+      </div>
       <h3 className="note-title">{title}</h3>
       <p className="note-description">{description}</p>
             {selected && (

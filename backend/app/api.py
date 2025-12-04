@@ -54,6 +54,21 @@ def save_board(data: Boards, current_user: dict = Depends(get_current_active_use
     
     return {"message": "Board saved successfully"}
 
+class NewBoard(BaseModel):
+    name: str
+    circumstances: list
+    ringData: list
+    
+    
+@router.put("/save_default_board")
+def save_default_board(data: NewBoard):
+    db.boards.update_one({"name": data.name},
+                         {"$set": {"name": data.name, "circumstances": data.circumstances, "ringData": data.ringData}},
+                         upsert=True)
+    return {"message": "Board saved successfully"}
+
+
+
 class DeleteBoard(BaseModel):
     name: str
 
