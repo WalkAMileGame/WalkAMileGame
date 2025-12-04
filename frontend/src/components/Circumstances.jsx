@@ -100,7 +100,6 @@ const saveEdit = async () => {
       const res = await authFetch('/save_circumstance', {
         method: "POST",
         body: JSON.stringify({
-          id: '',
           title: editTitle,
           description: editDescription
         })
@@ -111,7 +110,8 @@ const saveEdit = async () => {
       setNotes(prev => [...prev, { 
         id: newNote._id,
         title: newNote.title,
-        description: newNote.description
+        description: newNote.description,
+        author: newNote.author
       }]);
     } catch (err) {
       console.error("Failed to create note:", err);
@@ -126,7 +126,6 @@ const saveEdit = async () => {
       await authFetch(`/save_circumstance/${notes[editingIndex].id}`, {
         method: "PUT",
         body: JSON.stringify({
-          id: '',
           title: editTitle,
           description: editDescription
         })
@@ -145,8 +144,26 @@ const handleDelete = async (note) => {
   if (!window.confirm(`Are you sure you want to delete circumstance "${note.title}"?`)) return;
 
   try {
-    await authFetch(`/circumstance/${note.id}`, { method: "DELETE" });
-    setNotes(prev => prev.filter(n => n.id !== note.id));
+    const response = await authFetch(`/circumstance/${note.id}`, { method: "DELETE" });
+    if (response.ok) {
+      setNotes(prev => prev.filter(n => n.id !== note.id));
+    }
+
+    if (!response.ok) {
+      let errorMsg = "Failed to delete circumstance.";
+      try {
+        const data = await response.json();
+        if (data?.error) {
+          errorMsg = ` ${data.error}`;
+        }
+      } catch {
+        // ignore JSON parse errors
+      }
+      setSnackbarMessage(errorMsg);
+      setShowSnackbar(true);
+      return;
+    }
+    
   } catch (err) {
     console.error("Failed to delete circumstance:", err);
   }

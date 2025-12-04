@@ -339,8 +339,7 @@ def test_register_successful_register_attempt(mock_db_instance, mock_get_passwor
             "email": "test@example.com",
             "password": "mock_password_hash",
             "role": "gamemaster",
-            "boards": [],
-            "circumstances": []
+            "boards": []
             }
         },
         upsert = True

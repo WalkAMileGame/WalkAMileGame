@@ -725,16 +725,23 @@ def save_edited_circumstance(cid: str, data: Circumstance,
             "description": data.description
         }}
     )
+
+class SaveCircumstance(BaseModel):
+    title: str
+    description: str
+
 @router.post("/save_circumstance")
-def save_new_circumstance(data: Circumstance, current_user: dict = Depends(get_current_active_user)):
-    new_note = db.circumstance.insert_one({"title": data.title, "description": data.description})
+def save_new_circumstance(data: SaveCircumstance, current_user: dict = Depends(get_current_active_user)):
+    email = current_user["email"]
+    new_note = db.circumstance.insert_one({"title": data.title, "description": data.description, "author": email})
     fetch_new_note = db.circumstance.find_one({"_id": new_note.inserted_id})
     fetch_new_note["_id"] = str(fetch_new_note["_id"])
     return fetch_new_note
 
 @router.get("/circumstances")
-def get_circumstances():
-    circumstances = list(db.circumstance.find())
+def get_circumstances(current_user: dict = Depends(get_current_active_user)):
+    email = current_user["email"]
+    circumstances = list(db.circumstance.find({"author": { "$in": ["default", email] }}))
     for c in circumstances:
         c["_id"] = str(c["_id"])
     return circumstances
@@ -742,4 +749,13 @@ def get_circumstances():
 @router.delete("/circumstance/{circumstance_id}")
 def delete_circumstance(circumstance_id: str,
                         current_user: dict = Depends(get_current_active_user)):
-    db.circumstance.delete_one({"_id": ObjectId(circumstance_id)})
+    email = current_user["email"]
+    result = db.circumstance.delete_one({"_id": ObjectId(circumstance_id), "author": email})
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=404,
+            detail="Circumstance not found or you do not have permission to delete it"
+        )
+    
+    return {"status": "deleted"}
