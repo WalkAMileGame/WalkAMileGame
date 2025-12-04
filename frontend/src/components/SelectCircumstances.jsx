@@ -78,7 +78,8 @@ const Circumstances = () => {
         const formatted = data.map(c => ({
         id: c._id,
         title: c.title,
-        description: c.description
+        description: c.description,
+        author: c.author
         }));
 
         setNotes(formatted);
