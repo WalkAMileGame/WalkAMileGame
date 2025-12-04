@@ -55,6 +55,7 @@ const GameComparison = () => {
 
   // Comparison mode state
   const [isComparisonMode, setIsComparisonMode] = useState(false);
+  const [showGuidingQuestions, setShowGuidingQuestions] = useState(false);
 
   const leftContainerRef = useRef(null);
   const rightContainerRef = useRef(null);
@@ -823,6 +824,14 @@ const GameComparison = () => {
         >
           {isComparisonMode ? 'Show Only My Board' : 'Compare with Others'}
         </button>
+        {isGamemaster && (
+          <button
+            onClick={() => setShowGuidingQuestions(true)}
+            className="comparison-guiding-questions-button"
+          >
+            Guiding Questions
+          </button>
+        )}
       </div>
 
       <div className={`comparison-boards-container ${!isComparisonMode ? 'single-board' : ''}`}>
@@ -841,6 +850,29 @@ const GameComparison = () => {
           </button>
         )}
       </div>
+
+      {/* Guiding Questions Popup */}
+      {showGuidingQuestions && (
+        <div className="guiding-questions-overlay" onClick={() => setShowGuidingQuestions(false)}>
+          <div
+            className="guiding-questions-box"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="guiding-questions-close" onClick={() => setShowGuidingQuestions(false)}>
+              ✕
+            </button>
+            <h2>GUIDING QUESTIONS</h2>
+            <hr />
+            <div className="guiding-questions-text">
+              <p>How do your teams' tasks compare with one another?</p>
+              <p>Were your Energy Points limiting? In what ways? Did you have to make trade-offs or compromises more or less than other teams?</p>
+              <p>How did your team make decisions compared to others?</p>
+              <p>Was there an aspect of your student perspective that was challenging to navigate?</p>
+              <p>Which tasks did your team prioritize over others? Why?</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

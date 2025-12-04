@@ -133,6 +133,7 @@
 .comparison-mode-toggle {
   display: flex;
   justify-content: center;
+  gap: 1rem;
   margin: 1rem auto;
 }
 
@@ -154,6 +155,26 @@
   background-color: #E8944D;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(243, 162, 97, 0.5);
+}
+
+.comparison-guiding-questions-button {
+  background-color: #86B18A;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Montserrat", sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.comparison-guiding-questions-button:hover {
+  background-color: #6D9571;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(134, 177, 138, 0.5);
 }
 
 /* MAIN LAYOUT CONTAINER */
@@ -376,4 +397,63 @@
 
 .comparison-error {
   color: #E76F51;
+}
+
+/* Guiding Questions Popup */
+.guiding-questions-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.guiding-questions-box {
+  background: #FAF9F6;
+  color: black;
+  border-radius: 10px;
+  padding: 2%;
+  max-width: 40vw;
+  max-height: 80vh;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  font-family: "Montserrat", sans-serif;
+  position: relative;
+  font-size: 0.8vw;
+  overflow-y: auto;
+  margin: 20px;
+}
+
+.guiding-questions-box h2 {
+  margin-top: 0;
+  margin-bottom: 1vh;
+  font-family: "Lilita One", sans-serif;
+  font-size: 2vw;
+  color: #E76F51;
+  text-align: center;
+}
+
+.guiding-questions-close {
+  position: absolute;
+  top: 1.5vh;
+  right: 1vw;
+  background: none;
+  border: none;
+  font-size: 1.2vw;
+  cursor: pointer;
+  color: #333;
+}
+
+.guiding-questions-text {
+  padding: 0 3%;
+  color: #525252ff;
+}
+
+.guiding-questions-text p {
+  margin: 1rem 0;
+  line-height: 1.6;
 }
