@@ -2,6 +2,10 @@ import React from "react"
 import { Link } from "react-router-dom";
 import '../styles/LandingPage.css';
 import { useAuth } from "../context/AuthContext";
+import board from '../assets/board.png'
+import circumstance from '../assets/circumstance.png'
+import host from '../assets/host.png'
+import users from '../assets/users.png'
 
 
 
@@ -20,7 +24,7 @@ const LandingPage = () => {
         <div className="content-area">
           <div className="cards">
             <div className="card">
-              <div className="card-icon">⚙️</div>
+              <img src={board} alt="Edit gameboards icon" className="card-icon" />
               <h3>EDIT GAMEBOARDS</h3>
               <p>Edit gameboard templates or create new ones</p>
               <Link to="/gameboard">
@@ -28,7 +32,7 @@ const LandingPage = () => {
               </Link>
             </div>
             <div className="card">
-              <div className="card-icon">🕹️</div>
+              <img src={host} alt="Host a game icon" className="card-icon" />
               <h3>HOST A GAME</h3>
               <p>Start hosting a game here</p>
               <Link to="/hostgame">
@@ -36,7 +40,7 @@ const LandingPage = () => {
               </Link>
             </div>
              <div className="card">
-              <div className="card-icon">📝</div>
+              <img src={circumstance} alt="Edit circumstances icon" className="card-icon" />
               <h3>EDIT CIRCUMSTANCES</h3>
               <p>Edit and add new circumstances</p>
               <Link to="/circumstances">
@@ -45,7 +49,7 @@ const LandingPage = () => {
             </div>
             {user?.role === "admin" && (
             <div className="card">
-              <div className="card-icon">👤</div>
+              <img src={users} alt="Edit users icon" className="card-icon" />
               <h3>MANAGE USERS</h3>
               <p>Create users and manage their permissions </p>
               <Link to="/edit_users">
