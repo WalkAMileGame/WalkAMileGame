@@ -106,8 +106,8 @@ def login(form_data: LoginRequest):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Account hasn't been activated"
         )
-
-    if is_code_expired(user_access_code["expirationTime"]):
+    
+    if is_code_expired(user_access_code["expirationTime"]) and user_in_db["role"] != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="ACCOUNT_EXPIRED"

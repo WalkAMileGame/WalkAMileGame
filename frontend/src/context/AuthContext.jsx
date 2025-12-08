@@ -21,7 +21,6 @@ export function AuthProvider({ children }) {
 
   // Custom Fetch Wrapper - Replace authentication needing fetches with this
   const authFetch = useCallback(async (endpoint, options = {}) => {
-    console.log("asd", endpoint, options)
     const currentToken = token || JSON.parse(localStorage.getItem('wam_auth') || '{}').token;
 
     const headers = {

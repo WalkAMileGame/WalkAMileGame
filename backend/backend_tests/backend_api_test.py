@@ -285,10 +285,50 @@ def test_login_un_activated_user(mock_db_instance):
     mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
     mock_db_instance.codes.find_one.assert_called_once_with({"usedByUser": "test@example.com"})
 
+
+@patch('backend.app.api.verify_password')
 @patch('backend.app.api.is_code_expired')
 @patch('backend.app.api.db')
-def test_login_expired_code(mock_db_instance, mock_is_code_expired):
+def test_login_expired_code(mock_db_instance, mock_is_code_expired, mock_verify_password):
     """Test login attempt when no active access code for user"""
+
+    mock_db_instance.users.find_one.return_value = {
+        "_id": "mock_id",
+        "email": "test@example.com",
+        "password": "mock_hashed_password",
+        "role": "gamemaster",
+        }
+    
+    mock_db_instance.codes.find_one.return_value = {
+        "code": "valid_code",
+        "creationTime": datetime.now(timezone.utc) - relativedelta(months=7),
+        "expirationTime": datetime.now(timezone.utc) - relativedelta(months=1),
+        "activationTime": datetime.now(timezone.utc) - relativedelta(months=2),
+        "isUsed": True,
+        "usedByUser": "test@example.com"
+        }
+    
+    mock_is_code_expired.return_value = True
+    mock_verify_password.return_value = True
+
+    response = client.post(
+        "/login",
+        json={"email": "test@example.com", "password": "password123"}
+        )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "ACCOUNT_EXPIRED"}
+
+    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
+    mock_db_instance.codes.find_one.assert_called_once_with({"usedByUser": "test@example.com"})
+
+
+@patch('backend.app.api.create_access_token')
+@patch('backend.app.api.verify_password')
+@patch('backend.app.api.is_code_expired')
+@patch('backend.app.api.db')
+def test_admins_ignore_expired_code_on_login(mock_db_instance, mock_is_code_expired, mock_verify_password, mock_create_access_token):
+    """Test login attempt with expired code, but user is admin so it should be ignored"""
 
     mock_db_instance.users.find_one.return_value = {
         "_id": "mock_id",
@@ -305,14 +345,22 @@ def test_login_expired_code(mock_db_instance, mock_is_code_expired):
         "isUsed": True,
         "usedByUser": "test@example.com"
         }
+    
+    mock_is_code_expired.return_value = True
+    mock_verify_password.return_value = True
+
+    mock_create_access_token.return_value = "mock_access_token"
 
     response = client.post(
         "/login",
         json={"email": "test@example.com", "password": "password123"}
         )
 
-    assert response.status_code == 403
-    assert response.json() == {"detail": "ACCOUNT_EXPIRED"}
+    assert response.status_code == 200
+    assert response.json() == {
+        "access_token": "mock_access_token",
+        "user": {"email": "test@example.com", "role": "admin"}
+        }
 
     mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
     mock_db_instance.codes.find_one.assert_called_once_with({"usedByUser": "test@example.com"})
