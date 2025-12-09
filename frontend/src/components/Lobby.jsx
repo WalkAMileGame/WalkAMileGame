@@ -29,7 +29,7 @@ export default function Lobby() {
 
   // --- Restore team join state on reload ---
   useEffect(() => {
-    if (process.env.NODE_ENV === 'test') return; // don't auto-restore in test env
+    if ((import.meta.env?.MODE || 'development') === 'test') return; // don't auto-restore in test env
     const savedTeamName = sessionStorage.getItem(`teamName_${inviteCode}`);
     if (savedTeamName) {
       setTeamName(savedTeamName);
@@ -46,7 +46,7 @@ export default function Lobby() {
     initializingRef.current = true;
 
     // Skip existence check entirely during automated tests
-    if (process.env.NODE_ENV === 'test') {
+    if ((import.meta.env?.MODE || 'development') === 'test') {
       if (isGamemaster) createRoom();
       else setRoomCreated(true);
       return;
@@ -82,12 +82,12 @@ export default function Lobby() {
 
     const startPolling = () => {
       loadRoomData();
-      const intervalDelay = process.env.NODE_ENV === 'test' ? 500 : 2000;
+      const intervalDelay = (import.meta.env?.MODE || 'development') === 'test' ? 500 : 2000;
       const interval = setInterval(loadRoomData, intervalDelay);
       return () => clearInterval(interval);
     };
 
-    if (process.env.NODE_ENV === 'test') {
+    if ((import.meta.env?.MODE || 'development') === 'test') {
       return startPolling();
     }
 

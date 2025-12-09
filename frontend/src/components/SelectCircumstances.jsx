@@ -172,8 +172,7 @@ const handleDelete = async (note) => {
       } catch {
         // ignore JSON parse errors
       }
-      setSnackbarMessage(errorMsg);
-      setShowSnackbar(true);
+      alert(errorMsg);
       return;
     }
 
