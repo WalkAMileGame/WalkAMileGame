@@ -1,10 +1,12 @@
 """Tests for room management endpoints"""
 import os
-from unittest.mock import patch, MagicMock
-import pytest
-from fastapi.testclient import TestClient
-from fastapi import FastAPI
 from datetime import datetime, timezone
+from unittest.mock import MagicMock, patch
+
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 from backend.app.security import get_current_active_user
 
 
@@ -20,11 +22,13 @@ with patch("backend.app.api.db") as mock_db:
 
 client = TestClient(app)
 
+
 def mock_get_current_active_user():
     return {
-        "email": "admin@test.com", 
+        "email": "admin@test.com",
         "role": "admin",
     }
+
 
 @pytest.fixture(autouse=True)
 def override_auth():
@@ -33,6 +37,7 @@ def override_auth():
     app.dependency_overrides = {}
 
 # Room Creation Tests
+
 
 @patch('backend.app.api.db')
 def test_create_room_success(mock_db_instance):
@@ -54,7 +59,8 @@ def test_create_room_success(mock_db_instance):
         "message": "Room created successfully",
         "room_code": "ABC123"
     }
-    mock_db_instance.rooms.find_one.assert_called_once_with({"room_code": "ABC123"})
+    mock_db_instance.rooms.find_one.assert_called_once_with(
+        {"room_code": "ABC123"})
 
 
 @patch('backend.app.api.db')
@@ -92,7 +98,8 @@ def test_create_room_case_insensitive(mock_db_instance):
 
     assert response.status_code == 200
     assert response.json()["room_code"] == "ABC123"
-    mock_db_instance.rooms.find_one.assert_called_once_with({"room_code": "ABC123"})
+    mock_db_instance.rooms.find_one.assert_called_once_with(
+        {"room_code": "ABC123"})
 
 
 # Room Retrieval Tests
@@ -205,7 +212,8 @@ def test_add_team_room_not_found(mock_db_instance):
 @patch('backend.app.api.db')
 def test_delete_team_success(mock_db_instance):
     """Test successfully deleting a team"""
-    mock_db_instance.rooms.update_one.return_value = MagicMock(modified_count=1)
+    mock_db_instance.rooms.update_one.return_value = MagicMock(
+        modified_count=1)
 
     response = client.delete("/rooms/ABC123/teams/Team Alpha")
 
@@ -216,7 +224,8 @@ def test_delete_team_success(mock_db_instance):
 @patch('backend.app.api.db')
 def test_delete_team_not_found(mock_db_instance):
     """Test deleting a non-existent team"""
-    mock_db_instance.rooms.update_one.return_value = MagicMock(modified_count=0)
+    mock_db_instance.rooms.update_one.return_value = MagicMock(
+        modified_count=0)
 
     response = client.delete("/rooms/ABC123/teams/NonExistent")
 
@@ -265,7 +274,7 @@ def test_start_game_success(mock_db_instance):
     # Verify update call includes game_started and game_started_at
     call_args = mock_db_instance.rooms.update_one.call_args
     assert call_args[0][0] == {"room_code": "ABC123"}
-    assert call_args[0][1]["$set"]["game_started"] == True
+    assert call_args[0][1]["$set"]["game_started"] is True
     assert "game_started_at" in call_args[0][1]["$set"]
 
 
@@ -386,7 +395,7 @@ def test_update_time_with_reset(mock_db_instance):
     assert "game_started_at" in update_fields
     assert update_fields["accumulated_pause_time"] == 0
     assert update_fields["paused_at"] is None
-    assert update_fields["game_paused"] == False
+    assert not update_fields["game_paused"]
 
 
 @patch('backend.app.api.db')

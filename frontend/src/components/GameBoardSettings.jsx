@@ -79,7 +79,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
-  const { authFetch } = useAuth();
+  const { user, authFetch } = useAuth();
   
   useEffect(() => {
     setLocalConfig(gameConfig);
@@ -92,13 +92,23 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   }, [isVisible]);
 
   const loadGameboards = async () => {
-    setIsLoading(true);
-    console.log("loading gamebords")
-    authFetch(`/load_all`)
-      .then((res) => res.json())
-      .then((data) => setTemplates(data));
-    setIsLoading(false);
-    console.log("loading complete")
+    try {
+      setIsLoading(true);
+      console.log("loading gamebords");
+      const res = await authFetch(`/load_boards`);
+      if (!res.ok) {
+        throw new Error("Failed to fetch boards");
+      }
+      const data = await res.json();
+      setTemplates(data ?? []);
+    
+      return data ?? [];
+    } catch (err) {
+      console.error("Error loading gameboards:", err);
+    } finally {
+      setIsLoading(false);
+    }
+    
   };
 
   const handleCircumstances = () => {
@@ -113,7 +123,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   };
 
   const handleEnergyvalueChange = (layerIndex, labelIndex, energyvalue) => {
-    const updatedConfig = { ...localConfig };
+    const updatedConfig = structuredClone(localConfig);
     updatedConfig.ringData[layerIndex].labels[labelIndex].energyvalue = energyvalue;
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
@@ -121,7 +131,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   };
 
   const handleSliceTextChange = (layerIndex, labelIndex, text) => {
-    const updatedConfig = { ...localConfig };
+    const updatedConfig = structuredClone(localConfig);
     updatedConfig.ringData[layerIndex].labels[labelIndex].text = text;
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
@@ -129,7 +139,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   };
 
   const handleSliceColorChange = (layerIndex, labelIndex, color) => {
-    const updatedConfig = { ...localConfig };
+    const updatedConfig = structuredClone(localConfig);
     updatedConfig.ringData[layerIndex].labels[labelIndex].color = color;
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
@@ -137,7 +147,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   };
 
   const handleSliceCircumstanceChange = (layerIndex, labelIndex, required) => {
-    const updatedConfig = { ...localConfig };
+    const updatedConfig = structuredClone(localConfig);
     updatedConfig.ringData[layerIndex].labels[labelIndex].required_for = required;
     setLocalConfig(updatedConfig);
     setUnsavedChanges(true);
@@ -145,7 +155,7 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   };
 
   const handleTileTypeChange = (layerIndex, labelIndex, isTitleTile) => {
-    const updatedConfig = { ...localConfig };
+    const updatedConfig = structuredClone(localConfig);
     const ring = updatedConfig.ringData[layerIndex];
 
     if (isTitleTile) {
@@ -232,6 +242,12 @@ const handleSave = async () => {
     return; 
   }
 
+  if (localConfig.name?.trim() === "Original" && user?.role !== "admin") {
+    setSnackbarMessage("You can't modify the Original board. Please rename the board to create a copy")
+    setShowSnackbar(true);
+    return;
+  }
+
   if (templates.find(t => t.name === localConfig.name?.trim())) {
     const confirmBox = window.confirm(
       `Are you sure you want to overwrite ${localConfig.name?.trim()}?`
@@ -243,22 +259,13 @@ const handleSave = async () => {
     }
   }
 
+  const savingDefault = localConfig.name?.trim() === "Original" && user?.role === "admin";
+
   setIsSaving(true);
   try {
-    const response = await saveGameboard();
-    if (response.ok) {
-      setUnsavedChanges(false);
-      if (templates.find(t => t.name === localConfig.name?.trim())) {
-        const updatedTemplates = templates.map(t =>
-        t.name === localConfig.name?.trim()
-          ? { ...t, ringData: localConfig.ringData } : t
-        );
-        setTemplates(updatedTemplates)
-      } else {
-        const updatedTemplates = [...templates, localConfig];
-        setTemplates(updatedTemplates);
-      }
-    }
+    const response = savingDefault
+    ? await saveDefault()
+    : await saveGameboard();
 
     if (!response.ok) {
       let errorMsg = "Failed to save gameboard.";
@@ -275,6 +282,24 @@ const handleSave = async () => {
       return;
     }
 
+    if (!savingDefault) {
+        setUnsavedChanges(false);
+        if (templates.find(t => t.name === localConfig.name?.trim())) {
+          const updatedTemplates = templates.map(t =>
+          t.name === localConfig.name?.trim()
+            ? { ...t, ringData: localConfig.ringData } : t
+          );
+          setTemplates(updatedTemplates);
+        } else {
+          const updatedTemplates = [...templates, localConfig];
+          setLocalConfig({ ...localConfig })
+          setTemplates(updatedTemplates);
+          
+        }
+        setSelectedTemplateName(localConfig.name?.trim());
+    }
+
+
     setSnackbarMessage("Gameboard saved successfully!");
     setShowSnackbar(true);
 
@@ -289,10 +314,21 @@ const handleSave = async () => {
 
 {/* Make sure saveGameboard RETURNS the fetch result */ }
 const saveGameboard = () => {
-  return authFetch(`/save`, {
+  return authFetch(`/save_board`, {
     method: "PUT",
-    body: JSON.stringify({ 
-      name: localConfig.name?.trim(), 
+    body: JSON.stringify({
+      name: localConfig.name?.trim(),
+      ringData: localConfig.ringData,
+      circumstances: localConfig.circumstances
+    }),
+  });
+};
+
+const saveDefault = () => {
+  return authFetch(`/save_default_board`, {
+    method: "PUT",
+    body: JSON.stringify({
+      name: localConfig.name?.trim(),
       ringData: localConfig.ringData,
       circumstances: localConfig.circumstances
     }),
@@ -304,6 +340,12 @@ const handleDelete = async () => {
     setSnackbarMessage("Please enter the name of the board you wish to delete.");
     setShowSnackbar(true);
     return; 
+  }
+
+  if (localConfig.name?.trim() === "Original") {
+    setSnackbarMessage("You can't delete Original board")
+    setShowSnackbar(true);
+    return;
   }
 
   if (!templates.find(t => t.name === localConfig.name?.trim())) {
@@ -324,11 +366,6 @@ const handleDelete = async () => {
   setIsDeleting(true);
   try {
     const response = await deleteGameboard();
-    if (response.ok) {
-      setUnsavedChanges(false);
-      const updatedTemplates = templates.filter(t => t.name !== localConfig.name?.trim());
-      setTemplates(updatedTemplates);
-    }
 
     if (!response.ok) {
       let errorMsg = "Failed to delete gameboard.";
@@ -345,6 +382,16 @@ const handleDelete = async () => {
       return;
     }
 
+    const res = await authFetch(`/load_boards`);
+    if (!res.ok) throw new Error("Failed to load boards after delete");
+
+    const data = await res.json();
+    setTemplates(data ?? []);
+
+    if (data?.length > 0) onConfigChange(data[0]);
+    else onConfigChange(null);
+
+    setUnsavedChanges(false);
     setSnackbarMessage("Gameboard deleted successfully!");
     setShowSnackbar(true);
 

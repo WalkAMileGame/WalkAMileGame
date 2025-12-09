@@ -1,7 +1,8 @@
 """Database cleanup tasks for removing old game rooms"""
-from datetime import datetime, timezone, timedelta
-from backend.app.db import db
 import logging
+from datetime import datetime, timedelta, timezone
+
+from backend.app.db import db
 
 logger = logging.getLogger(__name__)
 
@@ -24,14 +25,14 @@ def cleanup_old_games():
 
         deleted_count = result.deleted_count
         if deleted_count > 0:
-            logger.info(f"Cleaned up {deleted_count} old game room(s)")
+            logger.info("Cleaned up %d old game room(s)", deleted_count)
         else:
             logger.debug("No old game rooms to clean up")
 
         return deleted_count
 
-    except Exception as e:
-        logger.error(f"Error during game cleanup: {e}")
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error("Error during game cleanup: %s", e)
         return 0
 
 
@@ -45,5 +46,5 @@ def create_cleanup_index():
         # Sparse index only includes documents where the field exists
         db.rooms.create_index("game_started_at", sparse=True)
         logger.info("Created index on game_started_at field")
-    except Exception as e:
-        logger.warning(f"Could not create cleanup index: {e}")
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.warning("Could not create cleanup index: %s", e)

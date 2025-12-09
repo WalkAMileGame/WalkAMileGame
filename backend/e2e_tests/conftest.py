@@ -26,7 +26,8 @@ def servers() -> Generator:
     for i in range(max_retries):
         try:
             # Check if frontend is up
-            frontend_response = requests.get("http://localhost:5173", timeout=1)
+            frontend_response = requests.get(
+                "http://localhost:5173", timeout=1)
             print(f"Frontend check: {frontend_response.status_code}")
 
             # Check if backend is up
@@ -37,13 +38,15 @@ def servers() -> Generator:
             break
 
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
-            print(f"Retry {i+1}/{max_retries}: Servers not ready yet...")
+            print(f"Retry {i + 1}/{max_retries}: Servers not ready yet...")
 
             # Check if process has died
             if process.poll() is not None:
                 # Process has terminated
                 stdout, _ = process.communicate()
-                print(f"Process terminated early with code {process.returncode}")
+                print(
+                    f"Process terminated early with code {
+                        process.returncode}")
                 print(f"Output: {stdout}")
                 raise RuntimeError(
                     f"Server process died with exit code {process.returncode}"

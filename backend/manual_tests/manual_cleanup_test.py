@@ -77,11 +77,16 @@ def run_manual_test():
     # Create test data
     print("\n3. Creating test rooms...")
     create_test_room("TEST_NEW", hours_ago=0)  # New, not started
-    create_test_room("TEST_1HR", hours_ago=1)  # 1 hour old (should NOT be deleted)
-    create_test_room("TEST_2HR", hours_ago=2)  # 2 hours old (should NOT be deleted)
-    create_test_room("TEST_3HR", hours_ago=3)  # 3 hours old (SHOULD be deleted)
-    create_test_room("TEST_4HR", hours_ago=4)  # 4 hours old (SHOULD be deleted)
-    create_test_room("TEST_5HR", hours_ago=5)  # 5 hours old (SHOULD be deleted)
+    # 1 hour old (should NOT be deleted)
+    create_test_room("TEST_1HR", hours_ago=1)
+    # 2 hours old (should NOT be deleted)
+    create_test_room("TEST_2HR", hours_ago=2)
+    # 3 hours old (SHOULD be deleted)
+    create_test_room("TEST_3HR", hours_ago=3)
+    # 4 hours old (SHOULD be deleted)
+    create_test_room("TEST_4HR", hours_ago=4)
+    # 5 hours old (SHOULD be deleted)
+    create_test_room("TEST_5HR", hours_ago=5)
 
     # List rooms before cleanup
     print("\n4. Rooms BEFORE cleanup:")

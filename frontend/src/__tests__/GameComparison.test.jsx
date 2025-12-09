@@ -52,8 +52,8 @@ describe('GameComparison Component', () => {
         innerRadius: 200,
         outerRadius: 300,
         labels: [
-          { id: 'label1', text: 'Test Label 1', color: '#ff0000', tileType: 'normal', energypoint: false },
-          { id: 'label2', text: 'Test Label 2', color: '#00ff00', tileType: 'ring_title', energypoint: true }
+          { id: 'label0', text: 'Test Label 0', color: '#ff0000', tileType: 'action', energypoint: false },
+          { id: 'label1', text: 'Moving', color: '#00ff00', tileType: 'ring_title', energypoint: false }
         ]
       }
     ]
@@ -69,7 +69,7 @@ describe('GameComparison Component', () => {
 
   const mockMistakes = {
     mistakes: [
-      { ring_id: 'ring0', label_id: 'label1' }
+      { ring_id: 'ring0', label_id: 'label1', ring_index: 0, label_index: 0 }
     ]
   };
 
@@ -236,8 +236,8 @@ describe('GameComparison Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Circumstance: Test circumstance/)).toBeInTheDocument();
-      expect(screen.getByText(/Energy: 5/)).toBeInTheDocument();
-      expect(screen.getByText(/Mistakes: 1/)).toBeInTheDocument();
+      expect(screen.getByText(/Energy Used: 27\/32/)).toBeInTheDocument();
+      expect(screen.getByText(/Missed tiles \(1\):/)).toBeInTheDocument();
     });
   });
 
@@ -311,6 +311,61 @@ describe('GameComparison Component', () => {
 
     await waitFor(() => {
       expect(screen.getAllByTestId('zoom-controls').length).toBeGreaterThan(0);
+    });
+  });
+
+  test('displays detailed mistake information with ring name', async () => {
+    setupFetchMock({
+      '/rooms/TEST123': { ok: true, json: async () => mockRoomData },
+      '/rooms/TEST123/teams/Team Alpha/board': { ok: true, json: async () => mockBoardConfig },
+      '/rooms/TEST123/teams/Team Alpha/mistakes': { ok: true, json: async () => mockMistakes }
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Moving: "Test Label 0"/)).toBeInTheDocument();
+    });
+  });
+
+  test('displays no mistakes message when team has no mistakes', async () => {
+    setupFetchMock({
+      '/rooms/TEST123': { ok: true, json: async () => mockRoomData },
+      '/rooms/TEST123/teams/Team Alpha/board': { ok: true, json: async () => mockBoardConfig },
+      '/rooms/TEST123/teams/Team Alpha/mistakes': { ok: true, json: async () => ({ mistakes: [] }) }
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/You made no mistakes/)).toBeInTheDocument();
+    });
+  });
+
+  test('uses fallback ring name when no title tile exists', async () => {
+    const boardWithoutTitle = {
+      ringData: [
+        {
+          id: 'ring0',
+          innerRadius: 200,
+          outerRadius: 300,
+          labels: [
+            { id: 'label0', text: 'Test Action', color: '#ff0000', tileType: 'action', energypoint: false }
+          ]
+        }
+      ]
+    };
+
+    setupFetchMock({
+      '/rooms/TEST123': { ok: true, json: async () => mockRoomData },
+      '/rooms/TEST123/teams/Team Alpha/board': { ok: true, json: async () => boardWithoutTitle },
+      '/rooms/TEST123/teams/Team Alpha/mistakes': { ok: true, json: async () => mockMistakes }
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Moving: "Test Action"/)).toBeInTheDocument();
     });
   });
 });

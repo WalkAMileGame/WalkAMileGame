@@ -1,12 +1,13 @@
 """Integration tests for the cleanup scheduler"""
-from unittest.mock import MagicMock, patch
-import time
-from backend.main import app
-from fastapi.testclient import TestClient
 import os
+import time
+from unittest.mock import MagicMock, patch
+
 import pytest
-from backend.main import scheduler
+from fastapi.testclient import TestClient
+
 from backend.app.cleanup import cleanup_old_games
+from backend.main import app, scheduler
 
 
 class TestSchedulerIntegration:

@@ -1,24 +1,16 @@
 """run uvicorn app"""
-import os
-import uvicorn
 import logging
+import os
 from contextlib import asynccontextmanager
+
+import uvicorn
+from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from apscheduler.schedulers.background import BackgroundScheduler
-from backend.app.api import router
-from backend.app.db import initialize_database
-import jose
-print(f"Jose version: {jose.__version__}")
-print(f"Jose path: {jose.__file__}")
 
-try:
-    from jose import jws
-    print(f"Available algorithms: {jws.ALGORITHMS.SUPPORTED}")
-except Exception as e:
-    print(f"Error checking algorithms: {e}")
-app = FastAPI()
+from backend.app.api import router
 from backend.app.cleanup import cleanup_old_games, create_cleanup_index
+from backend.app.db import initialize_database
 
 # Configure logging
 logging.basicConfig(
@@ -31,7 +23,7 @@ scheduler = BackgroundScheduler()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI):  # pylint: disable=unused-argument
     """Handle startup and shutdown events"""
     # Startup
     if os.getenv('TESTING') != 'true':
@@ -64,12 +56,12 @@ origins = [
     "localhost:5173",
     "https://walkamile.ext.ocp-test-0.k8s.it.helsinki.fi"
 ]
-origin_regex = r"^https?://([a-z0-9-]+\.)*ext\.ocp-test-0\.k8s\.it\.helsinki\.fi(:\d+)?$"
+ORIGIN_REGEX = r"^https?://([a-z0-9-]+\.)*ext\.ocp-test-0\.k8s\.it\.helsinki\.fi(:\d+)?$"
 app.add_middleware(
     CORSMiddleware,
-    #This must be changed before production.
+    # This must be changed before production.
     allow_origins=["*"],
-    #allow_origin_regex=origin_regex,
+    allow_origin_regex=ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,6 +70,6 @@ app.add_middleware(
 
 app.include_router(router)
 
-#test
+# test
 if __name__ == "__main__":
     uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)

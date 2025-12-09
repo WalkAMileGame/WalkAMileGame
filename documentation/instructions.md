@@ -29,6 +29,8 @@ To run unit tests use command:
 ```
 invoke test
 ```
+this runs the backend, frontend, and end-to-end tests.
+To run each individually, decorators --backend, --frontend, and --e2e can be used.
 
 
 ## Lint

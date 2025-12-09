@@ -85,15 +85,18 @@ class TestCleanupOldGames:
 
         cleanup_old_games()
 
-        # Should log info message with count
+        # Should log info message with count (using lazy logging format)
         mock_logger.info.assert_called_once()
-        log_message = mock_logger.info.call_args[0][0]
-        assert "3" in log_message
-        assert "game room" in log_message.lower()
+        log_format = mock_logger.info.call_args[0][0]
+        log_count = mock_logger.info.call_args[0][1]
+        assert "%d" in log_format
+        assert log_count == 3
+        assert "game room" in log_format.lower()
 
     @patch('backend.app.cleanup.db')
     @patch('backend.app.cleanup.logger')
-    def test_cleanup_logs_debug_when_nothing_deleted(self, mock_logger, mock_db):
+    def test_cleanup_logs_debug_when_nothing_deleted(
+            self, mock_logger, mock_db):
         """Test that cleanup logs debug message when nothing is deleted"""
         mock_result = MagicMock()
         mock_result.deleted_count = 0
@@ -103,22 +106,23 @@ class TestCleanupOldGames:
 
         # Should log debug message
         mock_logger.debug.assert_called_once()
-        log_message = mock_logger.debug.call_args[0][0]
-        assert "no old game rooms" in log_message.lower()
+        log_format = mock_logger.debug.call_args[0][0]
+        assert "no old game rooms" in log_format.lower()
 
     @patch('backend.app.cleanup.db')
     @patch('backend.app.cleanup.logger')
     def test_cleanup_handles_exceptions(self, mock_logger, mock_db):
         """Test that cleanup handles database exceptions gracefully"""
-        mock_db.rooms.delete_many.side_effect = Exception("Database connection error")
+        mock_db.rooms.delete_many.side_effect = Exception(
+            "Database connection error")
 
         deleted = cleanup_old_games()
 
-        # Should return 0 and log error
+        # Should return 0 and log error (using lazy logging format)
         assert deleted == 0
         mock_logger.error.assert_called_once()
-        log_message = mock_logger.error.call_args[0][0]
-        assert "error" in log_message.lower()
+        log_format = mock_logger.error.call_args[0][0]
+        assert "error" in log_format.lower()
 
     @patch('backend.app.cleanup.db')
     def test_cleanup_query_format(self, mock_db):
@@ -159,22 +163,23 @@ class TestCreateCleanupIndex:
 
         # Verify success was logged
         mock_logger.info.assert_called_once()
-        log_message = mock_logger.info.call_args[0][0]
-        assert "index" in log_message.lower()
-        assert "game_started_at" in log_message
+        log_format = mock_logger.info.call_args[0][0]
+        assert "index" in log_format.lower()
+        assert "game_started_at" in log_format
 
     @patch('backend.app.cleanup.db')
     @patch('backend.app.cleanup.logger')
     def test_create_index_handles_exception(self, mock_logger, mock_db):
         """Test that index creation handles exceptions gracefully"""
-        mock_db.rooms.create_index.side_effect = Exception("Index already exists")
+        mock_db.rooms.create_index.side_effect = Exception(
+            "Index already exists")
 
         create_cleanup_index()
 
         # Should log warning, not crash
         mock_logger.warning.assert_called_once()
-        log_message = mock_logger.warning.call_args[0][0]
-        assert "index" in log_message.lower()
+        log_format = mock_logger.warning.call_args[0][0]
+        assert "index" in log_format.lower()
 
     @patch('backend.app.cleanup.db')
     def test_create_index_uses_sparse_option(self, mock_db):

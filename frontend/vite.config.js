@@ -16,7 +16,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     testTimeout: 7000,
-    setupFiles: './src/setupTests.js',     
+    setupFiles: './src/setupTests.js',
+    clearMocks: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
@@ -27,7 +28,8 @@ export default defineConfig({
         'src/setupTests.js',
         'src/main.jsx',
         'vite.config.js',
-        'eslint.config.js'
+        'eslint.config.js',
+        'src/components/AboutUs.jsx'
       ],
     },
   }

@@ -1,10 +1,14 @@
-from nanoid import generate
+"""Access code generation and management functions."""
 from datetime import datetime, timezone
+
 from dateutil.relativedelta import relativedelta
+from nanoid import generate
+
 from backend.app.models import AccessCode
 
 
-def generate_new_access_code(valid_for):
+def generate_new_access_code(valid_for_months):
+    """Generate a new access code valid for specified months."""
     alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 
     part1 = generate(alphabet=alphabet, size=4)
@@ -14,27 +18,35 @@ def generate_new_access_code(valid_for):
 
     code = f"{part1}-{part2}-{part3}-{part4}"
     creation_time = datetime.now(timezone.utc)
-    expiration_time = creation_time + relativedelta(months=abs(valid_for))
+    expiration_time = creation_time + \
+        relativedelta(months=abs(valid_for_months))
 
-    code = AccessCode(code=code, creationTime=creation_time, expirationTime=expiration_time)
+    code = AccessCode(
+        code=code,
+        creationTime=creation_time,
+        expirationTime=expiration_time)
     return code
 
+
 def is_code_expired(expiration_time):
+    """Check if an access code has expired."""
     now = datetime.now(timezone.utc)
 
     if expiration_time.tzinfo is None:
         expiration_time = expiration_time.replace(tzinfo=timezone.utc)
-    
+
     if now > expiration_time:
         return True
     return False
 
-def activate_code(incoming_code, user):
+
+def activate_code(incoming_code, user_email):
+    """Activate an access code for a user."""
     code = AccessCode(code=incoming_code["code"],
                       creationTime=incoming_code["creationTime"],
                       expirationTime=incoming_code["expirationTime"])
-    
+
     code.activationTime = datetime.now(timezone.utc)
     code.isUsed = True
-    code.usedByUser = user
+    code.usedByUser = user_email
     return code

@@ -451,9 +451,13 @@ const handleCodeSort = (key) => {
                       : "-"}
                   </td>
                   <td>
-                    {u.expiration_date
-                      ? new Date(u.expiration_date).toLocaleDateString()
-                      : "-"}
+                    {u.role === "admin" 
+                      ? "-" 
+                      : (u.expiration_date 
+                          ? new Date(u.expiration_date).toLocaleDateString() 
+                          : "-"
+                        )
+                    }
                   </td>
                   <td>
                     {u.email !== user?.email && (

@@ -19,7 +19,7 @@ def initialize_database():
     try:
         client.admin.command('ping')
         print("Pinged your deployment. You successfully connected to MongoDB!")
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(e)
 
     db.points.update_one({"id": "0"}, {"$set": {"values": 32}}, upsert=True)

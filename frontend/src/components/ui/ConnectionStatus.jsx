@@ -4,35 +4,28 @@ import { API_BASE } from '../../api';
 
 const ConnectionStatus = () => {
   const [backendStatus, setBackendStatus] = useState('checking');
-  const [statusMessage, setStatusMessage] = useState('');
 
   const checkConnection = async () => {
     setBackendStatus('checking');
-    setStatusMessage('');
     try {
       const response = await fetch(`${API_BASE}/health`);
-      
+
       if (response.ok) {
         const data = await response.json();
-        
+
         if (data.status === 'healthy') {
           setBackendStatus('connected');
-          setStatusMessage(data.message);
         } else if (data.status === 'unhealthy') {
           setBackendStatus('unhealthy');
-          setStatusMessage(data.message);
         } else {
           setBackendStatus('error');
-          setStatusMessage('Unknown status received');
         }
       } else {
         setBackendStatus('error');
-        setStatusMessage(`HTTP ${response.status}`);
       }
     } catch (error) {
       console.error('Backend health check failed:', error);
       setBackendStatus('disconnected');
-      setStatusMessage('Cannot reach backend server');
     }
   };
 
@@ -67,6 +60,11 @@ const ConnectionStatus = () => {
 
   const currentConfig = statusConfig[backendStatus];
 
+  // Only show when disconnected, unhealthy, or error
+  if (backendStatus === 'connected' || backendStatus === 'checking') {
+    return null;
+  }
+
   return (
     <div style={{
       position: 'fixed',
@@ -78,7 +76,7 @@ const ConnectionStatus = () => {
       borderRadius: '8px',
       color: currentConfig.color,
       fontWeight: 'bold',
-      fontSize: '14px',
+      fontSize: '20px',
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
       zIndex: 9999,
       display: 'flex',
@@ -86,39 +84,18 @@ const ConnectionStatus = () => {
       gap: '8px',
       maxWidth: '300px'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {currentConfig.text}
-        
-        <button
-          onClick={checkConnection}
-          style={{
-            padding: '4px 12px',
-            backgroundColor: currentConfig.color,
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            fontSize: '12px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            transition: 'opacity 0.2s'
-          }}
-          onMouseOver={(e) => e.target.style.opacity = '0.8'}
-          onMouseOut={(e) => e.target.style.opacity = '1'}
-        >
-          Check
-        </button>
-      </div>
-      
-      {statusMessage && (
-        <div style={{
-          fontSize: '12px',
-          fontWeight: 'normal',
-          color: '#6b7280',
-          fontStyle: 'italic'
-        }}>
-          {statusMessage}
-        </div>
-      )}
+      {(backendStatus === 'disconnected' || backendStatus === 'error' || backendStatus === 'unhealthy') ? (
+        <span style={{ position: 'relative', display: 'inline-block' }}>
+          <span>ᯤ</span>
+          <span style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            fontSize: '1em'
+          }}>/</span>
+        </span>
+      ) : currentConfig.text}
     </div>
   );
 };
