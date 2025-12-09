@@ -76,35 +76,6 @@ const Game = () => {
   };
 
 
-  // Fetch board && display energymarkers if energypoint true
-useEffect(() => {
-  if (teamname === "Gamemaster") return;
-
-  const fetchBoard = async () => {
-    try {
-      console.log("Fetching board from backend...");
-      const res = await fetch(`${API_BASE}/rooms/${gamecode}/teams/${teamname}/board`);
-      if (!res.ok) throw new Error("No board found for team");
-      const data = await res.json();
-      console.log("Fetched board data:", data);
-      setGameConfig(data);
-      setActiveMarkers(restoreEnergyMarkers(data));
-      setIsInitialized(true);
-    } catch (err) {
-      console.error("Board fetch failed:", err);
-    }
-  };
-
-  // Initial fetch
-  fetchBoard();
-
-  // Poll every 2 seconds if spectator or gamemaster viewing to see updates
-  if (isSpectator || isGamemasterViewing) {
-    const interval = setInterval(fetchBoard, 2000);
-    return () => clearInterval(interval);
-  }
-}, [gamecode, teamname, isSpectator, isGamemasterViewing]);
-
   // Fetching points
   useEffect(() => {
     if (teamname === "Gamemaster") return;

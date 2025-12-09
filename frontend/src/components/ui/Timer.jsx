@@ -15,20 +15,23 @@ function Timer({ gamecode, onEnd, onTimeUpdate }) {
   useEffect(() => {
     if (!gamecode) return;
 
+    let isMounted = true; // Track if component is active
+    let intervalId = null; // Store interval ID here so cleanup can access it
+
     const fetchAndCalculateTimer = async () => {
       try {
         console.log('Fetching timer data for room:', gamecode);
         const response = await fetch(`${API_BASE}/rooms/${gamecode}`);
 
+        if (!isMounted) return; // Stop if unmounted during fetch
+
         if (response.ok) {
           const roomData = await response.json();
+          if (!isMounted) return;
+
           console.log('Room data received:', roomData);
-          console.log('Time remaining (minutes):', roomData.time_remaining);
-          console.log('Game started at:', roomData.game_started_at);
-          console.log('Game paused:', roomData.game_paused);
 
           const now = new Date();
-          let endTime;
 
           if (roomData.game_started_at) {
             // Game has started - calculate based on elapsed time
@@ -49,29 +52,25 @@ function Timer({ gamecode, onEnd, onTimeUpdate }) {
             }
 
             const remainingSeconds = Math.max(0, totalDuration - elapsedSeconds);
-
-            console.log('Game started:', gameStartTime.toISOString());
-            console.log('Elapsed seconds:', elapsedSeconds);
-            console.log('Accumulated pause time:', accumulatedPauseTime);
-            console.log('Remaining seconds:', remainingSeconds);
-
-            endTime = new Date(gameStartTime.getTime() + (totalDuration + accumulatedPauseTime) * 1000);
             setTimeLeft(remainingSeconds);
           } else {
             // Game hasn't started yet - use full duration
             const totalDuration = roomData.time_remaining * 60;
-            endTime = new Date(now.getTime() + totalDuration * 1000);
             setTimeLeft(totalDuration);
           }
 
           setIsLoading(false);
 
-          // Start countdown - only tick if not paused
+          // Start countdown
           const update = () => {
+            if (!isMounted) return;
+            
             // Fetch fresh data to check pause state
             fetch(`${API_BASE}/rooms/${gamecode}`)
               .then(res => res.json())
               .then(roomData => {
+                if (!isMounted) return;
+                
                 if (roomData.game_paused) {
                   // Don't update time if paused - keep the fetch to detect resume
                   return;
@@ -86,22 +85,37 @@ function Timer({ gamecode, onEnd, onTimeUpdate }) {
 
                 setTimeLeft(remainingSeconds);
                 if (remainingSeconds <= 0 && onEnd) onEnd();
+              })
+              .catch(err => {
+                 if (isMounted) console.error("Timer update failed", err);
               });
           };
 
-          const interval = setInterval(update, 1000);
-          return () => clearInterval(interval);
+          // Assign to the variable defined in the upper scope
+          intervalId = setInterval(update, 1000);
+          
         } else {
           console.error('Failed to fetch room data:', response.status);
           setIsLoading(false);
         }
       } catch (err) {
-        console.error('Error fetching timer data:', err);
-        setIsLoading(false);
+        if (isMounted) {
+            console.error('Error fetching timer data:', err);
+            setIsLoading(false);
+        }
       }
     };
 
     fetchAndCalculateTimer();
+
+    // CLEANUP FUNCTION
+    // This runs when the component unmounts (e.g., when the test finishes)
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [gamecode, onEnd]);
 
   const formatTime = (seconds) => {
