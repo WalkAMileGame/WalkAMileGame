@@ -463,7 +463,8 @@ def test_register_successful_register_attempt(mock_db_instance, mock_get_passwor
         "$set": {
             "email": "test@example.com",
             "password": "mock_password_hash",
-            "role": "gamemaster"
+            "role": "gamemaster",
+            "boards": []
             }
         },
         upsert = True
@@ -638,9 +639,9 @@ def test_read_current_user():
 @patch('backend.app.api.db')
 def test_save_board_success(mock_db_instance):
     """Test successfully saving a board"""
-    mock_db_instance.boards.update_one.return_value = MagicMock()
+    mock_db_instance.users.update_one.return_value = MagicMock()
 
-    response = client.put("/save", json={
+    response = client.put("/save_board", json={
         "name": "Test Board",
         "ringData": [
             {
@@ -653,13 +654,13 @@ def test_save_board_success(mock_db_instance):
     })
 
     assert response.status_code == 200
-    mock_db_instance.boards.update_one.assert_called_once()
+    mock_db_instance.users.update_one.assert_called_once()
 
 
 @patch('backend.app.api.db')
 def test_save_board_invalid_data(mock_db_instance):
     """Test saving a board with invalid data"""
-    response = client.put("/save", json={
+    response = client.put("/save_board", json={
         "name": "Test Board"
         # Missing ringData
     })
@@ -670,15 +671,14 @@ def test_save_board_invalid_data(mock_db_instance):
 @patch('backend.app.api.db')
 def test_delete_board_success(mock_db_instance):
     """Test successfully deleting a board"""
-    mock_db_instance.boards.delete_one.return_value = MagicMock()
+    mock_db_instance.users.update_one.return_value = MagicMock()
 
     response = client.request("DELETE", "/delete", json={
         "name": "Test Board"
     })
 
     assert response.status_code == 200
-    mock_db_instance.boards.delete_one.assert_called_once_with({"name": "Test Board"})
-
+    mock_db_instance.users.update_one.assert_called_once_with({"email": "admin@test.com"},{"$pull": {"boards": {"name": "Test Board"}}})
 
 @patch('backend.app.api.db')
 def test_load_all_boards(mock_db_instance):
@@ -688,8 +688,9 @@ def test_load_all_boards(mock_db_instance):
         {"name": "Board 2", "ringData": []}
     ]
     mock_db_instance.boards.find.return_value = mock_boards
+    mock_db_instance.users.find_one.return_value = {"boards": []}
 
-    response = client.get("/load_all")
+    response = client.get("/load_boards")
 
     assert response.status_code == 200
     assert response.json() == mock_boards
@@ -700,8 +701,9 @@ def test_load_all_boards(mock_db_instance):
 def test_load_all_boards_empty(mock_db_instance):
     """Test loading boards when none exist"""
     mock_db_instance.boards.find.return_value = []
+    mock_db_instance.users.find_one.return_value = {"boards": []}
 
-    response = client.get("/load_all")
+    response = client.get("/load_boards")
 
     assert response.status_code == 200
     assert response.json() == []

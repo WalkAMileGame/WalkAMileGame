@@ -19,6 +19,7 @@ class Circumstance(BaseModel):
     id: str
     title: str
     description: str
+    author: str
     
 class LabelData(BaseModel):
     id: int
@@ -44,6 +45,7 @@ class UserData(BaseModel):
     email: EmailStr
     password: str
     role: str = "gamemaster"
+    boards: List[Boards] = []
 
 class AccessCode(BaseModel):
     code: str

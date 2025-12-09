@@ -48,7 +48,7 @@ describe('HostGamePage - Core Functionality', () => {
     renderComponent();
     
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/load_all');
+      expect(global.fetch).toHaveBeenCalledWith('/load_boards');
       expect(screen.getByText('Classic Board')).toBeInTheDocument();
       expect(screen.getByText('Advanced Board')).toBeInTheDocument();
     });

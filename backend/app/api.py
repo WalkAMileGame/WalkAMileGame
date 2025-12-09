@@ -37,11 +37,37 @@ def update_points(data: ChangePoints):
     updated_points = db.points.find_one({"id": "0"}, {"_id": 0})
     return updated_points
 
-@router.put("/save")
+
+@router.put("/save_board")
 def save_board(data: Boards, current_user: dict = Depends(get_current_active_user)):
+    email = current_user["email"]
+    result = db.users.update_one(
+        {"email": email, "boards.name": data.name},
+        {"$set": {"boards.$": data.model_dump()}}
+    )
+    
+    if result.matched_count == 0:
+        db.users.update_one(
+            {"email": email},
+            {"$push": {"boards": data.model_dump()}}
+        )
+    
+    return {"message": "Board saved successfully"}
+
+class NewBoard(BaseModel):
+    name: str
+    circumstances: list
+    ringData: list
+    
+    
+@router.put("/save_default_board")
+def save_default_board(data: NewBoard):
     db.boards.update_one({"name": data.name},
-                         {"$set": data.model_dump()},
+                         {"$set": {"name": data.name, "circumstances": data.circumstances, "ringData": data.ringData}},
                          upsert=True)
+    return {"message": "Board saved successfully"}
+
+
 
 class DeleteBoard(BaseModel):
     name: str
@@ -49,13 +75,22 @@ class DeleteBoard(BaseModel):
 
 @router.delete("/delete")
 def delete_board(data: DeleteBoard, current_user: dict = Depends(get_current_active_user)):
-    db.boards.delete_one({"name": data.name})
+    email= current_user["email"]
+    db.users.update_one(
+        {"email": email},
+        {"$pull": {"boards": {"name": data.name}}}
+    )
+    return {"message": "Board deleted successfully"}
 
 
-@router.get("/load_all")
+@router.get("/load_boards")
 def load_boards(current_user: dict = Depends(get_current_active_user)):
+    email = current_user["email"]
     boards = list(db.boards.find(projection={"_id": False}))
-    return boards
+    user = db.users.find_one({"email": email}, {"_id": 0, "boards": 1})
+    if not user["boards"]:
+        return boards
+    return boards + user["boards"]
 
 
 @router.get("/health", tags=["health"])
@@ -710,8 +745,12 @@ def load_users(current_user: dict = Depends(get_current_active_user)):
     codes = list(db.codes.find(projection={"_id": False}))
     return {"users": users, "codes": codes}
 
+class SaveCircumstance(BaseModel):
+    title: str
+    description: str
+
 @router.put("/save_circumstance/{cid}")
-def save_edited_circumstance(cid: str, data: Circumstance,
+def save_edited_circumstance(cid: str, data: SaveCircumstance,
                              current_user: dict = Depends(get_current_active_user)):
     db.circumstance.update_one(
         {"_id": ObjectId(cid)},
@@ -720,16 +759,19 @@ def save_edited_circumstance(cid: str, data: Circumstance,
             "description": data.description
         }}
     )
+
 @router.post("/save_circumstance")
-def save_new_circumstance(data: Circumstance, current_user: dict = Depends(get_current_active_user)):
-    new_note = db.circumstance.insert_one({"title": data.title, "description": data.description})
+def save_new_circumstance(data: SaveCircumstance, current_user: dict = Depends(get_current_active_user)):
+    email = current_user["email"]
+    new_note = db.circumstance.insert_one({"title": data.title, "description": data.description, "author": email})
     fetch_new_note = db.circumstance.find_one({"_id": new_note.inserted_id})
     fetch_new_note["_id"] = str(fetch_new_note["_id"])
     return fetch_new_note
 
 @router.get("/circumstances")
-def get_circumstances():
-    circumstances = list(db.circumstance.find())
+def get_circumstances(current_user: dict = Depends(get_current_active_user)):
+    email = current_user["email"]
+    circumstances = list(db.circumstance.find({"author": { "$in": ["default", email] }}))
     for c in circumstances:
         c["_id"] = str(c["_id"])
     return circumstances
@@ -737,4 +779,13 @@ def get_circumstances():
 @router.delete("/circumstance/{circumstance_id}")
 def delete_circumstance(circumstance_id: str,
                         current_user: dict = Depends(get_current_active_user)):
-    db.circumstance.delete_one({"_id": ObjectId(circumstance_id)})
+    email = current_user["email"]
+    result = db.circumstance.delete_one({"_id": ObjectId(circumstance_id), "author": email})
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=404,
+            detail="Circumstance not found or you do not have permission to delete it"
+        )
+
+    return {"status": "deleted"}

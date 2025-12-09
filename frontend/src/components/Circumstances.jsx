@@ -6,23 +6,31 @@ import addIcon from '../styles/icons/addicon.png';
 import { useAuth } from '../context/AuthContext';
 import Snackbar from "./ui/snackbar"
 
-const CircumstanceCard = ({ title, description, onEdit, onDelete }) => {
+const CircumstanceCard = ({ title, description, user, author, onEdit, onDelete }) => {
   return (
     <div className="note-card">
-      <img
-        src={editIcon}
-        alt="edit"
-        className="edit-icon"
-        onClick={onEdit}
-        title="Edit"
-      />
-      <img
-        src={deleteIcon}
-        alt="delete"
-        className="delete-icon"
-        onClick={onDelete}
-        title="Delete"
-      />
+      <div className="icon-row">
+        {(user?.role === "admin" || user?.email === author) && (
+          <img
+            src={editIcon}
+            alt="edit"
+            className="edit-icon"
+            onClick={onEdit}
+            title="Edit"
+          />
+        )}
+
+        {user?.email === author && (
+          <img
+            src={deleteIcon}
+            alt="delete"
+            className="delete-icon"
+            onClick={onDelete}
+            title="Delete"
+          />
+        )}
+      </div>
+
       <h3 className="note-title">{title}</h3>
       <p className="note-description">{description}</p>
     </div>
@@ -40,7 +48,7 @@ const Circumstances = () => {
   const MaxTitle = 60
   const MaxDescription = 450
 
-  const { authFetch } = useAuth();
+  const { authFetch, user } = useAuth();
 
   useEffect(() => {
     const loadCircumstances = async () => {
@@ -51,7 +59,8 @@ const Circumstances = () => {
         const formatted = data.map(c => ({
         id: c._id, 
         title: c.title,
-        description: c.description
+        description: c.description,
+        author: c.author
         }));
 
         setNotes(formatted);
@@ -100,7 +109,6 @@ const saveEdit = async () => {
       const res = await authFetch('/save_circumstance', {
         method: "POST",
         body: JSON.stringify({
-          id: '',
           title: editTitle,
           description: editDescription
         })
@@ -111,7 +119,8 @@ const saveEdit = async () => {
       setNotes(prev => [...prev, { 
         id: newNote._id,
         title: newNote.title,
-        description: newNote.description
+        description: newNote.description,
+        author: newNote.author
       }]);
     } catch (err) {
       console.error("Failed to create note:", err);
@@ -119,14 +128,13 @@ const saveEdit = async () => {
   } else {
     // edit existing note
     const updated = [...notes];
-    updated[editingIndex] = { title: editTitle, description: editDescription, id: notes[editingIndex].id };
+    updated[editingIndex] = { title: editTitle, description: editDescription, author: notes[editingIndex].author, id: notes[editingIndex].id };
     setNotes(updated);
 
     try {
       await authFetch(`/save_circumstance/${notes[editingIndex].id}`, {
         method: "PUT",
         body: JSON.stringify({
-          id: '',
           title: editTitle,
           description: editDescription
         })
@@ -145,8 +153,26 @@ const handleDelete = async (note) => {
   if (!window.confirm(`Are you sure you want to delete circumstance "${note.title}"?`)) return;
 
   try {
-    await authFetch(`/circumstance/${note.id}`, { method: "DELETE" });
-    setNotes(prev => prev.filter(n => n.id !== note.id));
+    const response = await authFetch(`/circumstance/${note.id}`, { method: "DELETE" });
+    if (response.ok) {
+      setNotes(prev => prev.filter(n => n.id !== note.id));
+    }
+
+    if (!response.ok) {
+      let errorMsg = "Failed to delete circumstance.";
+      try {
+        const data = await response.json();
+        if (data?.error) {
+          errorMsg = ` ${data.error}`;
+        }
+      } catch {
+        // ignore JSON parse errors
+      }
+      setSnackbarMessage(errorMsg);
+      setShowSnackbar(true);
+      return;
+    }
+    
   } catch (err) {
     console.error("Failed to delete circumstance:", err);
   }
@@ -185,6 +211,8 @@ const handleDelete = async (note) => {
               key={i}
               title={note.title}
               description={note.description}
+              user={user}
+              author={note.author}
               onEdit={() => openEditor(i)}
               onDelete={() => handleDelete(note)}
             />

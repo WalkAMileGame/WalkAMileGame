@@ -65,7 +65,7 @@ export default function HostGamePage() {
   const [isLoadingBoards, setIsLoadingBoards] = useState(false);
   const [isGamemaster] = useState(true);
 
-  const { authFetch } = useAuth();
+  const { user, authFetch } = useAuth();
   
   // Load gameboards when component mounts
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function HostGamePage() {
   const loadGameboards = async () => {
     setIsLoadingBoards(true);
     try {
-        const response = await authFetch(`/load_all`);
+        const response = await authFetch(`/load_boards`);
         const data = await response.json();
         console.log('Loaded boards:', data);
         setBoards(data);

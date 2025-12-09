@@ -14,8 +14,8 @@ vi.mock('../context/AuthContext', () => ({
 }));
 
 const mockNotes = [
-  {_id: '1', title: 'circumstance 1',description: 'this is circumstance 1',},
-  {_id: '2', title: 'circumstance 2', description: 'this is circumstance 2',},
+  {_id: '1', title: 'circumstance 1', description: 'this is circumstance 1', author: 'test@example.com'},
+  {_id: '2', title: 'circumstance 2', description: 'this is circumstance 2', author: 'test@example.com'},
 ];
 
 beforeEach(() => {
