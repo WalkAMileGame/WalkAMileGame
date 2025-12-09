@@ -16,18 +16,22 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    return checkpw(plain_password.encode("utf-8"),
+                   hashed_password.encode("utf-8"))
+
 
 def get_password_hash(password: str) -> str:
     return hashpw(password.encode("utf-8"), gensalt(rounds=10)).decode("utf-8")
 
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Creates a new JWT access token."""
     to_encode = data.copy()
-    
-    now = datetime.now(timezone.utc) 
-    
+
+    now = datetime.now(timezone.utc)
+
     to_encode.update({"iat": now})
 
     if expires_delta:
@@ -38,7 +42,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def get_current_active_user(response: Response, token: str = Depends(oauth2_scheme)):
+
+def get_current_active_user(response: Response,
+                            token: str = Depends(oauth2_scheme)):
     """
     Decodes token, verifies user in DB, and handles token refresh.
     This is the all-in-one dependency for protected routes.
@@ -47,16 +53,16 @@ def get_current_active_user(response: Response, token: str = Depends(oauth2_sche
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email = payload.get("sub")
         issued_at_ts = payload.get("iat")
-        
+
         if not email or not issued_at_ts:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token payload"
             )
 
         issued_at = datetime.fromtimestamp(issued_at_ts, tz=timezone.utc)
         token_age = datetime.now(timezone.utc) - issued_at
-        
+
         if token_age > timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES / 2):
             new_token_data = {"sub": email, "role": payload.get("role")}
             new_token = create_access_token(data=new_token_data)
@@ -65,13 +71,13 @@ def get_current_active_user(response: Response, token: str = Depends(oauth2_sche
     except jwt.ExpiredSignatureError:
         print("Expired")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token expired"
         )
     except (jwt.InvalidTokenError, Exception):
         print("Could not validate")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate token"
         )
 
@@ -79,7 +85,7 @@ def get_current_active_user(response: Response, token: str = Depends(oauth2_sche
     if not user_doc:
         print("User not found")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found"
         )
 

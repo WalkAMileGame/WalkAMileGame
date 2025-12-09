@@ -57,7 +57,7 @@ origins = [
 origin_regex = r"^https?://([a-z0-9-]+\.)*ext\.ocp-test-0\.k8s\.it\.helsinki\.fi(:\d+)?$"
 app.add_middleware(
     CORSMiddleware,
-    #This must be changed before production.
+    # This must be changed before production.
     allow_origins=["*"],
     allow_origin_regex=origin_regex,
     allow_credentials=True,
@@ -68,6 +68,6 @@ app.add_middleware(
 
 app.include_router(router)
 
-#test
+# test
 if __name__ == "__main__":
     uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)

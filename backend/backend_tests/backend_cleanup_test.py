@@ -93,7 +93,8 @@ class TestCleanupOldGames:
 
     @patch('backend.app.cleanup.db')
     @patch('backend.app.cleanup.logger')
-    def test_cleanup_logs_debug_when_nothing_deleted(self, mock_logger, mock_db):
+    def test_cleanup_logs_debug_when_nothing_deleted(
+            self, mock_logger, mock_db):
         """Test that cleanup logs debug message when nothing is deleted"""
         mock_result = MagicMock()
         mock_result.deleted_count = 0
@@ -110,7 +111,8 @@ class TestCleanupOldGames:
     @patch('backend.app.cleanup.logger')
     def test_cleanup_handles_exceptions(self, mock_logger, mock_db):
         """Test that cleanup handles database exceptions gracefully"""
-        mock_db.rooms.delete_many.side_effect = Exception("Database connection error")
+        mock_db.rooms.delete_many.side_effect = Exception(
+            "Database connection error")
 
         deleted = cleanup_old_games()
 
@@ -167,7 +169,8 @@ class TestCreateCleanupIndex:
     @patch('backend.app.cleanup.logger')
     def test_create_index_handles_exception(self, mock_logger, mock_db):
         """Test that index creation handles exceptions gracefully"""
-        mock_db.rooms.create_index.side_effect = Exception("Index already exists")
+        mock_db.rooms.create_index.side_effect = Exception(
+            "Index already exists")
 
         create_cleanup_index()
 

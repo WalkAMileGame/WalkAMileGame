@@ -20,11 +20,13 @@ with patch("backend.app.api.db") as mock_db:
 
 client = TestClient(app)
 
+
 def mock_get_current_active_user():
     return {
-        "email": "admin@test.com", 
+        "email": "admin@test.com",
         "role": "admin",
     }
+
 
 @pytest.fixture(autouse=True)
 def override_auth():
@@ -33,6 +35,7 @@ def override_auth():
     app.dependency_overrides = {}
 
 # Room Creation Tests
+
 
 @patch('backend.app.api.db')
 def test_create_room_success(mock_db_instance):
@@ -54,7 +57,8 @@ def test_create_room_success(mock_db_instance):
         "message": "Room created successfully",
         "room_code": "ABC123"
     }
-    mock_db_instance.rooms.find_one.assert_called_once_with({"room_code": "ABC123"})
+    mock_db_instance.rooms.find_one.assert_called_once_with(
+        {"room_code": "ABC123"})
 
 
 @patch('backend.app.api.db')
@@ -92,7 +96,8 @@ def test_create_room_case_insensitive(mock_db_instance):
 
     assert response.status_code == 200
     assert response.json()["room_code"] == "ABC123"
-    mock_db_instance.rooms.find_one.assert_called_once_with({"room_code": "ABC123"})
+    mock_db_instance.rooms.find_one.assert_called_once_with(
+        {"room_code": "ABC123"})
 
 
 # Room Retrieval Tests
@@ -205,7 +210,8 @@ def test_add_team_room_not_found(mock_db_instance):
 @patch('backend.app.api.db')
 def test_delete_team_success(mock_db_instance):
     """Test successfully deleting a team"""
-    mock_db_instance.rooms.update_one.return_value = MagicMock(modified_count=1)
+    mock_db_instance.rooms.update_one.return_value = MagicMock(
+        modified_count=1)
 
     response = client.delete("/rooms/ABC123/teams/Team Alpha")
 
@@ -216,7 +222,8 @@ def test_delete_team_success(mock_db_instance):
 @patch('backend.app.api.db')
 def test_delete_team_not_found(mock_db_instance):
     """Test deleting a non-existent team"""
-    mock_db_instance.rooms.update_one.return_value = MagicMock(modified_count=0)
+    mock_db_instance.rooms.update_one.return_value = MagicMock(
+        modified_count=0)
 
     response = client.delete("/rooms/ABC123/teams/NonExistent")
 

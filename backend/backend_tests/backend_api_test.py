@@ -26,11 +26,13 @@ app.include_router(router)
 
 client = TestClient(app)
 
+
 def mock_get_current_active_user():
     return {
-        "email": "admin@test.com", 
+        "email": "admin@test.com",
         "role": "admin",
     }
+
 
 @pytest.fixture(autouse=True)
 def override_auth():
@@ -180,11 +182,16 @@ def test_login_user_doesnt_exist(mock_db_instance):
 
     mock_db_instance.users.find_one.return_value = None
 
-    response = client.post("/login", json={"email": "test@example.com", "password": "password"})
+    response = client.post(
+        "/login",
+        json={
+            "email": "test@example.com",
+            "password": "password"})
     assert response.status_code == 401
     assert response.json() == {"detail": "Incorrect email or password"}
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "test@example.com"})
 
 
 @patch('backend.app.api.verify_password')
@@ -198,7 +205,7 @@ def test_login_wrong_password_or_email(mock_db_instance, mock_verify_password):
         "password": "mock_hashed_password",
         "role": "admin",
         "pending": False
-        }
+    }
     mock_db_instance.codes.find_one.return_value = {
         "code": "valid_code",
         "creationTime": datetime.now(timezone.utc),
@@ -206,25 +213,27 @@ def test_login_wrong_password_or_email(mock_db_instance, mock_verify_password):
         "activationTime": None,
         "isUsed": False,
         "usedByUser": None
-        }
-    
+    }
+
     mock_verify_password.return_value = False
 
     response = client.post(
         "/login",
         json={"email": "test@example.com", "password": "password123"}
-        )
+    )
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Incorrect email or password"}
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
-    
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "test@example.com"})
+
 
 @patch('backend.app.api.create_access_token')
 @patch('backend.app.api.verify_password')
 @patch('backend.app.api.db')
-def test_login_successful_login_attempt(mock_db_instance, mock_verify_password, mock_create_access_token):
+def test_login_successful_login_attempt(
+        mock_db_instance, mock_verify_password, mock_create_access_token):
     """Test successful login attempt"""
 
     mock_db_instance.users.find_one.return_value = {
@@ -233,7 +242,7 @@ def test_login_successful_login_attempt(mock_db_instance, mock_verify_password, 
         "password": "mock_hashed_password",
         "role": "admin",
         "pending": False
-        }
+    }
     mock_db_instance.codes.find_one.return_value = {
         "code": "valid_code",
         "creationTime": datetime.now(timezone.utc),
@@ -241,8 +250,8 @@ def test_login_successful_login_attempt(mock_db_instance, mock_verify_password, 
         "activationTime": datetime.now(timezone.utc) - timedelta(days=1),
         "isUsed": True,
         "usedByUser": "test@example.com"
-        }
-    
+    }
+
     mock_verify_password.return_value = True
 
     mock_create_access_token.return_value = "mock_access_token"
@@ -250,15 +259,16 @@ def test_login_successful_login_attempt(mock_db_instance, mock_verify_password, 
     response = client.post(
         "/login",
         json={"email": "test@example.com", "password": "password123"}
-        )
+    )
 
     assert response.status_code == 200
     assert response.json() == {
         "access_token": "mock_access_token",
         "user": {"email": "test@example.com", "role": "admin"}
-        }
+    }
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "test@example.com"})
 
 
 @patch('backend.app.api.db')
@@ -270,26 +280,29 @@ def test_login_un_activated_user(mock_db_instance):
         "email": "test@example.com",
         "password": "mock_hashed_password",
         "role": "admin",
-        }
-    
+    }
+
     mock_db_instance.codes.find_one.return_value = None
 
     response = client.post(
         "/login",
         json={"email": "test@example.com", "password": "password123"}
-        )
+    )
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Account hasn't been activated"}
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
-    mock_db_instance.codes.find_one.assert_called_once_with({"usedByUser": "test@example.com"})
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "test@example.com"})
+    mock_db_instance.codes.find_one.assert_called_once_with(
+        {"usedByUser": "test@example.com"})
 
 
 @patch('backend.app.api.verify_password')
 @patch('backend.app.api.is_code_expired')
 @patch('backend.app.api.db')
-def test_login_expired_code(mock_db_instance, mock_is_code_expired, mock_verify_password):
+def test_login_expired_code(
+        mock_db_instance, mock_is_code_expired, mock_verify_password):
     """Test login attempt when no active access code for user"""
 
     mock_db_instance.users.find_one.return_value = {
@@ -297,8 +310,8 @@ def test_login_expired_code(mock_db_instance, mock_is_code_expired, mock_verify_
         "email": "test@example.com",
         "password": "mock_hashed_password",
         "role": "gamemaster",
-        }
-    
+    }
+
     mock_db_instance.codes.find_one.return_value = {
         "code": "valid_code",
         "creationTime": datetime.now(timezone.utc) - relativedelta(months=7),
@@ -306,28 +319,31 @@ def test_login_expired_code(mock_db_instance, mock_is_code_expired, mock_verify_
         "activationTime": datetime.now(timezone.utc) - relativedelta(months=2),
         "isUsed": True,
         "usedByUser": "test@example.com"
-        }
-    
+    }
+
     mock_is_code_expired.return_value = True
     mock_verify_password.return_value = True
 
     response = client.post(
         "/login",
         json={"email": "test@example.com", "password": "password123"}
-        )
+    )
 
     assert response.status_code == 403
     assert response.json() == {"detail": "ACCOUNT_EXPIRED"}
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
-    mock_db_instance.codes.find_one.assert_called_once_with({"usedByUser": "test@example.com"})
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "test@example.com"})
+    mock_db_instance.codes.find_one.assert_called_once_with(
+        {"usedByUser": "test@example.com"})
 
 
 @patch('backend.app.api.create_access_token')
 @patch('backend.app.api.verify_password')
 @patch('backend.app.api.is_code_expired')
 @patch('backend.app.api.db')
-def test_admins_ignore_expired_code_on_login(mock_db_instance, mock_is_code_expired, mock_verify_password, mock_create_access_token):
+def test_admins_ignore_expired_code_on_login(
+        mock_db_instance, mock_is_code_expired, mock_verify_password, mock_create_access_token):
     """Test login attempt with expired code, but user is admin so it should be ignored"""
 
     mock_db_instance.users.find_one.return_value = {
@@ -335,8 +351,8 @@ def test_admins_ignore_expired_code_on_login(mock_db_instance, mock_is_code_expi
         "email": "test@example.com",
         "password": "mock_hashed_password",
         "role": "admin",
-        }
-    
+    }
+
     mock_db_instance.codes.find_one.return_value = {
         "code": "valid_code",
         "creationTime": datetime.now(timezone.utc) - relativedelta(months=7),
@@ -344,8 +360,8 @@ def test_admins_ignore_expired_code_on_login(mock_db_instance, mock_is_code_expi
         "activationTime": datetime.now(timezone.utc) - relativedelta(months=2),
         "isUsed": True,
         "usedByUser": "test@example.com"
-        }
-    
+    }
+
     mock_is_code_expired.return_value = True
     mock_verify_password.return_value = True
 
@@ -354,16 +370,18 @@ def test_admins_ignore_expired_code_on_login(mock_db_instance, mock_is_code_expi
     response = client.post(
         "/login",
         json={"email": "test@example.com", "password": "password123"}
-        )
+    )
 
     assert response.status_code == 200
     assert response.json() == {
         "access_token": "mock_access_token",
         "user": {"email": "test@example.com", "role": "admin"}
-        }
+    }
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
-    mock_db_instance.codes.find_one.assert_called_once_with({"usedByUser": "test@example.com"})
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "test@example.com"})
+    mock_db_instance.codes.find_one.assert_called_once_with(
+        {"usedByUser": "test@example.com"})
 
 
 @patch('backend.app.api.db')
@@ -376,7 +394,7 @@ def test_register_email_already_in_use(mock_db_instance):
         "password": "mock_hashed_password",
         "role": "admin",
         "pending": False
-        }
+    }
     mock_db_instance.codes.find_one.return_value = {
         "code": "valid_code",
         "creationTime": datetime.now(timezone.utc),
@@ -384,17 +402,21 @@ def test_register_email_already_in_use(mock_db_instance):
         "activationTime": None,
         "isUsed": False,
         "usedByUser": None
-        }
-    
+    }
+
     response = client.post(
         "/register",
-        json={"email": "test@example.com", "password": "password123", "code": "valid_code"}
-        )
-    
+        json={
+            "email": "test@example.com",
+            "password": "password123",
+            "code": "valid_code"}
+    )
+
     assert response.status_code == 401
     assert response.json() == {"detail": "Email already in use"}
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "test@example.com"})
 
 
 @patch('backend.app.api.db')
@@ -403,17 +425,22 @@ def test_register_incorrect_activation_code(mock_db_instance):
 
     mock_db_instance.users.find_one.return_value = None
     mock_db_instance.codes.find_one.return_value = None
-    
+
     response = client.post(
         "/register",
-        json={"email": "test@testly.com", "password": "password123", "code": "invalid_code"}
-        )
-    
+        json={
+            "email": "test@testly.com",
+            "password": "password123",
+            "code": "invalid_code"}
+    )
+
     assert response.status_code == 401
     assert response.json() == {"detail": "Incorrect activation code"}
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@testly.com"})
-    mock_db_instance.codes.find_one.assert_called_once_with({"code": "invalid_code"})
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "test@testly.com"})
+    mock_db_instance.codes.find_one.assert_called_once_with(
+        {"code": "invalid_code"})
 
 
 @patch('backend.app.api.db')
@@ -421,24 +448,30 @@ def test_register_invalid_email(mock_db_instance):
     """Test register attempt with invalid email"""
 
     mock_db_instance.users.find_one.return_value = None
-    
+
     response = client.post(
         "/register",
-        json={"email": "test.example.com", "password": "password123", "code": "valid_code"}
-        )
+        json={
+            "email": "test.example.com",
+            "password": "password123",
+            "code": "valid_code"}
+    )
 
     assert response.status_code == 422
-    assert response.json()['detail'][0]['msg'] == "value is not a valid email address: An email address must have an @-sign."
+    assert response.json()[
+        'detail'][0]['msg'] == "value is not a valid email address: An email address must have an @-sign."
 
 
 @patch('backend.app.api.get_password_hash')
 @patch('backend.app.api.db')
-def test_register_successful_register_attempt(mock_db_instance, mock_get_password_hash):
+def test_register_successful_register_attempt(
+        mock_db_instance, mock_get_password_hash):
     """Test registering successfully"""
 
     mock_db_instance.users.find_one.return_value = None
 
-    mock_db_instance.users.update_one.return_value = MagicMock(upserted_id="123")
+    mock_db_instance.users.update_one.return_value = MagicMock(
+        upserted_id="123")
 
     mock_get_password_hash.return_value = "mock_password_hash"
     mock_db_instance.codes.find_one.return_value = {
@@ -448,26 +481,29 @@ def test_register_successful_register_attempt(mock_db_instance, mock_get_passwor
         "activationTime": None,
         "isUsed": False,
         "usedByUser": None
-        }
-    
+    }
+
     response = client.post(
         "/register",
-        json={"email": "test@example.com", "password": "password123", "code": "valid_code"}
-        )
-    
+        json={
+            "email": "test@example.com",
+            "password": "password123",
+            "code": "valid_code"}
+    )
+
     assert response.status_code == 200
 
     mock_db_instance.users.update_one.assert_called_once_with(
         {"email": "test@example.com"},
         {
-        "$set": {
-            "email": "test@example.com",
-            "password": "mock_password_hash",
-            "role": "gamemaster",
-            "boards": []
+            "$set": {
+                "email": "test@example.com",
+                "password": "mock_password_hash",
+                "role": "gamemaster",
+                "boards": []
             }
         },
-        upsert = True
+        upsert=True
     )
 
 
@@ -485,25 +521,30 @@ def test_renew_access_code_wrong_user(mock_db_instance, mock_verify_password):
         "activationTime": None,
         "isUsed": False,
         "usedByUser": None
-        }
+    }
 
     mock_verify_password.return_value = False
 
     response = client.post(
         "/renew-access",
-        json={"email": "mistyped@emil.com", "password": "password123", "new_code": "valid_code"}
-        )
+        json={
+            "email": "mistyped@emil.com",
+            "password": "password123",
+            "new_code": "valid_code"}
+    )
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid credentials"}
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "mistyped@emil.com"})
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "mistyped@emil.com"})
 
 
 @patch('backend.app.api.activate_code')
 @patch('backend.app.api.verify_password')
 @patch('backend.app.api.db')
-def test_renew_access_code_invalid_code(mock_db_instance, mock_verify_password, mock_activate_code):
+def test_renew_access_code_invalid_code(
+        mock_db_instance, mock_verify_password, mock_activate_code):
     """Test renewing access code with invalid code"""
 
     mock_db_instance.users.find_one.return_value = {
@@ -511,36 +552,41 @@ def test_renew_access_code_invalid_code(mock_db_instance, mock_verify_password, 
         "email": "test@example.com",
         "password": "mock_hashed_password",
         "role": "gamemaster",
-        }
+    }
 
     mock_db_instance.codes.find_one.return_value = None
 
     mock_verify_password.return_value = True
 
     mock_activate_code.return_value = AccessCode(
-        code = "valid_code",
-        creationTime = datetime.now(timezone.utc) - timedelta(days=1),
-        expirationTime = datetime.now(timezone.utc) + timedelta(days=1),
-        activationTime = datetime.now(timezone.utc),
-        isUsed = True,
-        usedByUser = "test@example.com"
+        code="valid_code",
+        creationTime=datetime.now(timezone.utc) - timedelta(days=1),
+        expirationTime=datetime.now(timezone.utc) + timedelta(days=1),
+        activationTime=datetime.now(timezone.utc),
+        isUsed=True,
+        usedByUser="test@example.com"
     )
 
     response = client.post(
         "/renew-access",
-        json={"email": "test@example.com", "password": "password123", "new_code": "invalid_code"}
-        )
+        json={
+            "email": "test@example.com",
+            "password": "password123",
+            "new_code": "invalid_code"}
+    )
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid or used code"}
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "test@example.com"})
 
 
 @patch('backend.app.api.activate_code')
 @patch('backend.app.api.verify_password')
 @patch('backend.app.api.db')
-def test_renew_access_code_successfully(mock_db_instance, mock_verify_password, mock_activate_code):
+def test_renew_access_code_successfully(
+        mock_db_instance, mock_verify_password, mock_activate_code):
     """Test renewing access code successfully"""
 
     mock_db_instance.users.find_one.return_value = {
@@ -548,8 +594,8 @@ def test_renew_access_code_successfully(mock_db_instance, mock_verify_password, 
         "email": "test@example.com",
         "password": "mock_hashed_password",
         "role": "gamemaster",
-        }
-    
+    }
+
     mock_db_instance.codes.find_one.return_value = {
         "code": "valid_code",
         "creationTime": datetime.now(timezone.utc),
@@ -557,31 +603,36 @@ def test_renew_access_code_successfully(mock_db_instance, mock_verify_password, 
         "activationTime": None,
         "isUsed": False,
         "usedByUser": None
-        }
-    
+    }
+
     mock_verify_password.return_value = True
 
     expected_access_code = AccessCode(
-        code = "valid_code",
-        creationTime = datetime.now(timezone.utc) - timedelta(days=1),
-        expirationTime = datetime.now(timezone.utc) + timedelta(days=1),
-        activationTime = datetime.now(timezone.utc),
-        isUsed = True,
-        usedByUser = "test@example.com"
+        code="valid_code",
+        creationTime=datetime.now(timezone.utc) - timedelta(days=1),
+        expirationTime=datetime.now(timezone.utc) + timedelta(days=1),
+        activationTime=datetime.now(timezone.utc),
+        isUsed=True,
+        usedByUser="test@example.com"
     )
 
     mock_activate_code.return_value = expected_access_code
 
-    mock_db_instance.codes.update_one.return_value = MagicMock(upserted_id="123")
+    mock_db_instance.codes.update_one.return_value = MagicMock(
+        upserted_id="123")
 
     response = client.post(
         "/renew-access",
-        json={"email": "test@example.com", "password": "password123", "new_code": "valid_code"}
-        )
-    
+        json={
+            "email": "test@example.com",
+            "password": "password123",
+            "new_code": "valid_code"}
+    )
+
     assert response.status_code == 200
 
-    mock_db_instance.users.find_one.assert_called_once_with({"email": "test@example.com"})
+    mock_db_instance.users.find_one.assert_called_once_with(
+        {"email": "test@example.com"})
 
     mock_db_instance.codes.update_one.assert_called_once_with(
         {"code": "valid_code"},
@@ -591,25 +642,27 @@ def test_renew_access_code_successfully(mock_db_instance, mock_verify_password, 
 
 @patch('backend.app.api.generate_new_access_code')
 @patch('backend.app.api.db')
-def test_generate_new_access_code(mock_db_instance, mock_generate_new_access_code):
+def test_generate_new_access_code(
+        mock_db_instance, mock_generate_new_access_code):
     """Test generating new access code"""
 
     expected_access_code = AccessCode(
-        code = "valid_code",
-        creationTime = datetime.now(timezone.utc) - timedelta(days=1),
-        expirationTime = datetime.now(timezone.utc) + timedelta(days=1),
+        code="valid_code",
+        creationTime=datetime.now(timezone.utc) - timedelta(days=1),
+        expirationTime=datetime.now(timezone.utc) + timedelta(days=1),
     )
 
     mock_generate_new_access_code.return_value = expected_access_code
 
     mock_db_instance.codes.find_one.return_value = None
-    mock_db_instance.codes.update_one.return_value = MagicMock(upserted_id="123")
+    mock_db_instance.codes.update_one.return_value = MagicMock(
+        upserted_id="123")
 
     response = client.post(
         "/generate_access_code",
         json={"valid_for": 6}
-        )
-    
+    )
+
     mock_db_instance.codes.update_one.assert_called_once_with(
         {"code": "valid_code"},
         {"$set": expected_access_code.model_dump()},
@@ -678,7 +731,9 @@ def test_delete_board_success(mock_db_instance):
     })
 
     assert response.status_code == 200
-    mock_db_instance.users.update_one.assert_called_once_with({"email": "admin@test.com"},{"$pull": {"boards": {"name": "Test Board"}}})
+    mock_db_instance.users.update_one.assert_called_once_with(
+        {"email": "admin@test.com"}, {"$pull": {"boards": {"name": "Test Board"}}})
+
 
 @patch('backend.app.api.db')
 def test_load_all_boards(mock_db_instance):
@@ -724,7 +779,8 @@ def test_load_instructions_success(mock_db_instance):
 
     assert response.status_code == 200
     assert response.json() == mock_instructions
-    mock_db_instance.instructions.find_one.assert_called_once_with({"id": "0"}, {"_id": 0})
+    mock_db_instance.instructions.find_one.assert_called_once_with({"id": "0"}, {
+                                                                   "_id": 0})
 
 
 @patch('backend.app.api.db')
@@ -779,7 +835,8 @@ def test_remove_user_success(mock_db_instance):
     })
 
     assert response.status_code == 200
-    mock_db_instance.users.delete_one.assert_called_once_with({"email": "test@example.com"})
+    mock_db_instance.users.delete_one.assert_called_once_with(
+        {"email": "test@example.com"})
 
 
 @patch('backend.app.api.db')
@@ -817,4 +874,3 @@ def test_load_users_empty(mock_db_instance):
 
     assert response.status_code == 200
     assert response.json() == {'codes': [], 'users': []}
-

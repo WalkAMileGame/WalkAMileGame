@@ -9,6 +9,7 @@ class Points(BaseModel):
     id: str
     values: int
 
+
 class TileType(str, Enum):
     """Types of tiles that can appear on the board"""
     ACTION = "action"
@@ -20,7 +21,8 @@ class Circumstance(BaseModel):
     title: str
     description: str
     author: str
-    
+
+
 class LabelData(BaseModel):
     id: int
     text: str
@@ -30,22 +32,26 @@ class LabelData(BaseModel):
     required_for: List[str] = []
     tileType: TileType = TileType.ACTION
 
+
 class LayerData(BaseModel):
     id: int
     innerRadius: int
     outerRadius: int
     labels: List[LabelData]
 
+
 class Boards(BaseModel):
     name: str
     circumstances: List[Circumstance] = []
     ringData: List[LayerData]
+
 
 class UserData(BaseModel):
     email: EmailStr
     password: str
     role: str = "gamemaster"
     boards: List[Boards] = []
+
 
 class AccessCode(BaseModel):
     code: str
@@ -55,39 +61,48 @@ class AccessCode(BaseModel):
     isUsed: bool = False
     usedByUser: EmailStr = None
 
+
 class GenerateCodeRequest(BaseModel):
     valid_for: int
+
 
 class RemoveCodeRequest(BaseModel):
     code: str
 
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
 
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
     code: str
 
+
 class RenewRequest(BaseModel):
     email: EmailStr
     password: str
     new_code: str
 
+
 class AcceptUser(BaseModel):
     email: EmailStr
     role: str
 
+
 class DenyUser(BaseModel):
     email: EmailStr
+
 
 class Team(BaseModel):
     id: int
     team_name: str
     circumstance: str
-    current_energy: int =32
+    current_energy: int = 32
     gameboard_state: Optional[LayerData] = None
+
 
 class Room(BaseModel):
     room_code: str
@@ -107,4 +122,3 @@ class Room(BaseModel):
         if not v or len(v) < 4:
             raise ValueError('Room code must be at least 4 characters')
         return v.upper()
-
