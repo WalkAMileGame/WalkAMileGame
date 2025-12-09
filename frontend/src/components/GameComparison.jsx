@@ -469,7 +469,7 @@ const GameComparison = () => {
   };
 
   // Render text on curved path
-  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId) => {
+  const renderCurvedText = (text, innerRadius, outerRadius, startAngleDeg, endAngleDeg, index, ringId, isFaded) => {
     const midRadius = (innerRadius + outerRadius) / 2;
     const angleRad = (endAngleDeg - startAngleDeg) * (Math.PI / 180);
 
@@ -528,7 +528,11 @@ const GameComparison = () => {
               d={`M ${x1} ${y1} A ${textRadius} ${textRadius} 0 ${largeArcFlag} 1 ${x2} ${y2}`}
             />
           </defs>
-          <text dy="8" style={{ pointerEvents: "none", userSelect: "none" }}>
+          <text
+           dy="8" 
+           style={{ pointerEvents: "none", userSelect: "none" }}
+           className={isFaded ? "comparison-text-faded" : ""}
+          >
             <textPath
               href={`#${pathId}`}
               startOffset="50%"
@@ -630,18 +634,22 @@ const GameComparison = () => {
                         const color = label.color;
                         const isError = isMistake(mistakes, ring.id, label.id);
                         const isCorrect = isCorrectPlacement(activeMarkers, ring.id, label.id, label, team);
+                        
+                        const hasEnergy = activeMarkers.has(`${ring.id}-${label.id}`);
 
                         return (
                           <g key={`${ring.id}-slice-${i}`}>
                             {/* Slice shape */}
                             <path
-                              className="comparison-slice-path"
+                              className={`comparison-slice-path ${!hasEnergy ? 'comparison-slice-faded' : ''}`} 
                               d={createAnnularSectorPath(ring.innerRadius, ring.outerRadius, startAngle, endAngle)}
                               fill={color}
                               stroke="#f5f5f3ff"
                               strokeWidth={whiteLineThickness}
-                              style={{ cursor: "grab" }}
-                              filter={`url(#whiteShadow-${side})`}
+                              style={{ 
+                                cursor: "grab", 
+                                filter: `url(#whiteShadow-${side})`
+                              }}
                               onMouseDown={(e) => side === 'left' ? handleLeftRingMouseDown(e, ring.id) : handleRightRingMouseDown(e, ring.id)}
                             />
                             {/* Mistake overlay */}
@@ -663,7 +671,7 @@ const GameComparison = () => {
                               />
                             )}
                             {/* Render Text */}
-                            {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id)}
+                            {renderCurvedText(label.text, ring.innerRadius, ring.outerRadius, startAngle, endAngle, i, ring.id, !hasEnergy)}
                           </g>
                         );
                       })}
