@@ -1,8 +1,9 @@
 """backend information such as variables"""
-from pydantic import BaseModel, EmailStr, field_validator, Field
+from datetime import datetime
 from enum import Enum
 from typing import List, Optional
-from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class Points(BaseModel):
@@ -17,13 +18,24 @@ class TileType(str, Enum):
 
 
 class Circumstance(BaseModel):
+    """
+    Circumstance model for game scenarios.
+
+    The 'author' field is optional because:
+    - Required for authorization when managing circumstances in the database collection
+      (users can only edit/delete circumstances they created)
+    - Not required when circumstances are embedded in board configurations
+      (they become copies owned by the board creator)
+    - Ensures backward compatibility with older board data that lacks this field
+    """
     id: str
     title: str
     description: str
-    author: str
+    author: Optional[str] = None
 
 
 class LabelData(BaseModel):
+    """Label data for board tiles."""
     id: int
     text: str
     color: str
@@ -54,6 +66,7 @@ class UserData(BaseModel):
 
 
 class AccessCode(BaseModel):
+    """Access code for gamemaster registration."""
     code: str
     creationTime: datetime
     expirationTime: datetime
@@ -97,6 +110,7 @@ class DenyUser(BaseModel):
 
 
 class Team(BaseModel):
+    """Team data for game room."""
     id: int
     team_name: str
     circumstance: str
@@ -105,6 +119,7 @@ class Team(BaseModel):
 
 
 class Room(BaseModel):
+    """Game room data model."""
     room_code: str
     gamemaster_name: str
     board_config: Boards
@@ -118,7 +133,8 @@ class Room(BaseModel):
     comparison_mode: bool = False
 
     @field_validator('room_code')
-    def code_must_be_valid(cls, v):
+    def code_must_be_valid(cls, v):  # pylint: disable=no-self-argument
+        """Validate room code."""
         if not v or len(v) < 4:
             raise ValueError('Room code must be at least 4 characters')
         return v.upper()

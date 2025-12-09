@@ -1,18 +1,21 @@
-from os import getenv
-from dotenv import load_dotenv
+"""Security functions for authentication and authorization."""
 from datetime import datetime, timedelta, timezone
+from os import getenv
 from typing import Optional
-from jose import jwt
-from bcrypt import checkpw, hashpw, gensalt
-from fastapi import Depends, HTTPException, status, Response
+
+from bcrypt import checkpw, gensalt, hashpw
+from dotenv import load_dotenv
+from fastapi import Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import jwt
+
 from .db import db
 
 
 load_dotenv()
 SECRET_KEY = getenv("SECRET_KEY")
 ALGORITHM = getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
@@ -68,18 +71,18 @@ def get_current_active_user(response: Response,
             new_token = create_access_token(data=new_token_data)
             response.headers["X-Token-Refresh"] = new_token
 
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as exc:
         print("Expired")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token expired"
-        )
-    except (jwt.InvalidTokenError, Exception):
+        ) from exc
+    except (jwt.InvalidTokenError, Exception) as exc:
         print("Could not validate")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate token"
-        )
+        ) from exc
 
     user_doc = db.users.find_one({"email": email}, {"_id": 0, "password": 0})
     if not user_doc:

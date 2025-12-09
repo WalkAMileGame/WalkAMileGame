@@ -1,10 +1,12 @@
 """Tests for room management endpoints"""
 import os
-from unittest.mock import patch, MagicMock
-import pytest
-from fastapi.testclient import TestClient
-from fastapi import FastAPI
 from datetime import datetime, timezone
+from unittest.mock import MagicMock, patch
+
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 from backend.app.security import get_current_active_user
 
 
@@ -272,7 +274,7 @@ def test_start_game_success(mock_db_instance):
     # Verify update call includes game_started and game_started_at
     call_args = mock_db_instance.rooms.update_one.call_args
     assert call_args[0][0] == {"room_code": "ABC123"}
-    assert call_args[0][1]["$set"]["game_started"] == True
+    assert call_args[0][1]["$set"]["game_started"] is True
     assert "game_started_at" in call_args[0][1]["$set"]
 
 
@@ -393,7 +395,7 @@ def test_update_time_with_reset(mock_db_instance):
     assert "game_started_at" in update_fields
     assert update_fields["accumulated_pause_time"] == 0
     assert update_fields["paused_at"] is None
-    assert update_fields["game_paused"] == False
+    assert not update_fields["game_paused"]
 
 
 @patch('backend.app.api.db')

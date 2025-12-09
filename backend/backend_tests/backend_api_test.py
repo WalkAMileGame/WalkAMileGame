@@ -1,12 +1,14 @@
 """tests for backend fastapi code"""
 import os
 import sys
-from unittest.mock import patch, MagicMock, Mock
-import pytest
-from fastapi.testclient import TestClient
-from fastapi import FastAPI
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 from dateutil.relativedelta import relativedelta
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 from backend.app.models import AccessCode
 
 os.environ['TESTING'] = 'true'
@@ -458,8 +460,9 @@ def test_register_invalid_email(mock_db_instance):
     )
 
     assert response.status_code == 422
-    assert response.json()[
-        'detail'][0]['msg'] == "value is not a valid email address: An email address must have an @-sign."
+    error_msg = ("value is not a valid email address: "
+                 "An email address must have an @-sign.")
+    assert response.json()['detail'][0]['msg'] == error_msg
 
 
 @patch('backend.app.api.get_password_hash')
@@ -658,7 +661,7 @@ def test_generate_new_access_code(
     mock_db_instance.codes.update_one.return_value = MagicMock(
         upserted_id="123")
 
-    response = client.post(
+    client.post(
         "/generate_access_code",
         json={"valid_for": 6}
     )

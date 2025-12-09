@@ -1,15 +1,24 @@
 """fast api logic"""
-from fastapi import FastAPI, HTTPException, status, Depends, APIRouter, Body
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from backend.app.models import Points, Boards, LoginRequest, RegisterRequest, AcceptUser, DenyUser, LayerData, Room, Team, UserData, Circumstance, RenewRequest, GenerateCodeRequest, RemoveCodeRequest
-from .db import db
 from datetime import datetime, timedelta, timezone
 from typing import Dict
-from backend.app.security import verify_password, create_access_token, get_current_active_user, get_password_hash
-from backend.app.code_management import generate_new_access_code, is_code_expired, activate_code
+
 from bson import ObjectId
-from datetime import datetime, timezone
+from fastapi import APIRouter, Body, Depends, FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from backend.app.code_management import (activate_code,
+                                          generate_new_access_code,
+                                          is_code_expired)
+from backend.app.models import (AcceptUser, Boards, Circumstance, DenyUser,
+                                 GenerateCodeRequest, LayerData, LoginRequest,
+                                 Points, RegisterRequest, RemoveCodeRequest,
+                                 RenewRequest, Room, Team, UserData)
+from backend.app.security import (create_access_token,
+                                   get_current_active_user, get_password_hash,
+                                   verify_password)
+
+from .db import db
 
 router = APIRouter()
 
@@ -40,8 +49,11 @@ def update_points(data: ChangePoints):
 
 
 @router.put("/save_board")
-def save_board(data: Boards, current_user: dict = Depends(
-        get_current_active_user)):
+def save_board(
+    data: Boards,
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Save a board configuration for the current user."""
     email = current_user["email"]
     result = db.users.update_one(
         {"email": email, "boards.name": data.name},
@@ -65,6 +77,7 @@ class NewBoard(BaseModel):
 
 @router.put("/save_default_board")
 def save_default_board(data: NewBoard):
+    """Save a default board template."""
     db.boards.update_one({"name": data.name},
                          {"$set": {"name": data.name,
                                    "circumstances": data.circumstances,
@@ -78,8 +91,11 @@ class DeleteBoard(BaseModel):
 
 
 @router.delete("/delete")
-def delete_board(data: DeleteBoard, current_user: dict = Depends(
-        get_current_active_user)):
+def delete_board(
+    data: DeleteBoard,
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Delete a board from the current user's collection."""
     email = current_user["email"]
     db.users.update_one(
         {"email": email},
@@ -90,6 +106,7 @@ def delete_board(data: DeleteBoard, current_user: dict = Depends(
 
 @router.get("/load_boards")
 def load_boards(current_user: dict = Depends(get_current_active_user)):
+    """Load all boards available to the current user."""
     email = current_user["email"]
     boards = list(db.boards.find(projection={"_id": False}))
     user = db.users.find_one({"email": email}, {"_id": 0, "boards": 1})
@@ -132,6 +149,7 @@ def load_instructions():
 
 @router.post("/login")
 def login(form_data: LoginRequest):
+    """Authenticate a user and return an access token."""
     user_in_db = db.users.find_one({"email": form_data.email})
     user_access_code = db.codes.find_one({"usedByUser": form_data.email})
 
@@ -174,6 +192,7 @@ def login(form_data: LoginRequest):
 
 @router.post("/register")
 def register(form_data: RegisterRequest):
+    """Register a new user with an access code."""
     user_in_db = db.users.find_one({"email": form_data.email})
 
     if user_in_db:
@@ -208,6 +227,7 @@ def register(form_data: RegisterRequest):
 
 @router.post("/renew-access")
 def renew_access(form_data: RenewRequest):
+    """Renew a user's access with a new access code."""
     user_in_db = db.users.find_one({"email": form_data.email})
 
     if not user_in_db or not verify_password(
@@ -278,6 +298,7 @@ def read_current_user(current_user: dict = Depends(get_current_active_user)):
 
 @router.get("/timer")
 def get_time(site: str = "game"):
+    """Get timer information for a specific site."""
     durations = {"lobby": 5 * 60, "game": 30 * 60}
 
     duration = durations.get(site, 60)
@@ -294,8 +315,10 @@ def get_time(site: str = "game"):
 
 
 @router.post("/rooms/create")
-def create_room(room: Room, current_user: dict = Depends(
-        get_current_active_user)):
+def create_room(
+    room: Room,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
     """Create a new game room"""
     try:
         print("=== CREATE ROOM REQUEST ===")
@@ -317,10 +340,13 @@ def create_room(room: Room, current_user: dict = Depends(
             )
 
         # Create room document
+        board_config_data = (room.board_config.model_dump()
+                             if hasattr(room.board_config, 'model_dump')
+                             else room.board_config.dict())
         room_doc = {
             "room_code": room.room_code.upper(),
             "gamemaster_name": room.gamemaster_name,
-            "board_config": room.board_config.model_dump() if hasattr(room.board_config, 'model_dump') else room.board_config.dict(),
+            "board_config": board_config_data,
             "teams": [],
             "time_remaining": room.time_remaining,
             "game_started": False
@@ -330,13 +356,15 @@ def create_room(room: Room, current_user: dict = Depends(
         print(room_doc)
 
         db.rooms.insert_one(room_doc)
-        return {"message": "Room created successfully",
-                "room_code": room.room_code.upper()}
+        return {
+            "message": "Room created successfully",
+            "room_code": room.room_code.upper()
+        }
     except Exception as e:
-        print(f"=== ERROR CREATING ROOM ===")
+        print("=== ERROR CREATING ROOM ===")
         print(f"Error type: {type(e)}")
-        print(f"Error: {str(e)}")
-        import traceback
+        print(f"Error: {e}")
+        import traceback  # pylint: disable=import-outside-toplevel
         traceback.print_exc()
         raise
 
@@ -372,12 +400,15 @@ def add_team(room_code: str, team: Team):
         )
 
     # Add team to room - convert Pydantic model to dict for MongoDB
+    gameboard_data = (team.gameboard_state.model_dump()
+                      if hasattr(team.gameboard_state, 'model_dump')
+                      else team.gameboard_state.dict())
     team_doc = {
         "id": team.id,
         "team_name": team.team_name,
         "circumstance": team.circumstance,
         "current_energy": team.current_energy,
-        "gameboard_state": team.gameboard_state.model_dump() if hasattr(team.gameboard_state, 'model_dump') else team.gameboard_state.dict()
+        "gameboard_state": gameboard_data
     }
 
     db.rooms.update_one(
@@ -389,8 +420,11 @@ def add_team(room_code: str, team: Team):
 
 
 @router.delete("/rooms/{room_code}/teams/{team_name}")
-def delete_team(room_code: str, team_name: str,
-                current_user: dict = Depends(get_current_active_user)):
+def delete_team(
+    room_code: str,
+    team_name: str,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
     """Delete a team from a room"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
@@ -411,8 +445,12 @@ class CircumstanceUpdate(BaseModel):
 
 
 @router.put("/rooms/{room_code}/teams/{team_name}/circumstance")
-def update_team_circumstance(room_code: str, team_name: str, update: CircumstanceUpdate,
-                             current_user: dict = Depends(get_current_active_user)):
+def update_team_circumstance(
+    room_code: str,
+    team_name: str,
+    update: CircumstanceUpdate,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
     """Update a team's circumstance"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper(), "teams.team_name": team_name},
@@ -434,8 +472,11 @@ class TimeUpdate(BaseModel):
 
 
 @router.post("/rooms/{room_code}/time")
-def update_time(room_code: str, time_update: TimeUpdate,
-                current_user: dict = Depends(get_current_active_user)):
+def update_time(
+    room_code: str,
+    time_update: TimeUpdate,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
     """Update time remaining for a room"""
     update_fields = {"time_remaining": time_update.time_remaining}
 
@@ -464,8 +505,10 @@ def update_time(room_code: str, time_update: TimeUpdate,
 
 
 @router.post("/rooms/{room_code}/start")
-def start_game(room_code: str, current_user: dict = Depends(
-        get_current_active_user)):
+def start_game(
+    room_code: str,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
     """Start the game for a room"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
@@ -484,8 +527,10 @@ def start_game(room_code: str, current_user: dict = Depends(
 
 
 @router.post("/rooms/{room_code}/pause")
-def pause_game(room_code: str, current_user: dict = Depends(
-        get_current_active_user)):
+def pause_game(
+    room_code: str,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
     """Pause the game timer for a room"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
@@ -505,8 +550,10 @@ def pause_game(room_code: str, current_user: dict = Depends(
 
 
 @router.post("/rooms/{room_code}/resume")
-def resume_game(room_code: str, current_user: dict = Depends(
-        get_current_active_user)):
+def resume_game(
+    room_code: str,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
     """Resume the game timer for a room"""
     room = db.rooms.find_one({"room_code": room_code.upper()})
 
@@ -521,12 +568,11 @@ def resume_game(room_code: str, current_user: dict = Depends(
     if room.get("game_paused") and room.get("paused_at"):
         paused_at = datetime.fromisoformat(room["paused_at"])
         pause_duration = (
-            datetime.now(
-                timezone.utc) -
-            paused_at).total_seconds()
+            datetime.now(timezone.utc) - paused_at
+        ).total_seconds()
         accumulated_pause_time += int(pause_duration)
 
-    result = db.rooms.update_one(
+    db.rooms.update_one(
         {"room_code": room_code.upper()},
         {"$set": {
             "game_paused": False,
@@ -539,8 +585,10 @@ def resume_game(room_code: str, current_user: dict = Depends(
 
 
 @router.post("/rooms/{room_code}/end")
-def end_game(room_code: str, current_user: dict = Depends(
-        get_current_active_user)):
+def end_game(
+    room_code: str,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
     """End the game for a room"""
     result = db.rooms.update_one(
         {"room_code": room_code.upper()},
@@ -759,21 +807,28 @@ def update_team_energy(room_code: str, team_name: str, data: UpdateTeamEnergy):
 
 
 @router.put("/accept_user")
-def add_user(data: AcceptUser, current_user: dict = Depends(
-        get_current_active_user)):
+def add_user(
+    data: AcceptUser,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
+    """Accept a pending user and assign them a role."""
     db.users.update_one({"email": data.email},
                         {"$set": {"role": data.role, "pending": False}},
                         upsert=True)
 
 
 @router.delete("/remove_user")
-def delete_board(data: DenyUser, current_user: dict = Depends(
-        get_current_active_user)):
+def remove_user(
+    data: DenyUser,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
+    """Remove a user from the system."""
     db.users.delete_one({"email": data.email})
 
 
 @router.get("/load_user_data")
 def load_users(current_user: dict = Depends(get_current_active_user)):
+    """Load all users and access codes (admin only)."""
     users = list(db.users.find(projection={"_id": False, "password": False}))
     codes = list(db.codes.find(projection={"_id": False}))
     return {"users": users, "codes": codes}
@@ -785,8 +840,12 @@ class SaveCircumstance(BaseModel):
 
 
 @router.put("/save_circumstance/{cid}")
-def save_edited_circumstance(cid: str, data: SaveCircumstance,
-                             current_user: dict = Depends(get_current_active_user)):
+def save_edited_circumstance(
+    cid: str,
+    data: SaveCircumstance,
+    current_user: dict = Depends(get_current_active_user)  # pylint: disable=unused-argument
+):
+    """Update an existing circumstance."""
     db.circumstance.update_one(
         {"_id": ObjectId(cid)},
         {"$set": {
@@ -797,8 +856,11 @@ def save_edited_circumstance(cid: str, data: SaveCircumstance,
 
 
 @router.post("/save_circumstance")
-def save_new_circumstance(data: SaveCircumstance,
-                          current_user: dict = Depends(get_current_active_user)):
+def save_new_circumstance(
+    data: SaveCircumstance,
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Create a new circumstance."""
     email = current_user["email"]
     new_note = db.circumstance.insert_one(
         {"title": data.title, "description": data.description, "author": email})
@@ -809,6 +871,7 @@ def save_new_circumstance(data: SaveCircumstance,
 
 @router.get("/circumstances")
 def get_circumstances(current_user: dict = Depends(get_current_active_user)):
+    """Get all circumstances for the current user."""
     email = current_user["email"]
     circumstances = list(db.circumstance.find(
         {"author": {"$in": ["default", email]}}))
@@ -818,8 +881,11 @@ def get_circumstances(current_user: dict = Depends(get_current_active_user)):
 
 
 @router.delete("/circumstance/{circumstance_id}")
-def delete_circumstance(circumstance_id: str,
-                        current_user: dict = Depends(get_current_active_user)):
+def delete_circumstance(
+    circumstance_id: str,
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Delete a circumstance created by the current user."""
     email = current_user["email"]
     result = db.circumstance.delete_one(
         {"_id": ObjectId(circumstance_id), "author": email})
@@ -827,7 +893,8 @@ def delete_circumstance(circumstance_id: str,
     if result.deleted_count == 0:
         raise HTTPException(
             status_code=404,
-            detail="Circumstance not found or you do not have permission to delete it"
+            detail="Circumstance not found or you do not have "
+                   "permission to delete it"
         )
 
     return {"status": "deleted"}

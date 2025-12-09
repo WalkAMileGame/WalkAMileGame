@@ -1,13 +1,14 @@
 """Tests for security.py functions"""
 
-from backend.app import security
 import os
-from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock, patch
 
 import pytest
-from jose import jwt, ExpiredSignatureError, JWTError
-from fastapi import HTTPException, status, Response
+from fastapi import HTTPException, Response, status
+from jose import ExpiredSignatureError, JWTError, jwt
+
+from backend.app import security
 
 os.environ['SECRET_KEY'] = 'test_secret_key'
 os.environ['ALGORITHM'] = 'HS256'
@@ -30,9 +31,9 @@ def test_password_hashing():
     assert isinstance(hashed_password, str)
     assert len(hashed_password) > 0
 
-    assert security.verify_password(password, hashed_password) == True
+    assert security.verify_password(password, hashed_password)
 
-    assert security.verify_password("wrong_password", hashed_password) == False
+    assert not security.verify_password("wrong_password", hashed_password)
 
     with pytest.raises(ValueError):
         security.verify_password(password, "invalid_hash_format")

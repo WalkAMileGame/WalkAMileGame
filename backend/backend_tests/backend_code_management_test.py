@@ -1,11 +1,14 @@
 """Tests for code_management.py functions"""
 
 import re
-from backend.app.code_management import generate_new_access_code, is_code_expired, activate_code
-from backend.app.models import AccessCode
-from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
+
 from dateutil.relativedelta import relativedelta
+
+from backend.app.code_management import (activate_code, generate_new_access_code,
+                                          is_code_expired)
+from backend.app.models import AccessCode
 
 
 def test_access_code_structure():
@@ -43,7 +46,7 @@ def test_generate_new_access_code_6_months():
         seconds=2)
 
     assert code.activationTime is None
-    assert code.isUsed == False
+    assert not code.isUsed
     assert code.usedByUser is None
 
 
@@ -76,7 +79,7 @@ def test_check_still_active_code():
 
     is_expired = is_code_expired(mock_code.expirationTime)
 
-    assert is_expired == False
+    assert not is_expired
 
 
 def test_no_timezone_on_expiration_time():
@@ -92,7 +95,7 @@ def test_no_timezone_on_expiration_time():
 
     is_expired = is_code_expired(mock_code.expirationTime)
 
-    assert is_expired == False
+    assert not is_expired
 
 
 def test_activating_unused_code():
@@ -131,5 +134,5 @@ def test_activating_unused_code():
         expeted_code.activationTime) < timedelta(
         seconds=2)
 
-    assert activated_code.isUsed == True
+    assert activated_code.isUsed
     assert activated_code.usedByUser == "test@testly.com"
