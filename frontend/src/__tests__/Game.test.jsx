@@ -129,7 +129,13 @@ const renderWithRouter = () => {
   return render(
    <MemoryRouter initialEntries={[{
      pathname: '/rooms/ABC123/teams/team1',
-     state: { boardConfig: defaultGameConfig }
+     state: {
+       boardConfig: defaultGameConfig,
+       circumstance: {
+         name: 'Test Circumstance',
+         description: 'This is a test circumstance description'
+       }
+     }
    }]}>
       <Routes>
         <Route path="/rooms/:gamecode/teams/:teamname" element={<Game />} />
@@ -305,7 +311,13 @@ test('renders CircumstanceView for different team with different circumstance', 
   render(
     <MemoryRouter initialEntries={[{
       pathname: '/rooms/ABC123/teams/team2',
-      state: { boardConfig: defaultGameConfig }
+      state: {
+        boardConfig: defaultGameConfig,
+        circumstance: {
+          name: 'Other Circumstance',
+          description: 'Another circumstance description'
+        }
+      }
     }]}>
       <Routes>
         <Route path="/rooms/:gamecode/teams/:teamname" element={<Game />} />
@@ -340,7 +352,21 @@ test('does not render CircumstanceView when team has no circumstance', async () 
     return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
   });
 
-  renderWithRouter();
+  // Render without circumstance in location state
+  render(
+    <MemoryRouter initialEntries={[{
+      pathname: '/rooms/ABC123/teams/team1',
+      state: {
+        boardConfig: defaultGameConfig
+        // No circumstance passed
+      }
+    }]}>
+      <Routes>
+        <Route path="/rooms/:gamecode/teams/:teamname" element={<Game />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
   await waitFor(() => expect(screen.getByTestId('energypoints')).toBeInTheDocument());
   expect(screen.queryByText('YOUR CIRCUMSTANCE')).not.toBeInTheDocument();
 });

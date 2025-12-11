@@ -34,7 +34,11 @@ vi.mock('react-router-dom', async () => {
 describe('GamemasterProgress Component', () => {
   const mockBoardConfig = {
     name: 'Test Board',
-    ringData: [{ id: 1, name: 'Ring 1', sectors: [] }]
+    ringData: [{ id: 1, name: 'Ring 1', sectors: [] }],
+    circumstances: [
+      { title: 'Test circumstance', description: 'Test description' },
+      { title: 'Another circumstance', description: 'Another description' }
+    ]
   };
 
   const mockRoomData = {
@@ -127,14 +131,12 @@ describe('GamemasterProgress Component', () => {
       }
     });
 
-    await act(async () => {
-      renderComponent();
-    });
+    renderComponent();
 
-    await waitFor(() => {
-      expect(screen.getByText(/\(PAUSED\)/)).toBeInTheDocument();
-      expect(screen.getByText('Resume')).toBeInTheDocument();
-    });
+    // Wait for dashboard to load and paused state to appear
+    expect(await screen.findByText('Gamemaster Dashboard')).toBeInTheDocument();
+    expect(await screen.findByText('Resume')).toBeInTheDocument();
+    expect(await screen.findByText(/\(PAUSED\)/)).toBeInTheDocument();
   });
 
   test('pauses game when pause button is clicked', async () => {
@@ -333,7 +335,11 @@ describe('GamemasterProgress Component', () => {
         state: {
           boardConfig: mockBoardConfig,
           isGamemaster: true,
-          gamecode: 'TEST123'
+          gamecode: 'TEST123',
+          circumstance: {
+            name: 'Test circumstance',
+            description: 'Test description'
+          }
         }
       }
     );
