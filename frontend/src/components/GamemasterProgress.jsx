@@ -19,12 +19,13 @@ const GamemasterProgress = () => {
       try {
         const response = await authFetch(`/rooms/${gamecode}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch room data');
+          throw new Error(`Failed to fetch room data: ${response.status}`);
         }
         const data = await response.json();
         setRoomData(data);
         setError(null);
       } catch (err) {
+        console.error('Error fetching room data:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -38,7 +39,7 @@ const GamemasterProgress = () => {
     const interval = setInterval(fetchRoomData, 2000);
 
     return () => clearInterval(interval);
-  }, [gamecode]);
+  }, [gamecode, authFetch]);
 
   const handlePauseResume = async () => {
     try {
@@ -220,26 +221,37 @@ const GamemasterProgress = () => {
         <h2>Teams in Game ({roomData?.teams?.length || 0})</h2>
         {roomData?.teams && roomData.teams.length > 0 ? (
           <div className="teams-list">
-            {roomData.teams.map((team, index) => (
-              <div key={index} className="team-item">
-                <div className="team-info">
-                  <div className="team-name">{team.team_name}</div>
-                  <div className="team-circumstance">{team.circumstance}</div>
+            {roomData.teams.map((team, index) => {
+              // Find full circumstance data for this team
+              const circumstanceName = team.circumstance || '';
+              const availableCircumstances = roomData.board_config?.circumstances || [];
+              const circumstanceObj = availableCircumstances.find(c => c.title === circumstanceName);
+              const circumstanceData = circumstanceObj
+                ? { name: circumstanceObj.title, description: circumstanceObj.description }
+                : { name: circumstanceName, description: '' };
+
+              return (
+                <div key={index} className="team-item">
+                  <div className="team-info">
+                    <div className="team-name">{team.team_name}</div>
+                    <div className="team-circumstance">{team.circumstance}</div>
+                  </div>
+                  <button
+                    className="btn-view-board"
+                    onClick={() => navigate(`/game/${gamecode}/${team.team_name}`, {
+                      state: {
+                        boardConfig: roomData.board_config,
+                        isGamemaster: true,
+                        gamecode: gamecode,
+                        circumstance: circumstanceData
+                      }
+                    })}
+                  >
+                    View Board
+                  </button>
                 </div>
-                <button
-                  className="btn-view-board"
-                  onClick={() => navigate(`/game/${gamecode}/${team.team_name}`, {
-                    state: {
-                      boardConfig: roomData.board_config,
-                      isGamemaster: true,
-                      gamecode: gamecode
-                    }
-                  })}
-                >
-                  View Board
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="no-teams">No teams have joined yet</div>

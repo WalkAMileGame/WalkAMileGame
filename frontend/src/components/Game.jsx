@@ -20,11 +20,13 @@ const Game = () => {
   const [showInstructions, setShowInstructions] = useState(false);
   const [activeMarkers, setActiveMarkers] = useState(new Set());
   const [points, setPoints] = useState(0)
-  const [circumstance, setCircumstance] = useState({ name: '', description: '' });
+  const [circumstance, setCircumstance] = useState(
+    location.state?.circumstance || { name: '', description: '' }
+  );
   const [isInitialized, setIsInitialized] = useState(false); // Add initialization flag
   const [timeLeft, setTimeLeft] = useState(null); // Timer state
   const [isCircumstanceMinimized, setIsCircumstanceMinimized] = useState(false);
-  
+
   const { authFetch } = useAuth();
 
   const [rotations, setRotations] = useState({
@@ -123,39 +125,6 @@ const Game = () => {
     return () => clearInterval(interval);
   }, [gamecode, navigate, isGamemasterViewing, isSpectator, authFetch]);
 
-    // Fetch team circumstance and its description
-  useEffect(() => {
-    const fetchCircumstance = async () => {
-      try {
-        // Get team's circumstance name from room data
-        const roomRes = await authFetch(`/rooms/${gamecode}`);
-        if (!roomRes.ok) return;
-
-        const roomData = await roomRes.json();
-        const team = roomData.teams.find(t => t.team_name === teamname);
-
-        if (team?.circumstance) {
-          // Fetch all circumstances to get the description
-          const circumstancesRes = await authFetch(`/circumstances`);
-          if (circumstancesRes.ok) {
-            const circumstances = await circumstancesRes.json();
-            const found = circumstances.find(c => c.title === team.circumstance);
-
-            setCircumstance({
-              name: team.circumstance,
-              description: found?.description || ''
-            });
-          } else {
-            setCircumstance({ name: team.circumstance, description: '' });
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch circumstance:", err);
-      }
-    };
-
-    fetchCircumstance();
-  }, [gamecode, teamname]);
 
   const updatingPoints = (change = -1) => {
     authFetch(`/rooms/${gamecode}/teams/${teamname}/energy`, {
