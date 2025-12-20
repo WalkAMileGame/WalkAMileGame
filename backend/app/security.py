@@ -14,6 +14,7 @@ from .db import db
 
 load_dotenv()
 SECRET_KEY = getenv("SECRET_KEY")
+print("Secret key:", SECRET_KEY)
 ALGORITHM = getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 

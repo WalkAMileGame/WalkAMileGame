@@ -23,7 +23,10 @@ export default function Lobby() {
   const inviteCode = (location.state?.inviteCode || gamecode || '').trim();
   const isGamemaster = location.state?.isGamemaster || false;
   const boardConfig = location.state?.boardConfig;
-  const availableCircumstances = boardConfig?.circumstances || [];
+  const availableCircumstances =
+    boardConfig?.circumstances ||
+    roomData?.board_config?.circumstances ||
+    [];
 
   const { authFetch } = useAuth();
 
@@ -109,8 +112,20 @@ export default function Lobby() {
           body: JSON.stringify({ board_state: roomData.board_config }),
         });
 
+        // Find team's circumstance data
+        const team = roomData.teams?.find(t => t.team_name === savedTeamName);
+        const circumstanceName = team?.circumstance || '';
+        const circumstanceObj = availableCircumstances.find(c => c.title === circumstanceName);
+        const circumstanceData = circumstanceObj
+          ? { name: circumstanceObj.title, description: circumstanceObj.description }
+          : { name: '', description: '' };
+
         navigate(`/game/${inviteCode}/${savedTeamName}`, {
-          state: { boardConfig: roomData.board_config, teamName: savedTeamName },
+          state: {
+            boardConfig: roomData.board_config,
+            teamName: savedTeamName,
+            circumstance: circumstanceData
+          },
         });
 
       } catch (err) {
@@ -119,7 +134,7 @@ export default function Lobby() {
     };
 
     saveBoardAndNavigate();
-  }, [roomData?.game_started, isGamemaster, inviteCode, navigate, roomData?.board_config]);
+  }, [roomData?.game_started, isGamemaster, inviteCode, navigate, roomData?.board_config, roomData?.teams, availableCircumstances]);
 
 
   // --- Create room ---
