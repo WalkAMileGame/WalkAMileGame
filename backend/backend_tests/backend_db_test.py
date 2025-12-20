@@ -1,7 +1,5 @@
 """Tests for database initialization and connection"""
-from unittest.mock import MagicMock, patch, call
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from backend.app.db import initialize_database, db, client
 

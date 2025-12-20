@@ -1,9 +1,7 @@
 """Tests for code_management.py functions"""
-
 import re
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
-
 from dateutil.relativedelta import relativedelta
 
 from backend.app.code_management import (activate_code, generate_new_access_code,

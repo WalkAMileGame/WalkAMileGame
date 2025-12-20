@@ -1,8 +1,6 @@
 """Tests for main.py"""
 import os
-import sys
 from unittest.mock import patch, MagicMock
-import pytest
 from fastapi.testclient import TestClient
 
 

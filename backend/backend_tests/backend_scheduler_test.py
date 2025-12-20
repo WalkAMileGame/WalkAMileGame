@@ -2,8 +2,6 @@
 import os
 import time
 from unittest.mock import MagicMock, patch
-
-import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.cleanup import cleanup_old_games

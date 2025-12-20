@@ -2,8 +2,6 @@
 from unittest.mock import MagicMock, patch
 from datetime import datetime, timezone, timedelta
 
-import pytest
-
 from backend.app.cleanup import cleanup_old_games, create_cleanup_index
 
 

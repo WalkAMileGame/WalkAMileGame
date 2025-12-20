@@ -1,8 +1,7 @@
 """tests for backend fastapi code"""
 import os
-import sys
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from dateutil.relativedelta import relativedelta
@@ -67,6 +66,11 @@ def test_get_items(mock_db_instance):
     mock_db_instance.points.find.assert_called_once_with({}, {"_id": 0})
 
 
+# --------------------------------------------------------------------------------------------
+#                               Points management Tests
+# --------------------------------------------------------------------------------------------
+
+
 @patch('backend.app.api.db')
 def test_update_points_increase(mock_db_instance):
     """Test updating points with positive change"""
@@ -119,6 +123,11 @@ def test_update_points_no_body():
     """Test updating points without request body"""
     response = client.put("/items")
     assert response.status_code == 422  # Validation error
+
+
+# --------------------------------------------------------------------------------------------
+#                               Health check Tests
+# --------------------------------------------------------------------------------------------
 
 
 @patch('backend.app.api.db')
@@ -178,6 +187,11 @@ def test_health_check_various_db_errors(mock_db_instance):
         assert error_msg in response_data["message"]
 
 
+# --------------------------------------------------------------------------------------------
+#                               User management tests
+# --------------------------------------------------------------------------------------------
+
+
 @patch('backend.app.api.db')
 def test_login_user_doesnt_exist(mock_db_instance):
     """Test login attempt with non-existing user"""
@@ -205,8 +219,7 @@ def test_login_wrong_password_or_email(mock_db_instance, mock_verify_password):
         "_id": "mock_id",
         "email": "test@example.com",
         "password": "mock_hashed_password",
-        "role": "admin",
-        "pending": False
+        "role": "admin"
     }
     mock_db_instance.codes.find_one.return_value = {
         "code": "valid_code",
@@ -242,8 +255,7 @@ def test_login_successful_login_attempt(
         "_id": "mock_id",
         "email": "test@example.com",
         "password": "mock_hashed_password",
-        "role": "admin",
-        "pending": False
+        "role": "admin"
     }
     mock_db_instance.codes.find_one.return_value = {
         "code": "valid_code",
@@ -394,8 +406,7 @@ def test_register_email_already_in_use(mock_db_instance):
         "_id": "mock_id",
         "email": "test@example.com",
         "password": "mock_hashed_password",
-        "role": "admin",
-        "pending": False
+        "role": "admin"
     }
     mock_db_instance.codes.find_one.return_value = {
         "code": "valid_code",
@@ -688,116 +699,23 @@ def test_read_current_user():
     assert response.json() == mock_user
 
     app.dependency_overrides = {}
-
-
-# Board Management Tests
+    
 
 @patch('backend.app.api.db')
-def test_save_board_success(mock_db_instance):
-    """Test successfully saving a board"""
-    mock_db_instance.users.update_one.return_value = MagicMock()
+def test_remove_access_code(mock_db_instance):
+    """Test removing accesscode from db"""
+    code = "AAAA-AAAA-AAAA-AAAA"
 
-    response = client.put("/save_board", json={
-        "name": "Test Board",
-        "ringData": [
-            {
-                "id": 1,
-                "innerRadius": 100,
-                "outerRadius": 200,
-                "labels": []
-            }
-        ]
-    })
+    client.request(
+        "DELETE", 
+        "/remove_access_code", 
+        json={"code": code}
+    )
 
-    assert response.status_code == 200
-    mock_db_instance.users.update_one.assert_called_once()
+    mock_db_instance.codes.delete_one.assert_called_once_with(
+        {"code": code}
+    )
 
-
-@patch('backend.app.api.db')
-def test_save_board_invalid_data(mock_db_instance):
-    """Test saving a board with invalid data"""
-    response = client.put("/save_board", json={
-        "name": "Test Board"
-        # Missing ringData
-    })
-
-    assert response.status_code == 422
-
-
-@patch('backend.app.api.db')
-def test_delete_board_success(mock_db_instance):
-    """Test successfully deleting a board"""
-    mock_db_instance.users.update_one.return_value = MagicMock()
-
-    response = client.request("DELETE", "/delete", json={
-        "name": "Test Board"
-    })
-
-    assert response.status_code == 200
-    mock_db_instance.users.update_one.assert_called_once_with(
-        {"email": "admin@test.com"}, {"$pull": {"boards": {"name": "Test Board"}}})
-
-
-@patch('backend.app.api.db')
-def test_load_all_boards(mock_db_instance):
-    """Test loading all boards"""
-    mock_boards = [
-        {"name": "Board 1", "ringData": []},
-        {"name": "Board 2", "ringData": []}
-    ]
-    mock_db_instance.boards.find.return_value = mock_boards
-    mock_db_instance.users.find_one.return_value = {"boards": []}
-
-    response = client.get("/load_boards")
-
-    assert response.status_code == 200
-    assert response.json() == mock_boards
-    mock_db_instance.boards.find.assert_called_once()
-
-
-@patch('backend.app.api.db')
-def test_load_all_boards_empty(mock_db_instance):
-    """Test loading boards when none exist"""
-    mock_db_instance.boards.find.return_value = []
-    mock_db_instance.users.find_one.return_value = {"boards": []}
-
-    response = client.get("/load_boards")
-
-    assert response.status_code == 200
-    assert response.json() == []
-
-
-# Instructions Tests
-
-@patch('backend.app.api.db')
-def test_load_instructions_success(mock_db_instance):
-    """Test successfully loading instructions"""
-    mock_instructions = {
-        "id": "0",
-        "instructions": "Game instructions here"
-    }
-    mock_db_instance.instructions.find_one.return_value = mock_instructions
-
-    response = client.get("/instructions")
-
-    assert response.status_code == 200
-    assert response.json() == mock_instructions
-    mock_db_instance.instructions.find_one.assert_called_once_with({"id": "0"}, {
-                                                                   "_id": 0})
-
-
-@patch('backend.app.api.db')
-def test_load_instructions_not_found(mock_db_instance):
-    """Test loading instructions when none exist"""
-    mock_db_instance.instructions.find_one.return_value = None
-
-    response = client.get("/instructions")
-
-    assert response.status_code == 200
-    assert response.json() == {"instructions": "No instructions found."}
-
-
-# User Management Tests
 
 @patch('backend.app.api.db')
 def test_accept_user_success(mock_db_instance):
@@ -877,3 +795,117 @@ def test_load_users_empty(mock_db_instance):
 
     assert response.status_code == 200
     assert response.json() == {'codes': [], 'users': []}
+
+
+# --------------------------------------------------------------------------------------------
+#                               Board management Tests
+# --------------------------------------------------------------------------------------------
+
+
+@patch('backend.app.api.db')
+def test_save_board_success(mock_db_instance):
+    """Test successfully saving a board"""
+    mock_db_instance.users.update_one.return_value = MagicMock()
+
+    response = client.put("/save_board", json={
+        "name": "Test Board",
+        "ringData": [
+            {
+                "id": 1,
+                "innerRadius": 100,
+                "outerRadius": 200,
+                "labels": []
+            }
+        ]
+    })
+
+    assert response.status_code == 200
+    mock_db_instance.users.update_one.assert_called_once()
+
+
+@patch('backend.app.api.db')
+def test_save_board_invalid_data(mock_db_instance):
+    """Test saving a board with invalid data"""
+    response = client.put("/save_board", json={
+        "name": "Test Board"
+        # Missing ringData
+    })
+
+    assert response.status_code == 422
+
+
+@patch('backend.app.api.db')
+def test_delete_board_success(mock_db_instance):
+    """Test successfully deleting a board"""
+    mock_db_instance.users.update_one.return_value = MagicMock()
+
+    response = client.request("DELETE", "/delete", json={
+        "name": "Test Board"
+    })
+
+    assert response.status_code == 200
+    mock_db_instance.users.update_one.assert_called_once_with(
+        {"email": "admin@test.com"}, {"$pull": {"boards": {"name": "Test Board"}}})
+
+
+@patch('backend.app.api.db')
+def test_load_all_boards(mock_db_instance):
+    """Test loading all boards"""
+    mock_boards = [
+        {"name": "Board 1", "ringData": []},
+        {"name": "Board 2", "ringData": []}
+    ]
+    mock_db_instance.boards.find.return_value = mock_boards
+    mock_db_instance.users.find_one.return_value = {"boards": []}
+
+    response = client.get("/load_boards")
+
+    assert response.status_code == 200
+    assert response.json() == mock_boards
+    mock_db_instance.boards.find.assert_called_once()
+
+
+@patch('backend.app.api.db')
+def test_load_all_boards_empty(mock_db_instance):
+    """Test loading boards when none exist"""
+    mock_db_instance.boards.find.return_value = []
+    mock_db_instance.users.find_one.return_value = {"boards": []}
+
+    response = client.get("/load_boards")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+# --------------------------------------------------------------------------------------------
+#                               Instructions Tests
+# --------------------------------------------------------------------------------------------
+
+
+@patch('backend.app.api.db')
+def test_load_instructions_success(mock_db_instance):
+    """Test successfully loading instructions"""
+    mock_instructions = {
+        "id": "0",
+        "instructions": "Game instructions here"
+    }
+    mock_db_instance.instructions.find_one.return_value = mock_instructions
+
+    response = client.get("/instructions")
+
+    assert response.status_code == 200
+    assert response.json() == mock_instructions
+    mock_db_instance.instructions.find_one.assert_called_once_with({"id": "0"}, {
+                                                                   "_id": 0})
+
+
+@patch('backend.app.api.db')
+def test_load_instructions_not_found(mock_db_instance):
+    """Test loading instructions when none exist"""
+    mock_db_instance.instructions.find_one.return_value = None
+
+    response = client.get("/instructions")
+
+    assert response.status_code == 200
+    assert response.json() == {"instructions": "No instructions found."}
+
