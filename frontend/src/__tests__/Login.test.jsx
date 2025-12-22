@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event';
 import Login from '../components/Login';
 import { useAuth } from '../context/AuthContext';
 import { expect, vi } from 'vitest';
-import { MemoryRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
+import { waitFor } from '@testing-library/react';
 
 
 vi.mock('../api', () => ({
@@ -287,7 +288,7 @@ test('calls logout and navigates to root on logout', async () => {
     user: { email: 'test@example.com' },
     login: mockLogin,
     register: mockRegister,
-    logout: mockLogout, // <-- Use the new spy
+    logout: mockLogout,
     error: null,
     setError: vi.fn(),
   });
@@ -305,4 +306,57 @@ test('calls logout and navigates to root on logout', async () => {
 
   expect(mockLogout).toHaveBeenCalledTimes(1);
   expect(mockNavigate).toHaveBeenCalledWith('/');
+});
+
+test('transitions to renewal form on expired account error and submits renewal', async () => {
+  const user = userEvent.setup();
+
+  const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+  mockLogin.mockRejectedValueOnce(new Error("ACCOUNT_EXPIRED"));
+
+  global.fetch = vi.fn(() =>
+    Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ message: "Renewed" })
+    })
+  );
+
+  render(
+    <MemoryRouter>
+      <Login />
+    </MemoryRouter>
+  );
+
+  await user.type(screen.getByLabelText(/email address/i), 'expired@test.com');
+  await user.type(screen.getByLabelText(/^Password$/i), 'password123');
+
+  const loginButton = screen.getAllByRole('button', { name: /Login/i }).find(
+      (btn) => btn.type === 'submit'
+  );
+  await user.click(loginButton);
+
+  expect(await screen.findByText(/Your account has expired/i)).toBeInTheDocument();
+
+  expect(screen.getByRole('heading', { name: /Reactivate Account/i })).toBeInTheDocument();
+
+  await user.type(screen.getByLabelText(/New Registration Code/i), 'NEW-CODE-123');
+
+  await user.click(screen.getByRole('button', { name: /Reactivate Account/i }));
+
+  await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining("Account successfully renewed"));
+  });
+
+  expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/renew-access'),
+      expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"new_code":"NEW-CODE-123"')
+      })
+  );
+
+  expect(screen.getByRole('heading', { name: /Login/i })).toBeInTheDocument();
+
+  alertSpy.mockRestore();
 });
