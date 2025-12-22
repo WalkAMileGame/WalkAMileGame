@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import '../styles/EditUsers.css';
 import Snackbar from "./ui/snackbar"
-import { API_BASE } from "../api";
 import { useAuth } from '../context/AuthContext';
 import searchIcon from '../styles/icons/searchicon.png';
 import deleteIcon from '../styles/icons/deleteicon.png';
 import promoteIcon from '../styles/icons/uparrow.png';
 import demoteIcon from '../styles/icons/downarrow.png';
 import userIcon from '../styles/icons/usericon.png';
-import acceptIcon from '../styles/icons/accepticon.png';
-import rejectIcon from '../styles/icons/rejecticon.png';
 
 
 const EditUsers = () => {
@@ -271,51 +267,6 @@ const { user, authFetch } = useAuth();
     setShowPopup(false);
     setSelectedUser("");
   };
-
-  const handleDeny = async (email) => {
-    const confirmBox = window.confirm(
-      `Are you sure you want to deny ${email}?`
-    )
-    if (!confirmBox) {
-      setSelectedUser("")
-      setSnackbarMessage("Deny canceled");
-      setShowSnackbar(true);
-      return;
-    }
-    setIsDeleting(true)
-    try {
-      const response = await removeUser(email);
-      if (response.ok) {
-        const updatedUsers = pendingUsers.filter(u => u.email !== email);
-        setPendingUsers(updatedUsers);
-      }
-
-      if (!response.ok) {
-        let errorMsg = "Failed to deny user.";
-        try {
-          const data = await response.json();
-          if (data?.error) {
-            errorMsg = ` ${data.error}`;
-          }
-        } catch {
-          // ignore JSON parse errors
-        }
-        setSnackbarMessage(errorMsg);
-        setShowSnackbar(true);
-        return;
-      }
-
-      setSnackbarMessage("User denied successfully!");
-      setShowSnackbar(true);
-    } catch (err) {
-      console.error("Deny failed:", err);
-      setSnackbarMessage("Failed to deny user (network error).");
-      setShowSnackbar(true);
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
 
   const removeUser = (userEmail) => {
     return authFetch('/remove_user', {
