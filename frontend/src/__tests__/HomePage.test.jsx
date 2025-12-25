@@ -4,11 +4,13 @@ import AboutUs from '../components/AboutUs'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
+// Create stable mock function
+const mockAuthFetch = vi.fn((...args) => global.fetch(...args));
 
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     user: { email: 'admin@test.com', role: 'admin' },
-    authFetch: vi.fn((...args) => global.fetch(...args)),
+    authFetch: mockAuthFetch,
   }),
 }));
 

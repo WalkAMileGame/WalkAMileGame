@@ -3,19 +3,22 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import GameComparison from '../components/GameComparison';
 
+// Create stable mock function
+const mockAuthFetch = async (endpoint, options = {}) => {
+  return await global.fetch(`http://localhost:8000/api${endpoint}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    }
+  });
+};
+
 // Mock the AuthContext
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     user: { email: 'test@test.com', role: 'user' },
-    authFetch: async (endpoint, options = {}) => {
-      return await global.fetch(`http://localhost:8000/api${endpoint}`, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        }
-      });
-    },
+    authFetch: mockAuthFetch,
   }),
 }));
 

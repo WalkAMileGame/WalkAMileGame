@@ -60,7 +60,7 @@ const Game = () => {
     const interval = setInterval(initializeBoard, 2000);
     return () => clearInterval(interval);
   }
-}, [gamecode, teamname, isSpectator, isGamemasterViewing]);
+}, [gamecode, teamname, isSpectator, isGamemasterViewing, authFetch]);
 
 
   const restoreEnergyMarkers = (boardData) => {
@@ -97,7 +97,7 @@ const Game = () => {
       const interval = setInterval(fetchEnergy, 2000);
       return () => clearInterval(interval);
     }
-  }, [gamecode, teamname, isSpectator, isGamemasterViewing]);
+  }, [gamecode, teamname, isSpectator, isGamemasterViewing, authFetch]);
 
     // Poll for comparison mode and redirect when activated
   useEffect(() => {

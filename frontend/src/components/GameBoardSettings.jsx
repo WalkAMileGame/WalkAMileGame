@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/GameboardSettings.css';
 import Snackbar from "./ui/snackbar"
@@ -80,18 +80,12 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const { user, authFetch } = useAuth();
-  
+
   useEffect(() => {
     setLocalConfig(gameConfig);
   }, [gameConfig]);
 
-  useEffect(() => {
-    if (isVisible) {
-      loadGameboards();
-    }
-  }, [isVisible]);
-
-  const loadGameboards = async () => {
+  const loadGameboards = useCallback(async () => {
     try {
       setIsLoading(true);
       console.log("loading gamebords");
@@ -108,8 +102,14 @@ const GameBoardSettings = ({ gameConfig, onConfigChange, isVisible }) => {
     } finally {
       setIsLoading(false);
     }
-    
-  };
+
+  }, [authFetch]);
+
+  useEffect(() => {
+    if (isVisible) {
+      loadGameboards();
+    }
+  }, [isVisible, loadGameboards]);
 
   const handleCircumstances = () => {
     navigate("/select_circumstances", { state: { config: localConfig } });

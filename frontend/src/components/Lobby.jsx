@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Lobby.css';
@@ -79,6 +79,25 @@ export default function Lobby() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // --- Load room data ---
+  const loadRoomData = useCallback(async () => {
+    try {
+      const response = await authFetch(`/rooms/${inviteCode}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRoomData(data);
+        if (!isEditingTimeRef.current) {
+          setTimeRemaining(data.time_remaining);
+          setTimeInput(String(data.time_remaining));
+        }
+      } else if (response.status === 404) {
+        console.log('Room not found yet, will retry...');
+      }
+    } catch (err) {
+      console.error('Error loading room:', err);
+    }
+  }, [authFetch, inviteCode]);
+
   // --- Poll room data after creation ---
   useEffect(() => {
     if (!roomCreated) return;
@@ -96,7 +115,7 @@ export default function Lobby() {
 
     const timer = setTimeout(startPolling, 500);
     return () => clearTimeout(timer);
-  }, [roomCreated]);
+  }, [roomCreated, loadRoomData]);
 
   // --- Redirect players when game starts ---
   useEffect(() => {
@@ -134,7 +153,7 @@ export default function Lobby() {
     };
 
     saveBoardAndNavigate();
-  }, [roomData?.game_started, isGamemaster, inviteCode, navigate, roomData?.board_config, roomData?.teams, availableCircumstances]);
+  }, [roomData?.game_started, isGamemaster, inviteCode, navigate, roomData?.board_config, roomData?.teams, availableCircumstances, authFetch]);
 
 
   // --- Create room ---
@@ -177,25 +196,6 @@ export default function Lobby() {
     } catch (err) {
       console.error('Error creating room:', err);
       alert('Error creating room. Please try again.');
-    }
-  };
-
-  // --- Load room data ---
-  const loadRoomData = async () => {
-    try {
-      const response = await authFetch(`/rooms/${inviteCode}`);
-      if (response.ok) {
-        const data = await response.json();
-        setRoomData(data);
-        if (!isEditingTimeRef.current) {
-          setTimeRemaining(data.time_remaining);
-          setTimeInput(String(data.time_remaining));
-        }
-      } else if (response.status === 404) {
-        console.log('Room not found yet, will retry...');
-      }
-    } catch (err) {
-      console.error('Error loading room:', err);
     }
   };
 
