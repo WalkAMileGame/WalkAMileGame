@@ -1,13 +1,14 @@
-/* global global */
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { vi } from 'vitest';
 import GameBoardSettings from '../components/GameBoardSettings'
 
+// Create stable mock function
+const mockAuthFetch = vi.fn((...args) => global.fetch(...args));
 
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     user: { email: 'admin@test.com', role: 'admin' },
-    authFetch: vi.fn((...args) => global.fetch(...args)),
+    authFetch: mockAuthFetch,
   }),
 }));
 

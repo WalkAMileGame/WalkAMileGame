@@ -5,13 +5,15 @@ import LandingPage from '../components/LandingPage'
 import { describe, expect, vi } from 'vitest';
 import EditUsers from '../components/EditUsers';
 
+// Create stable mock function
+const mockAuthFetch = vi.fn((...args) => global.fetch(...args));
 
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     user: { email: 'admin@test.com', role: 'admin' },
     login: vi.fn(),
     logout: vi.fn(),
-	authFetch: vi.fn((...args) => global.fetch(...args)),
+    authFetch: mockAuthFetch,
   }),
 }));
 

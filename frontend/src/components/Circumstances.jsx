@@ -70,7 +70,7 @@ const Circumstances = () => {
     };
 
     loadCircumstances();
-  }, []);
+  }, [authFetch]);
 
   const openEditor = (i) => {
     setEditingIndex(i);

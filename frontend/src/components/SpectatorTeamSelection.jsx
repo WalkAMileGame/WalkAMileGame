@@ -50,7 +50,7 @@ const SpectatorTeamSelection = () => {
     // Poll every 2 seconds to check for comparison mode
     const interval = setInterval(fetchRoomData, 2000);
     return () => clearInterval(interval);
-  }, [gamecode, navigate]);
+  }, [gamecode, navigate, authFetch]);
 
   const handleSelectTeam = (teamName) => {
     navigate(`/game/${gamecode}/${teamName}`, {

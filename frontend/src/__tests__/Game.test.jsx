@@ -1,5 +1,4 @@
 import Game from '../components/Game'
-/* global global */
 import userEvent from '@testing-library/user-event'
 import { expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
@@ -57,10 +56,13 @@ const defaultGameConfig =  {
       ]
     }
 
+// Create stable mock function
+const mockAuthFetch = vi.fn((...args) => global.fetch(...args));
+
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     user: { email: 'admin@test.com', role: 'admin' },
-    authFetch: vi.fn((...args) => global.fetch(...args)),
+    authFetch: mockAuthFetch,
   }),
 }));
 

@@ -4,12 +4,15 @@ import { MemoryRouter } from 'react-router-dom';
 import Circumstances from '../components/Circumstances';
 import { vi } from 'vitest';
 
+// Create stable mock function
+const mockAuthFetch = vi.fn((...args) => global.fetch(...args));
+
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     user: { email: 'test@example.com', role: 'admin' },
     login: vi.fn(),
     logout: vi.fn(),
-    authFetch: vi.fn((...args) => global.fetch(...args)),
+    authFetch: mockAuthFetch,
   }),
 }));
 

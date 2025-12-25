@@ -106,7 +106,7 @@ const GameBoard = () => {
   authFetch(`/items`)
     .then((res) => res.json())
     .then((data) => setPoints(data.values));
-  }, []);
+  }, [authFetch]);
 
   const updatingPoints = (change = -1) => { // takes input number now
     authFetch(`/items`, {

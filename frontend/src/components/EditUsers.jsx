@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import '../styles/EditUsers.css';
 import Snackbar from "./ui/snackbar"
 import { useAuth } from '../context/AuthContext';
@@ -29,11 +29,7 @@ const EditUsers = () => {
 
 const { user, authFetch } = useAuth();
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       console.log("loading users");
       const res = await authFetch('/load_user_data');
@@ -66,7 +62,11 @@ const { user, authFetch } = useAuth();
     } catch (error) {
       console.error("Error loading users:", error)
     }
-  };
+  }, [authFetch]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleGenerateCode = async () => {
     setIsSaving(true);

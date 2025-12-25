@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/HostGame.css';
 import { useAuth } from '../context/AuthContext';
@@ -66,13 +66,8 @@ export default function HostGamePage() {
   const [isGamemaster] = useState(true);
 
   const { user, authFetch } = useAuth();
-  
-  // Load gameboards when component mounts
-  useEffect(() => {
-    loadGameboards();
-  }, []);
 
-  const loadGameboards = async () => {
+  const loadGameboards = useCallback(async () => {
     setIsLoadingBoards(true);
     try {
         const response = await authFetch(`/load_boards`);
@@ -84,7 +79,12 @@ export default function HostGamePage() {
     } finally {
         setIsLoadingBoards(false);
     }
-  };
+  }, [authFetch]);
+
+  // Load gameboards when component mounts
+  useEffect(() => {
+    loadGameboards();
+  }, [loadGameboards]);
 
   const generateCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
